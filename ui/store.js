@@ -181,6 +181,8 @@ export class Store {
       const { result } = await this._api('tree', { u, db, node: id, key });
       // TODO what if no children?
       children.value = result;
+    } catch (ex) {
+      children.error = String(ex);
     } finally {
       children.loading = false;
     }

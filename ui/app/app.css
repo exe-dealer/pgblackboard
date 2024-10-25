@@ -18,7 +18,7 @@
 }
 
 .app {
-  --app-pane_left_min: 8rem;
+  --app-pane_left_min: 10rem; /* avoid table treenode overflow, keep badgs right-aligned */
   --app-pane_code_min: 17rem; /* fit "run, abort, map" buttons */
   --app-pane_right_min: 8rem;
   --app-header_h: 2.5rem;
@@ -231,8 +231,8 @@
 }
 
 .app-split_map {
-  grid-area: map;
-  align-self: start;
+  grid-area: datum;
+  align-self: end;
   cursor: ns-resize;
 }
 

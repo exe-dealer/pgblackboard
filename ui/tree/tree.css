@@ -19,6 +19,17 @@
   }
 }
 
+.tree-error {
+  padding-inline: calc(1rem + var(--tree-level) * 1rem) 2rem;
+  padding-block: .4rem;
+  line-height: 1.2rem;
+  font-size: .875rem;
+  color: hsl(330 75% 65%);
+  .light & {
+    color: hsl(330 90% 38%);
+  }
+}
+
 .tree-marker {
   position: absolute;
   inset: 0 auto;
