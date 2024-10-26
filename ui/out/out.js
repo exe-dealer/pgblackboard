@@ -121,7 +121,10 @@ const methods = {
                     'data-col_idx': col_idx,
                     innerHTML: '&mldr;',
                   })),
-                  // TODO last td (delete/revert)?
+                  {
+                    tag: 'td',
+                    class: 'out-td_last',
+                  },
                 ],
               }, // tr.out-row--new
             ],
