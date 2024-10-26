@@ -589,9 +589,13 @@ async function* iter_stream(stream) {
 
 function extract_dbname_from_sql(sql) {
   let db;
-  sql = sql.replace(/^\s*\\connect\s+(\w+|("[^"]*")+)/, (a, q_dbname) => {
-    db = q_dbname; // TODO unquote
-    return ' '.repeat(a.length);
+  sql = sql.replace(/^\s*\\connect\s+(.*)/, (line, arg) => {
+    arg = arg.trim();
+    if (/^"/.test(arg)) { // unquote
+      arg = arg.replace(/^"|"$|"(?=")/g, '');
+    }
+    db = arg;
+    return ' '.repeat(line.length);
   });
   return { db, sql };
 }
