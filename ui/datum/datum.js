@@ -2,10 +2,14 @@ import { editor } from '../_vendor/monaco.js';
 
 const methods = {
   _render() {
-    return { tag: 'div', class: 'datum' };
+    return {
+      tag: 'div',
+      class: 'datum',
+      'data-null': this.is_null || null,
+    };
   },
   _mounted() {
-    this._model = editor.createModel('');
+    this._model = editor.createModel('null', 'json');
 
     this._editor = editor.create(this.$el, {
       // https://microsoft.github.io/monaco-editor/docs.html#interfaces/editor.IStandaloneEditorConstructionOptions.html
@@ -37,6 +41,19 @@ const methods = {
 
     this._editor.onDidFocusEditorText(this._on_focus);
     this._editor.onDidBlurEditorText(this._on_blur);
+
+    const null_el = this.$el.ownerDocument.createElement('div');
+    null_el.className = 'datum-null';
+    null_el.textContent = 'NULL';
+    this._editor.applyFontInfo(null_el);
+    this._editor.addContentWidget({
+      getId: _ => 'editor.widget.null_hint',
+      getDomNode: _ => null_el,
+      getPosition: _ => ({
+        position: { lineNumber: 1, column: 1 },
+        preference: [editor.ContentWidgetPositionPreference.EXACT],
+      }),
+    });
 
     window.debug_editor_datum = this._editor;
 
@@ -78,21 +95,17 @@ const methods = {
     this._model?.dispose(); // TODO async concurency
     this._model = model;
     this._editor.setModel(this._model);
-    this._editor.updateOptions({
-      readOnly: !updatable,
-      placeholder: init_val == null ? 'NULL' : null,
-    });
+    this._editor.updateOptions({ readOnly: !updatable });
     // if (typeOid == 3802) {
     //   await this._editor.getAction('editor.action.formatDocument').run();
     // }
 
+    this.is_null = (init_val == null);
     const empty_val = att_notnull ? '' : null; // TODO how to set '' to nullable column?
     model.onDidChangeContent(_ => {
       const new_val = this._model.getValue() || empty_val;
+      this.is_null = (new_val == null);
       this.$store.edit_datum(frame_idx, row_idx, col_idx, new_val);
-      this._editor.updateOptions({
-        placeholder: new_val == null ? 'NULL' : null,
-      });
     });
   },
   _on_req_datum_focus() {
@@ -115,4 +128,7 @@ const methods = {
 
 export default {
   methods,
+  data: _ => ({
+    is_null: false,
+  }),
 };
