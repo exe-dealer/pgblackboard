@@ -275,18 +275,24 @@ export class Store {
     }
   }
 
-  get curr_datum() {
-    const frame = this.out.frames[this.out.curr_frame_idx];
-    if (!frame) return;
-    // const col = out.cols?.[out.curr_col_idx];
-    return frame.rows[this.out.curr_row_idx].tuple[frame.curr_col_idx];
+  get_curr_rowcol() {
+    const { curr_frame_idx: frame_idx, curr_row_idx: row_idx, frames } = this.out;
+    const frame = frames[frame_idx];
+    const col_idx = frame?.curr_col_idx;
+    return { frame_idx, row_idx, col_idx };
+  }
+
+  get_datum(frame_idx, row_idx, col_idx) {
+    const frame = this.out.frames[frame_idx];
+    const { type, att_name, att_notnull } = frame?.cols?.[col_idx] || 0;
+    const { tuple, updates } = frame?.rows?.[row_idx] || 0;
+    const original_value = tuple?.[col_idx];
+    const { [col_idx]: value = original_value } = updates || [];
+    return { type, att_name, att_notnull, original_value, value };
   }
 
   delete_row(frame_idx, row_idx) {
     this.out.frames[frame_idx].rows[row_idx].will_delete = true;
-
-    // const row = this.out.frames[frame_idx].rows[row_idx];
-    // row.will_delete = !row.will_delete;
   }
 
   revert_row(frame_idx, row_idx) {
@@ -299,15 +305,7 @@ export class Store {
     }
   }
 
-  // edit_datum(frame_idx, row_idx, col_idx, new_value) {
-  //   const rows = this.out.frames[frame_idx].rows;
-  //   rows[row_idx] ||= { dirty: 'insert', tuple: [], updates: [] };
-  //   const row = rows[row_idx];
-  //   row.dirty ||= 'update';
-  //   row.updates[col_idx] = new_value;
-  // }
-
-  edit_datum(frame_idx, row_idx, col_idx, new_value) {
+  edit_row(frame_idx, row_idx, col_idx, new_value) {
     const rows = this.out.frames[frame_idx].rows;
     rows[row_idx] ||= {
       tuple: [],
@@ -496,13 +494,13 @@ export class Store {
         body,
       });
       if (!resp.ok) throw Error(`HTTP ${resp.status} ${resp.statusText}`, { cause: await resp.text() });
-      const msg_stream = iter_stream(
+      const msg_stream = (
         resp.body
         .pipeThrough(new TextDecoderStream())
-        .pipeThrough(new LineSplitter()),
+        .pipeThrough(new LineSplitter())
       );
       let frame = null;
-      for await (const line of msg_stream) {
+      for await (const line of iter_stream(msg_stream)) {
         const [tag, payload] = JSON.parse(line);
         out.suspended = null;
         switch (tag) {
@@ -518,13 +516,17 @@ export class Store {
             break;
           // TODO CopyData
           case 'rows':
-            // TODO set selected frame_idx/row_idx/col_idx
             frame.rows.push(...payload.map(tuple => ({
-              tuple,
+              tuple, // TODO Object.freeze?
               updates: [],
               will_insert: false,
               will_delete: false,
             })));
+            // select first row in first non empty table
+            if (out.curr_frame_idx == null && payload.length) {
+              out.curr_frame_idx = out.frames.length - 1;
+              out.curr_row_idx = 0;
+            }
             break;
           case 'complete':
           case 'error':

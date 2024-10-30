@@ -17,11 +17,6 @@ const style = {
     duration: 0, // instant theme switch
   },
   sources: {
-    'sat': {
-      type: 'raster',
-      tileSize: 256,
-      tiles: ['https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'],
-    },
     'ne_land': { // TODO land -> coastlines
       type: 'geojson',
       data: URL.createObjectURL(ne_land_blob),
@@ -41,6 +36,37 @@ const style = {
       data: { type: 'FeatureCollection', features: [] },
       tolerance: .2,
     },
+    'sat_esri': {
+      type: 'raster',
+      tileSize: 256,
+      maxzoom: 23,
+      tiles: ['https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'],
+    },
+    'sat_google': {
+      type: 'raster',
+      tileSize: 256,
+      maxzoom: 22,
+      tiles: [
+        'https://mt0.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',
+        'https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',
+        'https://mt2.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',
+        'https://mt3.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',
+      ],
+    },
+    'sat_bing': {
+      type: 'raster',
+      tileSize: 256,
+      tiles: [
+        'http://ecn.t0.tiles.virtualearth.net/tiles/a{quadkey}.jpeg?g=1',
+        'http://ecn.t1.tiles.virtualearth.net/tiles/a{quadkey}.jpeg?g=1',
+        'http://ecn.t2.tiles.virtualearth.net/tiles/a{quadkey}.jpeg?g=1',
+        'http://ecn.t3.tiles.virtualearth.net/tiles/a{quadkey}.jpeg?g=1',
+        'http://ecn.t4.tiles.virtualearth.net/tiles/a{quadkey}.jpeg?g=1',
+        'http://ecn.t5.tiles.virtualearth.net/tiles/a{quadkey}.jpeg?g=1',
+        'http://ecn.t6.tiles.virtualearth.net/tiles/a{quadkey}.jpeg?g=1',
+        'http://ecn.t7.tiles.virtualearth.net/tiles/a{quadkey}.jpeg?g=1',
+      ],
+    },
   },
   layers: [
     {
@@ -59,7 +85,7 @@ const style = {
     // {
     //   id: 'sat',
     //   type: 'raster',
-    //   source: 'sat',
+    //   source: 'sat_google',
     //   paint: {
     //     'raster-opacity': .5,
     //   },

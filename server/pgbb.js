@@ -64,6 +64,7 @@ class App {
     if (req.method != 'GET') {
       return Response.json('method not allowed', { status: 405 });
     }
+    // TODO etag
     const url = new URL(req.url);
     const pathname = url.pathname.replace(/^[/]$/g, '/index.html');
     // TODO fix parent traverse
@@ -225,7 +226,7 @@ class App {
         { user, database, password },
         this.pg_uri,
         {
-          _debug: true,
+          // _debug: true,
           _maxReadBuf: 10 << 20,
           // TODO _wakeInterval: 0
           TimeZone: tz,
@@ -505,6 +506,8 @@ const tree_sql = /*sql*/  `
     'pg\_temp\_%',
     'pg\_toast\_temp\_%'
   ])
+
+  -- TODO group by extensions?
 
   -- functions
   union all

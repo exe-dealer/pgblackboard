@@ -17,7 +17,9 @@ globalThis.MonacoEnvironment = {
 editor.defineTheme('pgbb-dark', {
 	base: 'vs-dark',
 	inherit: true,
-  colors: {},
+  colors: {
+    'editorLineNumber.foreground': '#5c5c5c',
+  },
 	rules: [
     { token: 'comment', foreground: '888888' },
     { token: 'string.sql', foreground: 'CE9178' },
@@ -40,7 +42,6 @@ const app = createApp({
   render() { return h(root_component); },
 });
 app.config.globalProperties.$store = store;
-app.config.globalProperties.$h = h;
 
 watchEffect(_ => {
   editor.setTheme(store.light_theme ? 'pgbb-light' : 'pgbb-dark');

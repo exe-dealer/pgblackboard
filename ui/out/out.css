@@ -137,11 +137,16 @@
     outline: 1px dashed currentColor;
     outline-offset: -.25rem;
   }
+  &::before {
+    font-size: .75rem;
+    color: hsl(0 0% 50%);
+  }
   &[data-null]::before {
     content: 'NULL';
-    font-size: .75rem;
     font-style: italic;
-    color: hsl(0 0% 50%);
+  }
+  &[data-unset]::before {
+    content: '\2022\2022\2022';
   }
   &[data-dirty] {
     text-decoration: underline wavy hsl(200 80% 40%) 1px;

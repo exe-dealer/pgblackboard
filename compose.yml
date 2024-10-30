@@ -21,3 +21,6 @@ services:
     ports: [7890:7890]
     command: [pgbb, postgres://192.168.55.152:5432]
     profiles: [prod]
+
+  # postgres:
+  #   image: docker.kagis.kz/geonomix/postgres:17.0-20241008

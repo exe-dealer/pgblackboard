@@ -2,14 +2,18 @@ import { editor } from '../_vendor/monaco.js';
 
 const methods = {
   _render() {
+    const { frame_idx, row_idx, col_idx } = this.$store.get_curr_rowcol();
+    const { value } = this.$store.get_datum(frame_idx, row_idx, col_idx);
+
     return {
       tag: 'div',
       class: 'datum',
-      'data-null': this.is_null || null,
+      'data-null': value === null || null,
+      'data-unset': value === undefined || null,
     };
   },
   _mounted() {
-    this._model = editor.createModel('null', 'json');
+    this._model = editor.createModel('');
 
     this._editor = editor.create(this.$el, {
       // https://microsoft.github.io/monaco-editor/docs.html#interfaces/editor.IStandaloneEditorConstructionOptions.html
@@ -42,13 +46,12 @@ const methods = {
     this._editor.onDidFocusEditorText(this._on_focus);
     this._editor.onDidBlurEditorText(this._on_blur);
 
-    const null_el = this.$el.ownerDocument.createElement('div');
-    null_el.className = 'datum-null';
-    null_el.textContent = 'NULL';
-    this._editor.applyFontInfo(null_el);
+    const blank_el = this.$el.ownerDocument.createElement('div');
+    blank_el.className = 'datum-blank';
+    this._editor.applyFontInfo(blank_el);
     this._editor.addContentWidget({
-      getId: _ => 'editor.widget.null_hint',
-      getDomNode: _ => null_el,
+      getId: _ => 'editor.widget.blank',
+      getDomNode: _ => blank_el,
       getPosition: _ => ({
         position: { lineNumber: 1, column: 1 },
         preference: [editor.ContentWidgetPositionPreference.EXACT],
@@ -58,7 +61,7 @@ const methods = {
     window.debug_editor_datum = this._editor;
 
     this.$watch(
-      this._get_curr_rowcol,
+      _ => this.$store.get_curr_rowcol(),
       this._watch_curr_rowcol,
       { immediate: true },
     );
@@ -69,43 +72,32 @@ const methods = {
     this._editor.dispose();
     this._model.dispose();
   },
-  _get_curr_rowcol() {
-    const frame_idx = this.$store.out.curr_frame_idx;
-    const row_idx = this.$store.out.curr_row_idx;
-    const col_idx = this.$store.out.frames[frame_idx]?.curr_col_idx;
-    const { type, att_name, att_notnull } = this.$store.out.frames[frame_idx]?.cols?.[col_idx] || 0;
-    const updatable = Boolean(att_name);
-    return { frame_idx, row_idx, col_idx, type, updatable, att_notnull };
-  },
-  _get_datum(frame_idx, row_idx, col_idx) {
-    // if (frame_idx == null || row_idx == null || row_idx < 0) return undefined;
-    const row = this.$store.out.frames[frame_idx]?.rows?.[row_idx];
-    if (!row) return undefined;
-    const new_val = row.updates[col_idx];
-    if (new_val !== undefined) return new_val;
-    return row.tuple[col_idx];
-  },
-  _watch_curr_rowcol({ frame_idx, row_idx, col_idx, updatable, type, att_notnull }) {
-    const init_val = this._get_datum(frame_idx, row_idx, col_idx);
-    const model = editor.createModel(
-      init_val || '',
-      this._get_language_of_pgtype(type),
-    );
+  _watch_curr_rowcol({ frame_idx, row_idx, col_idx }) {
+    // TODO special view when no selected cell
+    // TODO special case when inserting row, empty_val should use default value
+
+    const { type, att_name, att_notnull, original_value, value } = this.$store.get_datum(frame_idx, row_idx, col_idx);
+    const syntax = this._get_language_of_pgtype(type);
+    const model = editor.createModel(value || '', syntax);
 
     this._model?.dispose(); // TODO async concurency
     this._model = model;
     this._editor.setModel(this._model);
-    this._editor.updateOptions({ readOnly: !updatable });
+    this._editor.updateOptions({ readOnly: !att_name });
     // if (typeOid == 3802) {
     //   await this._editor.getAction('editor.action.formatDocument').run();
     // }
 
-    this.is_null = (init_val == null);
-    const empty_val = att_notnull ? '' : null; // TODO how to set '' to nullable column?
-    model.onDidChangeContent(_ => {
-      const new_val = this._model.getValue() || empty_val;
-      this.is_null = (new_val == null);
-      this.$store.edit_datum(frame_idx, row_idx, col_idx, new_val);
+    const blank = (
+      original_value === undefined ? undefined :
+      att_notnull ? '' :
+      null // TODO how to set '' to nullable column?
+    );
+    this._model.onDidChangeContent(_ => {
+      // TODO avoid getValue() on each keypress.
+      // We need to show only the starting piece in the table cell
+      const new_val = this._model.getValue() || blank;
+      this.$store.edit_row(frame_idx, row_idx, col_idx, new_val);
     });
   },
   _on_req_datum_focus() {
@@ -128,7 +120,4 @@ const methods = {
 
 export default {
   methods,
-  data: _ => ({
-    is_null: false,
-  }),
 };

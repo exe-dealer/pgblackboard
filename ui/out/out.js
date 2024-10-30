@@ -119,7 +119,7 @@ const methods = {
                     class: 'out-cell',
                     'data-selected': cell_is_selected(frame_idx, frame.rows.length, col_idx) || null,
                     'data-col_idx': col_idx,
-                    innerHTML: '&mldr;',
+                    'data-unset': true,
                   })),
                   {
                     tag: 'td',
@@ -218,7 +218,8 @@ const xTd = {
 
       return {
         tag: 'td',
-        'data-null': display == null || null,
+        'data-null': display === null || null,
+        'data-unset': display === undefined || null,
         'data-dirty': change !== undefined || null,
         innerHTML: display_html,
       };

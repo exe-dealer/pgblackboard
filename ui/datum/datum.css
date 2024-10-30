@@ -17,14 +17,17 @@
   }
 }
 
-.datum-null {
+.datum-blank {
   width: max-content;
   pointer-events: none;
   font-style: italic !important;
   font-weight: 300 !important;
-  opacity: 0;
+  opacity: .5;
 
-  .datum[data-null] & {
-    opacity: .5;
+  .datum[data-null] &::before {
+    content: 'NULL';
+  }
+  .datum[data-unset] &::before {
+    content: 'unset';
   }
 }
