@@ -291,8 +291,8 @@ const style = {
 
 export default {
   computed: {
-    curr_frame_idx: vm => vm.$store.out.curr_frame_idx,
-    curr_row_idx: vm => vm.$store.out.curr_row_idx,
+    selected_frame_idx: vm => vm.$store.out.selected_frame_idx,
+    selected_row_idx: vm => vm.$store.out.selected_row_idx,
     frames: vm => vm.$store.out.frames,
     features: vm => vm._compute_features(),
   },
@@ -366,8 +366,8 @@ export default {
 
     _compute_highlighted_features() {
       return this.features.filter(({ properties: p }) => (
-        p.frame_idx == this.curr_frame_idx &&
-        p.row_idx == this.curr_row_idx
+        p.frame_idx == this.selected_frame_idx &&
+        p.row_idx == this.selected_row_idx
       ));
     },
 
@@ -417,7 +417,7 @@ export default {
       const { frame_idx, row_idx } = feature.properties;
       const detail = { frame_idx, row_idx };
       this.$root.$el.dispatchEvent(new CustomEvent('req_row_focus', { detail }));
-      this.$store.set_curr_rowcol(frame_idx, row_idx);
+      this.$store.set_selected_rowcol(frame_idx, row_idx);
       // TODO zoom to feature extent
     },
     on_req_map_navigate({ detail: { frame_idx, row_idx } }) {

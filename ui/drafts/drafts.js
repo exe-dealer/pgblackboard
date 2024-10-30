@@ -2,7 +2,7 @@
 
 const methods = {
   _render() {
-    const { curr_draft_id, stored_draft_ids, drafts_kv } = this.$store;
+    const { selected_draft_id, stored_draft_ids, drafts_kv } = this.$store;
     return {
       tag: 'div',
       class: 'drafts',
@@ -10,8 +10,8 @@ const methods = {
         tag: 'div',
         class: 'drafts-item',
         key: draft_id,
-        'data-selected': draft_id == curr_draft_id || null,
-        onClick: _ => this.set_curr_draft(draft_id),
+        'data-selected': draft_id == selected_draft_id || null,
+        onClick: _ => this.set_selected_draft(draft_id),
         inner: [
           {
             tag: 'span',
@@ -34,8 +34,8 @@ const methods = {
       })),
     };
   },
-  set_curr_draft(draft_id) {
-    this.$store.set_curr_draft(draft_id);
+  set_selected_draft(draft_id) {
+    this.$store.set_selected_draft(draft_id);
   },
   /** @param {MouseEvent} e */
   on_rm_click(e, draft_id, button_el) {

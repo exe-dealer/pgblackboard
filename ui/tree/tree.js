@@ -11,7 +11,7 @@ const methods = {
   },
   _render_branch(node, node_idx) {
     const node_path = this.path.concat(node_idx);
-    const node_is_selected = JSON.stringify(this.$store.curr_treenode_path) == JSON.stringify(node_path);
+    const node_is_selected = JSON.stringify(this.$store.selected_treenode_path) == JSON.stringify(node_path);
 
     return {
       tag: 'div',

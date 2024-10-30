@@ -11,16 +11,16 @@ export class Store {
     key: '',
   };
   tree = {};
-  curr_treenode_path = null;
+  selected_treenode_path = null;
   // TODO track run_count for drafts, gc least used
   drafts_kv = {};
   stored_draft_ids = [];
   dirty_draft_ids = null;
-  curr_draft_id = null;
+  selected_draft_id = null;
   datum_focused = false;
   out = {
     frames: [].map(_ => ({
-      curr_col_idx: -1,
+      selected_col_idx: -1,
       geom_col_idx: -1,
       cols: [],
       rows: [{
@@ -31,8 +31,8 @@ export class Store {
       }],
     })),
     messages: [],
-    curr_frame_idx: null,
-    curr_row_idx: null,
+    selected_frame_idx: null,
+    selected_row_idx: null,
     // TODO draft_ver: null,
     aborter: null,
     loading: false,
@@ -84,8 +84,8 @@ export class Store {
       `\\connect postgres\n\n` +
       `SELECT * FROM pg_stat_activity;\n`,
     );
-    this._unset_curr_draft();
-    this.curr_draft_id = initial_draft_id;
+    this._unset_selected_draft();
+    this.selected_draft_id = initial_draft_id;
 
     this._load_drafts();
     setInterval(_ => this._flush_drafts(), 10e3);
@@ -158,12 +158,12 @@ export class Store {
     return Uri.parse('//pgbb/' + draft_id);
   }
 
-  save_curr_draft() {
+  save_selected_draft() {
     this.dirty_draft_ids ||= {};
-    this.dirty_draft_ids[this.curr_draft_id] = true;
-    if (!this.stored_draft_ids.includes(this.curr_draft_id)) {
-      this.stored_draft_ids.unshift(this.curr_draft_id);
-      this.curr_treenode_path = null;
+    this.dirty_draft_ids[this.selected_draft_id] = true;
+    if (!this.stored_draft_ids.includes(this.selected_draft_id)) {
+      this.stored_draft_ids.unshift(this.selected_draft_id);
+      this.selected_treenode_path = null;
     }
   }
 
@@ -188,15 +188,15 @@ export class Store {
     }
   }
 
-  // TODO set_curr_treenode
+  // TODO set_selected_treenode
   async tree_select(path) {
     const draft_id = this._add_draft('-- loading --');
     const draft = this.drafts_kv[draft_id];
     draft.loading = true;
     const editor_model = editor.getModel(this.get_draft_uri(draft_id));
-    this._unset_curr_draft();
-    this.curr_draft_id = draft_id;
-    this.curr_treenode_path = path;
+    this._unset_selected_draft();
+    this.selected_draft_id = draft_id;
+    this.selected_treenode_path = path;
     const node = path.reduce(
       ({ children }, idx) => children.value[idx],
       this.tree,
@@ -225,28 +225,28 @@ export class Store {
     return resp.json();
   }
 
-  get curr_draft() {
-    return this.drafts_kv[this.curr_draft_id];
+  get selected_draft() {
+    return this.drafts_kv[this.selected_draft_id];
   }
 
   set_code_cursor(cursor_pos, cursor_len) {
-    Object.assign(this.curr_draft, { cursor_pos, cursor_len });
+    Object.assign(this.selected_draft, { cursor_pos, cursor_len });
   }
 
-  _unset_curr_draft() {
+  _unset_selected_draft() {
     if (
-      this.curr_draft_id in this.drafts_kv &&
-      !this.stored_draft_ids.includes(this.curr_draft_id)
+      this.selected_draft_id in this.drafts_kv &&
+      !this.stored_draft_ids.includes(this.selected_draft_id)
     ) {
-      delete this.drafts_kv[this.curr_draft_id];
-      editor.getModel(this.get_draft_uri(this.curr_draft_id)).dispose();
+      delete this.drafts_kv[this.selected_draft_id];
+      editor.getModel(this.get_draft_uri(this.selected_draft_id)).dispose();
     }
-    this.curr_draft_id = null;
+    this.selected_draft_id = null;
   }
-  set_curr_draft(draft_id) {
-    this._unset_curr_draft(draft_id);
-    this.curr_draft_id = draft_id;
-    this.curr_treenode_path = null;
+  set_selected_draft(draft_id) {
+    this._unset_selected_draft(draft_id);
+    this.selected_draft_id = draft_id;
+    this.selected_treenode_path = null;
   }
 
   rm_draft(draft_id) {
@@ -256,9 +256,9 @@ export class Store {
     editor.getModel(this.get_draft_uri(draft_id)).dispose();
     this.dirty_draft_ids ||= {};
     this.dirty_draft_ids[draft_id] = true;
-    if (draft_id == this.curr_draft_id) {
+    if (draft_id == this.selected_draft_id) {
       // TODO
-      this.curr_draft_id = null;
+      this.selected_draft_id = null;
     }
   }
 
@@ -266,19 +266,19 @@ export class Store {
     this.out.frames[frame_idx].cols[col_idx].width = width;
   }
 
-  // TODO set_curr_row
-  set_curr_rowcol(frame_idx, row_idx, col_idx) {
-    this.out.curr_frame_idx = frame_idx;
-    this.out.curr_row_idx = row_idx;
+  // TODO set_selected_row
+  set_selected_rowcol(frame_idx, row_idx, col_idx) {
+    this.out.selected_frame_idx = frame_idx;
+    this.out.selected_row_idx = row_idx;
     if (col_idx != null) {
-      this.out.frames[frame_idx].curr_col_idx = col_idx;
+      this.out.frames[frame_idx].selected_col_idx = col_idx;
     }
   }
 
-  get_curr_rowcol() {
-    const { curr_frame_idx: frame_idx, curr_row_idx: row_idx, frames } = this.out;
+  get_selected_rowcol() {
+    const { selected_frame_idx: frame_idx, selected_row_idx: row_idx, frames } = this.out;
     const frame = frames[frame_idx];
-    const col_idx = frame?.curr_col_idx;
+    const col_idx = frame?.selected_col_idx;
     return { frame_idx, row_idx, col_idx };
   }
 
@@ -356,7 +356,6 @@ export class Store {
       for (const {
         will_insert,
         will_delete,
-        dirty,
         tuple,
         updates,
       } of frame.rows) {
@@ -413,9 +412,9 @@ export class Store {
     }
 
     const draft_id = this._add_draft(script);
-    this._unset_curr_draft();
-    this.curr_draft_id = draft_id;
-    this.curr_treenode_path = null;
+    this._unset_selected_draft();
+    this.selected_draft_id = draft_id;
+    this.selected_treenode_path = null;
 
     // TODO clear edits
 
@@ -450,7 +449,7 @@ export class Store {
   }
 
   can_run() {
-    return !this.out.loading && !this.curr_draft?.loading;
+    return !this.out.loading && !this.selected_draft?.loading;
   }
 
   async run({ selected } = 0) {
@@ -458,8 +457,8 @@ export class Store {
       db: null,
       frames: [],
       messages: [],
-      curr_frame_idx: null,
-      curr_row_idx: null,
+      selected_frame_idx: null,
+      selected_row_idx: null,
       aborter: new AbortController(),
       loading: true,
       suspended: null,
@@ -467,9 +466,9 @@ export class Store {
     const out = this.out;
 
     try {
-      const draft = this.curr_draft;
+      const draft = this.selected_draft;
       const { cursor_pos, cursor_len } = draft;
-      const editor_model = editor.getModel(this.get_draft_uri(this.curr_draft_id));
+      const editor_model = editor.getModel(this.get_draft_uri(this.selected_draft_id));
       const editor_text = editor_model.getValue();
 
       let { db, sql } = extract_dbname_from_sql(editor_text);
@@ -508,7 +507,7 @@ export class Store {
             out.frames.push({
               rel_name: payload.rel_name,
               cols: payload.cols.map(col => ({ ...col, width: 150 })),
-              curr_col_idx: Boolean(payload.cols.length) - 1,
+              selected_col_idx: Boolean(payload.cols.length) - 1,
               geom_col_idx: payload.cols.findIndex(col => /^st_asgeojson$/i.test(col.name)),
               rows: [],
             });
@@ -523,9 +522,9 @@ export class Store {
               will_delete: false,
             })));
             // select first row in first non empty table
-            if (out.curr_frame_idx == null && payload.length) {
-              out.curr_frame_idx = out.frames.length - 1;
-              out.curr_row_idx = 0;
+            if (out.selected_frame_idx == null && payload.length) {
+              out.selected_frame_idx = out.frames.length - 1;
+              out.selected_row_idx = 0;
             }
             break;
           case 'complete':

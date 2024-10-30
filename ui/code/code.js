@@ -67,13 +67,13 @@ const methods = {
     window.debug_editor = this._editor;
 
     this.$watch(
-      _ => this.$store.curr_draft?.id,
+      _ => this.$store.selected_draft?.id,
       this.watch_draft_id,
       { immediate: true },
     );
 
     this.$watch(
-      _ => this.$store.curr_draft?.loading || false,
+      _ => this.$store.selected_draft?.loading || false,
       readOnly => this._editor.updateOptions({ readOnly }),
       { immediate: true },
     );
@@ -114,7 +114,7 @@ const methods = {
   on_change_content() {
     const readonly = this._editor.getOption(editor.EditorOption.readOnly);
     if (!readonly) { // if edited by user
-      this.$store.save_curr_draft();
+      this.$store.save_selected_draft();
     }
   },
   watch_errors(errors, old_errors = []) {

@@ -2,7 +2,7 @@ import { editor } from '../_vendor/monaco.js';
 
 const methods = {
   _render() {
-    const { frame_idx, row_idx, col_idx } = this.$store.get_curr_rowcol();
+    const { frame_idx, row_idx, col_idx } = this.$store.get_selected_rowcol();
     const { value } = this.$store.get_datum(frame_idx, row_idx, col_idx);
 
     return {
@@ -61,8 +61,8 @@ const methods = {
     window.debug_editor_datum = this._editor;
 
     this.$watch(
-      _ => this.$store.get_curr_rowcol(),
-      this._watch_curr_rowcol,
+      _ => this.$store.get_selected_rowcol(),
+      this._watch_selected_rowcol,
       { immediate: true },
     );
 
@@ -72,7 +72,7 @@ const methods = {
     this._editor.dispose();
     this._model.dispose();
   },
-  _watch_curr_rowcol({ frame_idx, row_idx, col_idx }) {
+  _watch_selected_rowcol({ frame_idx, row_idx, col_idx }) {
     // TODO special view when no selected cell
     // TODO special case when inserting row, empty_val should use default value
 

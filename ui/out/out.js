@@ -2,7 +2,7 @@ import xGrip from '../grip/grip.js';
 
 const methods = {
   _render() {
-    const { frames, curr_frame_idx, curr_row_idx } = this.$store.out;
+    const { frames, selected_frame_idx, selected_row_idx } = this.$store.out;
     const datum_focused = this.$store.datum_focused;
 
     return {
@@ -135,15 +135,14 @@ const methods = {
 
     function col_is_selected(frame_idx, col_idx) {
       return (
-        // this.datum_opened &&
-        curr_frame_idx == frame_idx &&
-        frames[frame_idx].curr_col_idx == col_idx
+        selected_frame_idx == frame_idx &&
+        frames[frame_idx].selected_col_idx == col_idx
       );
     }
     function row_is_selected(frame_idx, row_idx) {
       return (
-        curr_frame_idx == frame_idx &&
-        curr_row_idx == row_idx
+        selected_frame_idx == frame_idx &&
+        selected_row_idx == row_idx
       );
     }
     function cell_is_selected(frame_idx, row_idx, col_idx) {
@@ -181,7 +180,7 @@ const methods = {
     if (!tr) return;
     const row_idx = Number(tr.dataset.row_idx);
     const col_idx = Number(target.closest('[data-col_idx]')?.dataset?.col_idx);
-    this.$store.set_curr_rowcol(frame_idx, row_idx, col_idx);
+    this.$store.set_selected_rowcol(frame_idx, row_idx, col_idx);
     this.$root.$el.dispatchEvent(new CustomEvent('req_map_navigate', { detail: { frame_idx, row_idx, origin: 'sheet' } }));
 
     if (e.detail == 2 && Number.isInteger(col_idx)) {
@@ -194,7 +193,7 @@ const methods = {
     }
   },
   on_row_navigate({ detail: { frame_idx, row_idx } }) {
-    // TODO get curr_frame_idx, curr_row_idx from store
+    // TODO get selected_frame_idx, selected_row_idx from store
     const tr = this.$el.querySelector(`[data-frame_idx="${frame_idx}"] tr[data-row_idx="${row_idx}"]`);
     tr.scrollIntoView({ block: 'center' });
   },
