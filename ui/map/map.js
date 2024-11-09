@@ -333,8 +333,9 @@ export default {
         // TODO fix bad contrast when blue on black bg
         const hue = (200 + frame_idx * golden_angle) % 360;
         for (let row_idx = 0; row_idx < rows.length; row_idx++) {
-          const { tuple } = rows[row_idx];
-          const geometry = geojson_try_parse(tuple[geom_col_idx]);
+          const { original } = rows[row_idx];
+          if (!original) continue; // TODO support modified
+          const geometry = geojson_try_parse(original[geom_col_idx]);
           if (!geometry) continue;
           const bbox = [180, 90, -180, -90];
           for (const singular_geom of geojson_unnest(geometry)) {

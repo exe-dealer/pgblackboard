@@ -1,6 +1,8 @@
 const methods = {
   _render() {
-    const nodes = this.nodes || this.$store.tree.children?.value;
+    const nodes = this.nodes || this.$store.tree.children?.value || [];
+
+    // TODO handle this.$store.tree.children.error;
 
     return {
       tag: 'div',

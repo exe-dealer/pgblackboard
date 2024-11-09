@@ -124,9 +124,6 @@
   text-overflow: ellipsis;
   overflow: hidden;
   padding: 0 1rem;
-
-  /* show leading/trailing spaces
-  TODO but should not render multiline */
   white-space: pre;
 
   &[data-selected] {
@@ -172,12 +169,6 @@
   padding: 0 .5rem;
   text-align: right;
   color: hsl(0 0% 50%);
-}
-
-.out-rownum {
-  .out-row[data-selected] & {
-    display: none;
-  }
 }
 
 .out-td_last {

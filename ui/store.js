@@ -2,6 +2,7 @@ import { editor, Uri } from './_vendor/monaco.js';
 
 export class Store {
   light_theme = false;
+  timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
   panes = { left: .2, right: .6, out: 1, map: 0 };
   auth = {
     pending: false,
@@ -10,35 +11,54 @@ export class Store {
     u: '',
     key: '',
   };
-  tree = {};
+
+  // TODO single field
   selected_treenode_path = null;
+  selected_draft_id = null;
+
+  tree = {};
   // TODO track run_count for drafts, gc least used
   drafts_kv = {};
+  /** @type {string[]} */
   stored_draft_ids = [];
+  /** @type {Record<string, true>} */
   dirty_draft_ids = null;
-  selected_draft_id = null;
   datum_focused = false;
   out = {
-    frames: [].map(_ => ({
-      selected_col_idx: -1,
-      geom_col_idx: -1,
-      cols: [],
-      rows: [{
-        tuple: [],
-        updates: [],
-        will_insert: false,
-        will_delete: false,
-      }],
-    })),
+    /**
+     * @type {{
+     *  selected_col_idx: number,
+     *  geom_col_idx: number,
+     *  rel_name: string | null,
+     *  cols: {
+     *    name: string,
+     *    type: string,
+     *    att_name: string | null,
+     *    att_key: boolean,
+     *    att_notnull: boolean,
+     *    width: number,
+     *  }[],
+     *  rows: {
+     *    original: string[] | null,
+     *    modified: { delete: boolean } & Record<number, string> | null,
+     *  }[],
+     * }[]}
+     */
+    frames: [], // TODO frames -> tables
     messages: [],
+    /** @type {number} */
     selected_frame_idx: null,
+    /** @type {number} */
     selected_row_idx: null,
-    // TODO draft_ver: null,
+    /** @type {AbortController} */
     aborter: null,
     loading: false,
     suspended: null,
+    /** @type {string} */
     db: null,
-    // took_msec: 0,
+
+    // TODO draft_ver: null,
+    // check if draft modified before
   };
 
   resize_panes(update) {
@@ -79,6 +99,7 @@ export class Store {
 
   async _load_tree_and_drafts() {
     await this.tree_toggle([]);
+    // TODO handle this.$store.tree.children.error;
 
     const initial_draft_id = this._add_draft(
       `\\connect postgres\n\n` +
@@ -276,63 +297,51 @@ export class Store {
   }
 
   get_selected_rowcol() {
-    const { selected_frame_idx: frame_idx, selected_row_idx: row_idx, frames } = this.out;
-    const frame = frames[frame_idx];
-    const col_idx = frame?.selected_col_idx;
-    return { frame_idx, row_idx, col_idx };
+    return {
+      frame_idx: this.out.selected_frame_idx,
+      row_idx: this.out.selected_row_idx,
+      col_idx: this.out.frames[this.out.selected_frame_idx]?.selected_col_idx,
+    };
   }
 
   get_datum(frame_idx, row_idx, col_idx) {
     const frame = this.out.frames[frame_idx];
     const { type, att_name, att_notnull } = frame?.cols?.[col_idx] || 0;
-    const { tuple, updates } = frame?.rows?.[row_idx] || 0;
-    const original_value = tuple?.[col_idx];
-    const { [col_idx]: value = original_value } = updates || [];
+    const { original, modified } = frame?.rows?.[row_idx] || 0;
+    const original_value = original?.[col_idx];
+    const { [col_idx]: value = original_value } = modified || 0;
     return { type, att_name, att_notnull, original_value, value };
   }
 
   delete_row(frame_idx, row_idx) {
-    this.out.frames[frame_idx].rows[row_idx].will_delete = true;
+    this.out.frames[frame_idx].rows[row_idx].modified = { delete: true };
   }
 
   revert_row(frame_idx, row_idx) {
     const { rows } = this.out.frames[frame_idx];
     const row = rows[row_idx];
-    row.will_delete = false;
-    row.updates = [];
-    if (row.will_insert) {
+    row.modified = null;
+    if (!row.original) {
       rows.splice(row_idx, 1);
     }
   }
 
   edit_row(frame_idx, row_idx, col_idx, new_value) {
     const rows = this.out.frames[frame_idx].rows;
-    rows[row_idx] ||= {
-      tuple: [],
-      updates: [],
-      will_insert: true,
-      will_delete: false,
-    };
+    rows[row_idx] ||= { original: null, modified: null };
     const row = rows[row_idx];
+    row.modified ||= {};
     // TODO same column can be selected multiple times
     // so att_name should be used instead of col_idx to identify updated datum
-    row.updates[col_idx] = new_value;
+    row.modified[col_idx] = new_value;
   }
 
   get_changes_num() {
     let count = 0;
-    // for (const { rows } of this.out.frames) {
-    //   for (const { dirty } of rows) {
-    //     if (dirty) {
-    //       count++;
-    //     }
-    //   }
-    // }
-    // return count;
-
     for (const { rows } of this.out.frames) {
-      for (const { will_insert, will_delete, updates } of rows) {
-        if (will_insert || will_delete || updates.length) {
+      // TODO avoid full scan
+      for (const { modified } of rows) {
+        if (modified) {
           count++;
         }
       }
@@ -344,31 +353,22 @@ export class Store {
     let script = `\\connect ${this.out.db}\n\n`;
 
     for (const frame of this.out.frames) {
-      const key_idxs = frame.cols
-        .map((col, i) => col.att_key && i)
-        .filter(Number.isInteger);
+      const key_idxs = frame.cols.map((col, i) => col.att_key && i).filter(Number.isInteger);
       const key_names = tuple_expr(key_idxs.map(i => frame.cols[i].att_name));
 
       const delete_keys = [];
       const update_keys = [];
       const update_stmts = [];
       const insert_stmts = [];
-      for (const {
-        will_insert,
-        will_delete,
-        tuple,
-        updates,
-      } of frame.rows) {
-        const key_vals = tuple_expr(key_idxs.map(i => literal(tuple[i])));
-        if (will_delete) {
-          delete_keys.push(key_vals);
-          continue;
-        }
-        if (will_insert) {
+      for (const { original, modified } of frame.rows) {
+        if (!modified) continue;
+
+        // INSERT
+        if (!original) {
           const cols = [];
           const vals = [];
           for (const [col_idx, col] of frame.cols.entries()) {
-            const val = updates[col_idx];
+            const val = modified[col_idx];
             if (val === undefined) continue;
             vals.push(literal(val));
             cols.push(col.att_name);
@@ -379,21 +379,28 @@ export class Store {
           );
           continue;
         }
-        if (updates.length) {
-          const set_entries = [];
-          for (const [col_idx, col] of frame.cols.entries()) {
-            const upd_value = updates[col_idx];
-            if (upd_value === undefined) continue;
-            set_entries.push(`${col.att_name} = ${literal(upd_value)}`);
-          }
-          update_stmts.push(
-            `UPDATE ${frame.rel_name}\n` +
-            `SET ${set_entries.join('\n  , ')}\n` +
-            `WHERE ${key_names} = ${key_vals};\n\n`,
-          );
-          update_keys.push(key_vals);
+
+        const key_vals = tuple_expr(key_idxs.map(i => literal(original[i])));
+
+        // DELETE
+        if (modified.delete) {
+          delete_keys.push(key_vals);
           continue;
         }
+
+        // UPDATE
+        const set_entries = [];
+        for (const [col_idx, col] of frame.cols.entries()) {
+          const upd_value = modified[col_idx];
+          if (upd_value === undefined) continue;
+          set_entries.push(`${col.att_name} = ${literal(upd_value)}`);
+        }
+        update_stmts.push(
+          `UPDATE ${frame.rel_name}\n` +
+          `SET ${set_entries.join('\n  , ')}\n` +
+          `WHERE ${key_names} = ${key_vals};\n\n`,
+        );
+        update_keys.push(key_vals);
       }
       if (delete_keys.length) {
         script += (
@@ -466,6 +473,7 @@ export class Store {
     const out = this.out;
 
     try {
+      const tz = this.timezone;
       const draft = this.selected_draft;
       const { cursor_pos, cursor_len } = draft;
       const editor_model = editor.getModel(this.get_draft_uri(this.selected_draft_id));
@@ -484,7 +492,6 @@ export class Store {
 
       const { u, key } = this.auth;
       const qs = new URLSearchParams({ api: 'run', u, db, key });
-      const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
       const body = JSON.stringify({ sql, tz });
       const resp = await fetch('?' + qs, {
         method: 'POST',
@@ -498,7 +505,6 @@ export class Store {
         .pipeThrough(new TextDecoderStream())
         .pipeThrough(new LineSplitter())
       );
-      let frame = null;
       for await (const line of iter_stream(msg_stream)) {
         const [tag, payload] = JSON.parse(line);
         out.suspended = null;
@@ -511,17 +517,15 @@ export class Store {
               geom_col_idx: payload.cols.findIndex(col => /^st_asgeojson$/i.test(col.name)),
               rows: [],
             });
-            frame = out.frames.at(-1);
             break;
           // TODO CopyData
           case 'rows':
-            frame.rows.push(...payload.map(tuple => ({
-              tuple, // TODO Object.freeze?
-              updates: [],
-              will_insert: false,
-              will_delete: false,
+            out.frames.at(-1).rows.push(...payload.map(original => ({
+              original: Object.freeze(original),
+              modified: null,
             })));
             // select first row in first non empty table
+            // TODO select first frame regardless of rows count? (more predictable behavior)
             if (out.selected_frame_idx == null && payload.length) {
               out.selected_frame_idx = out.frames.length - 1;
               out.selected_row_idx = 0;
@@ -588,6 +592,10 @@ async function* iter_stream(stream) {
   }
 }
 
+// TODO move to backend
+// - return 'db' message from stream
+// - skip /^\\.*/ in draft title
+// - how to do `run selection` if we keep dbname in script?
 function extract_dbname_from_sql(sql) {
   let db;
   sql = sql.replace(/^\s*\\connect\s+(.*)/, (line, arg) => {

@@ -1,7 +1,7 @@
 import monaco_worker from './_vendor/monaco_worker.js';
 import monaco_json_worker from './_vendor/monaco_json_worker.js';
 import { editor } from './_vendor/monaco.js';
-import { createApp, reactive, watchEffect, h } from './_vendor/vue.js';
+import { createApp, reactive, watchEffect, h as create_vnode } from './_vendor/vue.js';
 import root_component from './app/app.js';
 import { Store } from './store.js';
 
@@ -39,7 +39,7 @@ editor.defineTheme('pgbb-light', {
 const store = reactive(new Store());
 const app = createApp({
   // TODO createApp(root_component) does not render by mixin
-  render() { return h(root_component); },
+  render() { return create_vnode(root_component); },
 });
 app.config.globalProperties.$store = store;
 
@@ -60,10 +60,19 @@ app.mixin({
 });
 
 function transform_vdom(def) {
-  const { tag, inner, ...props } = def || 0;
-  if (!tag) return def;
-  return h(tag, props, Array.isArray(inner) ? inner.map(transform_vdom) : inner);
-};
+  if (Array.isArray(def)) {
+    for (let i = 0; i < def.length; i++) {
+      def[i] = transform_vdom(def[i]);
+    }
+  };
+  const { tag, inner } = def || 0;
+  if (tag) {
+    def.tag = undefined;
+    def.inner = undefined;
+    def = create_vnode(tag, def, transform_vdom(inner));
+  }
+  return def;
+}
 
 app.mount('body');
 
