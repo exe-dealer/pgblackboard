@@ -123,7 +123,7 @@ const style = {
       filter: ['==', ['geometry-type'], 'LineString'],
       paint: {
         'line-width': 2,
-        'line-color': ['to-color', ['concat', 'hsl(', ['get', 'hue'], ', 90%, 50%)']],
+        'line-color': ['to-color', ['concat', 'hsl(', ['get', 'hue'], ', 100%, 70%)']],
       },
     },
     {
