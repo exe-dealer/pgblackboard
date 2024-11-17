@@ -416,12 +416,13 @@ export default {
       );
       if (!feature) return; // TODO clear highlight
       const { frame_idx, row_idx } = feature.properties;
-      const detail = { frame_idx, row_idx };
-      this.$root.$el.dispatchEvent(new CustomEvent('req_row_focus', { detail }));
       this.$store.set_selected_rowcol(frame_idx, row_idx);
+      this.$root.$el.dispatchEvent(new CustomEvent('req_row_navigate'));
       // TODO zoom to feature extent
     },
-    on_req_map_navigate({ detail: { frame_idx, row_idx } }) {
+
+    on_req_map_navigate() {
+      const { frame_idx, row_idx } = this.$store.get_selected_rowcol();
       // const geom = this.get_row_geom(frame_idx, row_idx);
       const feature = this.features.find(({ properties: p }) => (
         p.zmin == null &&

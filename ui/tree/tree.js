@@ -4,6 +4,8 @@ const methods = {
 
     // TODO handle this.$store.tree.children.error;
 
+    // TODO role="tree"
+    // https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/Roles/treeitem_role#examples
     return {
       tag: 'div',
       class: 'tree',

@@ -45,6 +45,7 @@ const methods = {
 
     this._editor.onDidFocusEditorText(this._on_focus);
     this._editor.onDidBlurEditorText(this._on_blur);
+    this._editor.onKeyUp(this._on_keyup);
 
     const blank_el = this.$el.ownerDocument.createElement('div');
     blank_el.className = 'datum-blank';
@@ -110,6 +111,11 @@ const methods = {
   },
   _on_blur() {
     this.$store.sync_datum_focused(false);
+  },
+  _on_keyup(e) {
+    if (e.code == 'Escape' && !e.ctrlKey && !e.altKey && !e.metaKey && !e.shiftKey) {
+      this.$root.$el.dispatchEvent(new CustomEvent('req_cell_focus'));
+    }
   },
   _get_language_of_pgtype(type) {
     if (type == 'json' || type == 'jsonb') return 'json';

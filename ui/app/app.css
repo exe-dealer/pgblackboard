@@ -98,6 +98,7 @@
   overflow: auto;
   overscroll-behavior: none;
   border-bottom: 1px solid hsl(0 0% 50% / .2);
+  scroll-padding-top: var(--app-header_h);
 }
 
 .app-log {

@@ -1,43 +1,34 @@
 # pgBlackboard
 
-Minimalistic GIS-enabled webadmin interface for PostgreSQL
+Minimalistic web interface for PostgreSQL
 
-## Features
+- supports psql style multistatement scripts
+- supports postgis
+- inplace dataset editing
 
-### Mapbox GL powered map
-
-- screenshot
-
-### Edit queryed dataset
-
-- video here
-
-### Multi statement scripts
-
-pgBalckboard can execute scripts with multiple statements and
-view result of each statement
-
-- screenshot
-
-### Memory efficient backend
-
-### Extremely lightweight
-
-- 2Mb compressed docker image
-- 20Mb max mem per user
-
-## Run
+# Docker image
 
 [Dockerhub repo](https://hub.docker.com/r/kagiskz/pgblackboard/)
 
-### Run in foreground
-
 ```
-docker run -it --rm -e PGBB_POSTGRES=PGHOST:PGPORT -p 7890:7890 kagiskz/pgblackboard
+docker run -it --rm -p 7890:7890 kagiskz/pgblackboard pgbb postgres://HOST:PORT
 ```
 
-### Run in background
+# TODO
 
-```
-docker run -d --restart unless-stopped -e PGBB_POSTGRES=PGHOST:PGPORT -p 7890:7890 kagiskz/pgblackboard
-```
+- tree, search
+- tree, create table script
+- tree, partitioned tables icon
+
+- datum, jsonb pretty
+- datum, html/svg preview
+- datum, `explain` visualization
+
+- map, hexewkb support (no st_asgeojson crutch)
+- map, geometry drawing
+- map, add satellite (custom service support)
+- map, city labels optimization
+
+- `scroll to log` button
+- file upload
+- `copy to stdout` download

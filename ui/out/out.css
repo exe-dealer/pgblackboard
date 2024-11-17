@@ -1,13 +1,5 @@
 .out {
   white-space: nowrap;
-
-  &:empty {
-    background-image: linear-gradient(
-      to bottom,
-      hsl(0 0% 50% / .05) 0 2.5rem,
-      transparent 2.5rem
-    );
-  }
 }
 
 .out-table {
@@ -30,6 +22,8 @@
 }
 
 .out-tbody {
+  /* fill tbody with stripes. It renders faster then
+  styling background on even/odd tr */
   background-image: repeating-linear-gradient(
     to top,
     hsl(0 0% 0% / .1) 0 1lh,
@@ -54,7 +48,7 @@
   width: 2rem;
 }
 
-.out-th {
+.out-colh {
   text-align: inherit;
   font-weight: inherit;
   padding: 0 1rem;
@@ -82,20 +76,20 @@
   mask: url('./icon_key.svg') center / 1rem no-repeat;
 } */
 
-.out-colh_name {
+.out-colname {
   font-weight: bold;
 
-  .out-th[data-key] &  {
+  .out-colh[data-key] & {
     text-decoration: underline;
   }
 }
 
-.out-colh_type {
+.out-coltype {
   font-size: .875rem;
   color: hsl(0 0% 50%);
 }
 
-.out-colh_resizer {
+.out-colsizer {
   position: absolute;
   inset: 0 0 0 auto;
   width: .5rem;
@@ -106,15 +100,15 @@
   /* prevent empty cell collapsion */
   height: 2em; /* TODO 1lh */
 
-  &[data-will_delete] {
+  &[data-dirty="delete"] {
     text-decoration: line-through solid 1px;
     background-color: hsl(0 50% 50% / .3);
   }
-  &[data-selected] {
+  &[aria-selected="true"] {
     background-color: hsl(0 0% 100% / .8);
     color: hsl(0 0% 20%);
   }
-  .light &[data-selected] {
+  .light &[aria-selected="true"] {
     background-color: hsl(0 0% 0% / .8);
     color: hsl(0 0% 95%);
   }
@@ -126,18 +120,23 @@
   padding: 0 1rem;
   white-space: pre;
 
-  &[data-selected] {
-    /* background-color: hsl(0 0% 100%); */
+  &[aria-selected="true"] {
     backdrop-filter: contrast(1.5);
+
+    .out[data-datum_focused] & {
+      outline: 1px dashed currentColor;
+      outline-offset: -4px;
+    }
   }
-  .out[data-datum_focused] &[data-selected] {
-    outline: 1px dashed currentColor;
-    outline-offset: -.25rem;
+  &:focus-visible {
+    outline: 1px dotted currentColor;
+    outline-offset: -4px;
   }
   &::before {
     font-size: .75rem;
     color: hsl(0 0% 50%);
   }
+  /* TODO move to render_cell_value() */
   &[data-null]::before {
     content: 'NULL';
     font-style: italic;
@@ -162,7 +161,7 @@
   /* background-color: hsl(0 0% 15%); */
 }
 
-.out-th_rowh {
+.out-rowh {
   font-size: .875rem;
   font-weight: inherit;
   font-variant-numeric: proportional-nums;
@@ -198,7 +197,7 @@
   display: none;
   mask-image: url('./icon_delete.svg');
 
-  .out-row[data-selected] &:enabled {
+  .out-row[aria-selected="true"] &:enabled {
     display: block;
   }
 }

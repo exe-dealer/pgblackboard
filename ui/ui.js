@@ -60,6 +60,9 @@ app.mixin({
 });
 
 function transform_vdom(def) {
+  if (typeof def == 'function') { // default slot
+    return (...args) => transform_vdom(def(...args));
+  }
   if (Array.isArray(def)) {
     for (let i = 0; i < def.length; i++) {
       def[i] = transform_vdom(def[i]);
