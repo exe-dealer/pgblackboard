@@ -226,13 +226,11 @@ const methods = {
     return nodes;
   },
 
-  _mounted() {
-    this.$root.$el.addEventListener('req_row_navigate', this.on_req_row_navigate);
-    this.$root.$el.addEventListener('req_cell_focus', this.on_req_cell_focus);
-  },
-  _unmounted() {
-    this.$root.$el.removeEventListener('req_row_navigate', this.on_req_row_navigate);
-    this.$root.$el.removeEventListener('req_cell_focus', this.on_req_cell_focus);
+  _get_broadcast_listeners() {
+    return {
+      'req_row_navigate': this.on_req_row_navigate,
+      'req_cell_focus': this.on_req_cell_focus,
+    };
   },
   on_colsizer_drag(e) {
     const { frame_idx, col_idx, width } = e.origin;
@@ -250,13 +248,14 @@ const methods = {
     const col_idx = td.cellIndex - 1;
 
     this.$store.set_selected_rowcol(frame_idx, row_idx, col_idx);
-    this.$root.$el.dispatchEvent(new CustomEvent('req_map_navigate'));
+    this.$broadcast('req_map_navigate');
   },
   on_click(/** @type {MouseEvent} */ e) {
     const { target } = e;
 
     if (target.matches('button.out-delete_row')) {
       // TODO dry
+      // TODO get frame_idx/row_idx from vnode?
       const frame_idx = +target.closest('table').getAttribute('data-frame_idx');
       const row_idx = target.closest('tr').rowIndex - 1;
       this.$store.delete_row(frame_idx, row_idx);
@@ -275,7 +274,7 @@ const methods = {
     // focus datum editor on cell double click
     if (e.detail > 1 && e.target.matches('.out-cell')) {
       e.preventDefault(); // prevent text selection on double click
-      this.$root.$el.dispatchEvent(new CustomEvent('req_datum_focus'));
+      this.$broadcast('req_datum_focus');
     }
   },
   on_keyup(/** @type {KeyboardEvent} */e) {
@@ -284,7 +283,7 @@ const methods = {
     // Do it on keyup to prevent editor receive Enter
     // when key hold enough time to cause keydown event repeat.
     if (e.code == 'Enter') {
-      this.$root.$el.dispatchEvent(new CustomEvent('req_datum_focus'));
+      this.$broadcast('req_datum_focus');
       e.preventDefault();
     }
   },
@@ -312,9 +311,10 @@ const methods = {
     await this.$nextTick();
     this.$refs.selected_row?.scrollIntoView({ block: 'center' });
   },
-  on_req_cell_focus() { // handle datum Escape
+  async on_req_cell_focus() { // handle datum Escape
     // TODO do not req_map_navigate, do not set_selected_rowcol
-    this.$refs.selected_cell?.focus();
+    await this.$nextTick(); // just for consistency
+    this.$refs.selected_cell?.$el?.focus();
   },
 };
 

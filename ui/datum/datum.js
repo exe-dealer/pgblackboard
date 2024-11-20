@@ -66,12 +66,13 @@ const methods = {
       this._watch_selected_rowcol,
       { immediate: true },
     );
-
-    this.$root.$el.addEventListener('req_datum_focus', this._on_req_datum_focus);
   },
   _unmounted() {
     this._editor.dispose();
     this._model.dispose();
+  },
+  _get_broadcast_listeners() {
+    return { 'req_datum_focus': this._on_req_datum_focus };
   },
   _watch_selected_rowcol({ frame_idx, row_idx, col_idx }) {
     // TODO special view when no selected cell
@@ -114,7 +115,7 @@ const methods = {
   },
   _on_keyup(e) {
     if (e.code == 'Escape' && !e.ctrlKey && !e.altKey && !e.metaKey && !e.shiftKey) {
-      this.$root.$el.dispatchEvent(new CustomEvent('req_cell_focus'));
+      this.$broadcast('req_cell_focus');
     }
   },
   _get_language_of_pgtype(type) {

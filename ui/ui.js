@@ -37,46 +37,75 @@ editor.defineTheme('pgbb-light', {
 });
 
 const store = reactive(new Store());
-const app = createApp({
-  // TODO createApp(root_component) does not render by mixin
-  render() { return create_vnode(root_component); },
-});
-app.config.globalProperties.$store = store;
-
+globalThis.debug_store = store;
 watchEffect(_ => {
   editor.setTheme(store.light_theme ? 'pgbb-light' : 'pgbb-dark');
 });
 
-app.mixin({
-  render() {
-    return transform_vdom(this._render());
-  },
-  mounted() {
-    this._mounted?.();
-  },
-  unmounted() {
-    this._unmounted?.();
-  },
+const app = createApp({
+  // TODO createApp(root_component) does not render by mixin
+  render() { return create_vnode(root_component); },
 });
 
-function transform_vdom(def) {
-  if (typeof def == 'function') { // default slot
-    return (...args) => transform_vdom(def(...args));
-  }
-  if (Array.isArray(def)) {
-    for (let i = 0; i < def.length; i++) {
-      def[i] = transform_vdom(def[i]);
-    }
-  };
-  const { tag, inner } = def || 0;
-  if (tag) {
-    def.tag = undefined;
-    def.inner = undefined;
-    def = create_vnode(tag, def, transform_vdom(inner));
-  }
-  return def;
-}
-
+app.config.globalProperties.$store = store;
+app.use(pojo_vdom_plugin);
+app.use(broadcast_plugin);
 app.mount('body');
 
-globalThis.debug_store = store;
+function pojo_vdom_plugin(app) {
+  app.mixin({
+    render() {
+      return transform_vdom(this._render());
+    },
+    mounted() {
+      this._mounted?.();
+    },
+    unmounted() {
+      this._unmounted?.();
+    },
+  });
+
+  function transform_vdom(def) {
+    if (typeof def == 'function') { // default slot
+      return (...args) => transform_vdom(def(...args));
+    }
+    if (Array.isArray(def)) {
+      for (let i = 0; i < def.length; i++) {
+        def[i] = transform_vdom(def[i]);
+      }
+    };
+    const { tag, inner } = def || 0;
+    if (tag) {
+      def.tag = undefined;
+      def.inner = undefined;
+      def = create_vnode(tag, def, transform_vdom(inner));
+    }
+    return def;
+  }
+}
+
+function broadcast_plugin(app) {
+  const et = new EventTarget();
+
+  app.mixin({
+    mounted() {
+      const broadcast_listeners = this._get_broadcast_listeners?.();
+      if (!broadcast_listeners) return;
+      this._broadcast_listeners = broadcast_listeners;
+      for (const [event, listener] of Object.entries(broadcast_listeners)) {
+        et.addEventListener(event, listener);
+      }
+    },
+    unmounted() {
+      if (!this._broadcast_listeners) return;
+      for (const [event, listener] of Object.entries(broadcast_listeners)) {
+        et.removeEventListener(event, listener);
+      }
+    },
+    methods: {
+      $broadcast(event, details) {
+        et.dispatchEvent(new CustomEvent(event, { details }));
+      },
+    },
+  });
+}

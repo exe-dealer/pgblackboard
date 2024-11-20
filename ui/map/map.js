@@ -306,6 +306,7 @@ export default {
         container: this.$el,
         attributionControl: false, // TODO ?
       });
+      this._ml.on('click', this.on_map_click);
 
       // this.add_svg_image('drop_white', drop_white);
       // this.add_svg_image('drop_black', drop_black);
@@ -316,13 +317,13 @@ export default {
       this.$watch(_ => this.features, this.watch_features);
       this.$watch(this._compute_highlighted_features, this.watch_highlight);
 
-      this.$root.$el.addEventListener('req_map_navigate', this.on_req_map_navigate);
-      this._ml.on('click', this.on_map_click);
     },
     _unmounted() {
       this._ml.remove();
     },
-
+    _get_broadcast_listeners() {
+      return { 'req_map_navigate': this.on_req_map_navigate };
+    },
     _compute_features() {
       const golden_angle = 180 * (3 - 5 ** .5); // https://en.wikipedia.org/wiki/Golden_angle
       const granularity = 4 /*marker diameter px*/ / 512 /*world size px*/;
@@ -417,7 +418,7 @@ export default {
       if (!feature) return; // TODO clear highlight
       const { frame_idx, row_idx } = feature.properties;
       this.$store.set_selected_rowcol(frame_idx, row_idx);
-      this.$root.$el.dispatchEvent(new CustomEvent('req_row_navigate'));
+      this.$broadcast('req_row_navigate');
       // TODO zoom to feature extent
     },
 
