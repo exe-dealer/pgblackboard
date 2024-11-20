@@ -144,7 +144,11 @@ const methods = {
       class: 'out-row', // TODO is_new
       'data-dirty': dirty,
       // 'aria-rowindex': row_idx + 1,
-      'aria-selected': is_selected,
+      'aria-selected': false,
+      ... is_selected && {
+        'aria-selected': true,
+        ref: 'selected_row',
+      },
       inner: [
         {
           tag: 'th',
@@ -158,10 +162,14 @@ const methods = {
           tag: xHot,
           class: 'out-cell',
           tabindex: 0,
-          'aria-selected': is_selected && selected_col_idx == col_idx || null,
           // 'aria-colindex': col_idx + 1,
           inner: this._render_cell,
           arg: { original, modified, col_idx },
+          'aria-selected': false,
+          ... is_selected && selected_col_idx == col_idx && {
+            'aria-selected': true,
+            ref: 'selected_cell',
+          },
         })),
         {
           tag: 'td',
@@ -300,24 +308,13 @@ const methods = {
     }
   },
 
-  on_req_row_navigate() {
-    const { frame_idx, row_idx } = this.$store.get_selected_rowcol();
-    const tr = this.$el.querySelector(`
-      .out-table[data-frame_idx="${frame_idx}"]
-      .out-row:nth-child(${row_idx + 1})
-    `);
-    tr?.scrollIntoView({ block: 'center' });
+  async on_req_row_navigate() {
+    await this.$nextTick();
+    this.$refs.selected_row?.scrollIntoView({ block: 'center' });
   },
   on_req_cell_focus() { // handle datum Escape
-    const { frame_idx, row_idx, col_idx } = this.$store.get_selected_rowcol();
-    const td = this.$el.querySelector(`
-      .out-table[data-frame_idx="${frame_idx}"]
-      .out-row:nth-child(${row_idx + 1})
-      .out-cell:nth-of-type(${col_idx + 1})
-    `);
-    // TODO do not req_map_navigate
-    // do not set_selected_rowcol
-    td?.focus();
+    // TODO do not req_map_navigate, do not set_selected_rowcol
+    this.$refs.selected_cell?.focus();
   },
 };
 
