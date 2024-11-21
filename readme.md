@@ -8,10 +8,10 @@ Minimalistic web interface for PostgreSQL
 
 # Docker image
 
-[Dockerhub repo](https://hub.docker.com/r/kagiskz/pgblackboard/)
+https://hub.docker.com/r/kagiskz/pgblackboard
 
 ```
-docker run -it --rm -p 7890:7890 kagiskz/pgblackboard pgbb postgres://HOST:PORT
+docker run -it --rm -p 7890:7890 kagiskz/pgblackboard:3-20241121 pgbb postgres://HOST:PORT
 ```
 
 # TODO
