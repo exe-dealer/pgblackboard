@@ -99,6 +99,7 @@ const methods = {
               can_update,
               selected_row_idx,
               selected_col_idx,
+              frame_idx,
             })),
             can_insert && this._render_row({
               row_idx: frame.rows.length,
@@ -107,26 +108,23 @@ const methods = {
               // can_update,
               selected_row_idx,
               selected_col_idx,
+              frame_idx,
             }),
           ],
         },
       ],
     }; // table
   },
-
-  // need to iterate over all modifications without full scan over unchanged rows
-  // need ability to delete inserted row - row_idx should be stable
-  // row_idx should be incrementable to for keyboard table navigation
-
   _render_row({
     original,
     modified,
     row_idx,
 
     cols,
+    can_update,
     selected_row_idx,
     selected_col_idx,
-    can_update,
+    frame_idx,
   }) {
 
     const is_selected = selected_row_idx == row_idx;
@@ -165,6 +163,7 @@ const methods = {
           // 'aria-colindex': col_idx + 1,
           inner: this._render_cell,
           arg: { original, modified, col_idx },
+          'data-id': [frame_idx, row_idx, col_idx],
           'aria-selected': false,
           ... is_selected && selected_col_idx == col_idx && {
             'aria-selected': true,
@@ -181,6 +180,7 @@ const methods = {
               type: 'button',
               tabindex: -1,
               disabled: !!dirty,
+              value: [frame_idx, row_idx],
               'aria-label': 'Delete row',
             },
             {
@@ -189,6 +189,7 @@ const methods = {
               type: 'button',
               tabindex: -1,
               disabled: !dirty,
+              value: [frame_idx, row_idx],
               'aria-label': 'Revert row',
             },
           ],
@@ -238,34 +239,22 @@ const methods = {
     this.$store.resize_col(frame_idx, col_idx, clipped_width);
   },
   on_focusin({ target }) {
-    const table_el = target.closest('table[data-frame_idx]');
-    const tr = target.closest('tr');
-    const td = target.closest('td');
-    if (!td) return;
-    // TODO dry
-    const frame_idx = +table_el.getAttribute('data-frame_idx');
-    const row_idx = tr.rowIndex - 1;
-    const col_idx = td.cellIndex - 1;
-
+    if (!target.matches('.out-cell')) return;
+    const [frame_idx, row_idx, col_idx] = target.__vnode.props['data-id'];
     this.$store.set_selected_rowcol(frame_idx, row_idx, col_idx);
     this.$broadcast('req_map_navigate');
   },
   on_click(/** @type {MouseEvent} */ e) {
     const { target } = e;
 
-    if (target.matches('button.out-delete_row')) {
-      // TODO dry
-      // TODO get frame_idx/row_idx from vnode?
-      const frame_idx = +target.closest('table').getAttribute('data-frame_idx');
-      const row_idx = target.closest('tr').rowIndex - 1;
+    if (target.matches('.out-delete_row')) {
+      const [frame_idx, row_idx] = target.__vnode.props.value;
       this.$store.delete_row(frame_idx, row_idx);
       return;
     }
 
-    if (target.matches('button.out-revert_row')) {
-      // TODO dry
-      const frame_idx = +target.closest('table').getAttribute('data-frame_idx');
-      const row_idx = target.closest('tr').rowIndex - 1;
+    if (target.matches('.out-revert_row')) {
+      const [frame_idx, row_idx] = target.__vnode.props.value;
       this.$store.revert_row(frame_idx, row_idx);
       return;
     }
@@ -290,7 +279,7 @@ const methods = {
   on_keydown(/** @type {KeyboardEvent} */ e) {
     if (e.altKey || e.metaKey || e.ctrlKey || e.shiftKey) return;
 
-    const td = this.$el.ownerDocument.activeElement;
+    const td = e.target;
     if (!td?.matches('td')) return;
 
     const new_td = (
@@ -312,8 +301,8 @@ const methods = {
     this.$refs.selected_row?.scrollIntoView({ block: 'center' });
   },
   async on_req_cell_focus() { // handle datum Escape
-    // TODO do not req_map_navigate, do not set_selected_rowcol
     await this.$nextTick(); // just for consistency
+    // TODO do not req_map_navigate, do not set_selected_rowcol
     this.$refs.selected_cell?.$el?.focus();
   },
 };
