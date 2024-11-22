@@ -152,7 +152,30 @@ const methods = {
           tag: 'th',
           class: 'out-rowh',
           scope: 'row',
-          inner: is_new ? '*' : row_idx + 1,
+          inner: [
+            can_update && [
+              {
+                tag: 'button',
+                class: 'out-delete_row',
+                type: 'button',
+                tabindex: -1,
+                disabled: !!dirty,
+                value: [frame_idx, row_idx],
+                'aria-label': 'Delete row',
+              },
+              {
+                tag: 'button',
+                class: 'out-revert_row',
+                type: 'button',
+                tabindex: -1,
+                disabled: !dirty,
+                value: [frame_idx, row_idx],
+                'aria-label': 'Revert row',
+              },
+            ],
+            { tag: 'span', class: 'out-rowno', inner: row_idx + 1 },
+          ],
+          ... is_new && { inner: '*' },
         },
         cols.map((_col, col_idx) => ({
           // move .modified[n] dependency to cell component
@@ -170,30 +193,7 @@ const methods = {
             ref: 'selected_cell',
           },
         })),
-        {
-          tag: 'td',
-          class: 'out-td_last',
-          inner: !can_update ? null : [
-            {
-              tag: 'button',
-              class: 'out-delete_row',
-              type: 'button',
-              tabindex: -1,
-              disabled: !!dirty,
-              value: [frame_idx, row_idx],
-              'aria-label': 'Delete row',
-            },
-            {
-              tag: 'button',
-              class: 'out-revert_row',
-              type: 'button',
-              tabindex: -1,
-              disabled: !dirty,
-              value: [frame_idx, row_idx],
-              'aria-label': 'Revert row',
-            },
-          ],
-        }, // td.out-td_last
+        { tag: 'td', class: 'out-td_last' },
       ],
     }; // tr.out-row
   },

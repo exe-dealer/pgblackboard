@@ -12,7 +12,7 @@
 .out-thead {
   position: sticky;
   top: 0;
-  z-index: 1;
+  z-index: 2;
   line-height: 2.5;
   background-color: hsl(0 0% 17%);
 
@@ -162,31 +162,42 @@
 }
 
 .out-rowh {
-  font-size: .875rem;
   font-weight: inherit;
-  font-variant-numeric: proportional-nums;
-  padding: 0 .5rem;
   text-align: right;
   color: hsl(0 0% 50%);
+  position: relative;
+  padding: 0 .5rem;
+  font-size: .875rem;
+  line-height: 2rem;
 }
 
-.out-td_last {
-  padding: 0;
+.out-rowno {
+  padding: inherit;
+  inset: 0;
+  position: absolute;
+  font-variant-numeric: proportional-nums;
+
+  .out-row[aria-selected="true"] .out-delete_row:enabled ~ &,
+  .out-revert_row:enabled ~ & {
+    /* font-size: 0; */
+    visibility: hidden;
+  }
 }
 
 .out-delete_row,
 .out-revert_row {
   all: unset;
   mask-size: 1rem;
-  mask-position: center;
+  mask-position: 1.6rem center;
   mask-repeat: no-repeat;
   display: none;
-  height: 2rem;
-  width: 2rem;
   background-color: currentColor;
-  opacity: .5;
+  opacity: .75;
   transition: opacity 200ms ease;
   cursor: pointer;
+  inset: 0;
+  position: absolute;
+  z-index: 1;
 
   &:hover {
     opacity: 1;
@@ -206,4 +217,8 @@
   &:enabled {
     display: block;
   }
+}
+
+.out-td_last {
+  padding: 0;
 }
