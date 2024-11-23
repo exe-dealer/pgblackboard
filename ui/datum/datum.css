@@ -8,13 +8,8 @@
 }
 
 .datum .monaco-editor {
-  --vscode-editor-background: hsl(0, 0%, 14%);
-  --vscode-editorGutter-background: hsl(0 0% 14%);
-
-  .light & {
-    --vscode-editor-background: hsl(0, 0%, 95%);
-    --vscode-editorGutter-background: hsl(0 0% 95%);
-  }
+  --vscode-editor-background: light-dark(hsl(0, 0%, 95%), hsl(0, 0%, 14%));
+  --vscode-editorGutter-background: var(--vscode-editor-background);
 }
 
 .datum-blank {

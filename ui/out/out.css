@@ -14,11 +14,7 @@
   top: 0;
   z-index: 2;
   line-height: 2.5;
-  background-color: hsl(0 0% 17%);
-
-  .light & {
-    background-color: hsl(0 0% 90%);
-  }
+  background-color: light-dark(hsl(0 0 90%), hsl(0 0 17%));
 }
 
 .out-tbody {
@@ -36,11 +32,7 @@
   background: linear-gradient(to right, hsl(0 0% 0% / .08), hsl(0 0% 0% / 0) 50%);
 
   &[data-selected] {
-    background: hsl(0 0% 18%);
-
-    .light & {
-      background: hsl(0 0% 85%);
-    }
+    background: light-dark(hsl(0 0 85%), hsl(0 0 18%));
   }
 }
 
@@ -58,23 +50,11 @@
   background: linear-gradient(to right, hsl(0 0% 0% / .08), hsl(0 0% 0% / 0) 50%);
 
   &[data-selected] {
-    background-color: hsl(0 0% 25%);
+    background-color: light-dark(hsl(0 0 90%), hsl(0 0 25%));
     /* top highlight stripe */
     box-shadow: inset 0 .5rem 0 -.25rem hsl(0 0% 60%);
-
-    .light & {
-      background-color: hsl(0 0% 90%);
-    }
   }
 }
-
-/* .out-colh_key {
-  background-color: currentColor;
-  display: inline-block;
-  width: 1em;
-  height: 1em;
-  mask: url('./icon_key.svg') center / 1rem no-repeat;
-} */
 
 .out-colname {
   font-weight: bold;
@@ -105,12 +85,8 @@
     background-color: hsl(0 50% 50% / .3);
   }
   &[aria-selected="true"] {
-    background-color: hsl(0 0% 100% / .8);
-    color: hsl(0 0% 20%);
-  }
-  .light &[aria-selected="true"] {
-    background-color: hsl(0 0% 0% / .8);
-    color: hsl(0 0% 95%);
+    background-color: light-dark(hsl(0 0% 0% / .8), hsl(0 0% 100% / .8));
+    color: light-dark(hsl(0 0% 95%), hsl(0 0% 20%));
   }
 }
 

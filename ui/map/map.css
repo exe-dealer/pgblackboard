@@ -1,12 +1,7 @@
 
 .map {
-  background-color: hsl(0 0% 13%);
-
-  .light & {
-    background-color: hsl(205 15% 85%);
-  }
+  background-color: light-dark(hsl(205 15% 85%), hsl(0 0% 13%));
 }
 .map .maplibregl-canvas-container.maplibregl-interactive {
   cursor: default;
 }
-/* .maplibregl-canvas-container.maplibregl-interactive:active {} */

@@ -24,10 +24,7 @@
   padding-block: .4rem;
   line-height: 1.2rem;
   font-size: .875rem;
-  color: hsl(330 75% 65%);
-  .light & {
-    color: hsl(330 90% 38%);
-  }
+  color: light-dark(hsl(330 90% 38%), hsl(330 75% 65%));
 }
 
 .tree-marker {
@@ -112,15 +109,11 @@
   line-height: 1.25rem;
   border-radius: 1rem;
   padding-inline: 0.5rem;
-  color: hsl(0 0% 60%);
-  background-color: hsl(0 0% 12%);
+  color: light-dark(hsl(0 0 50%), hsl(0 0 60%));
+  background-color: light-dark(hsl(0 0 98%), hsl(0 0 12%));
 
   &:empty {
     display: none;
-  }
-  .light & {
-    background-color: hsl(0 0% 98%);
-    color: hsl(0 0% 50%);
   }
 }
 

@@ -29,7 +29,8 @@ const methods = {
 
     return {
       tag: 'div',
-      class: ['app', light_theme && 'light'],
+      class: 'app',
+      'data-light': light_theme || null,
       style: {
         '--app-pane_left': panes.left,
         '--app-pane_right': panes.right,
@@ -45,7 +46,8 @@ const methods = {
               tag: 'button',
               class: 'app-theme_btn',
               type: 'button',
-              'aria-label': 'theme',
+              'aria-label': 'Toggle color theme',
+              'data-light': light_theme || null,
               onClick: this.toggle_theme,
             },
           ],

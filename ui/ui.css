@@ -54,6 +54,7 @@
   font-stretch: semi-condensed;
   font-variant-numeric: slashed-zero;
   font-synthesis: none;
+  color-scheme: light dark;
 }
 
 html, body {

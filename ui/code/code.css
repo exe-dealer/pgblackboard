@@ -2,11 +2,6 @@
   font-stretch: initial;
 }
 
-/* .code .monaco-editor {
-  width: 100% !important;
-  height: 100% !important;
-} */
-
 .code .margin-view-overlays {
   font-weight: 300 !important;
 }

@@ -16,11 +16,7 @@
   top: 0;
   z-index: 1;
   background-image: inherit;
-  background-color: hsla(0 0 17%);
-
-  .light & {
-    background-color: hsla(0 0 90%);;
-  }
+  background-color: light-dark(hsl(0 0 90%), hsl(0 0 17%));
 }
 
 .log-header_icon {
@@ -66,13 +62,8 @@
   text-transform: uppercase;
   text-align: center;
   cursor: pointer;
-  background: hsl(0 0% 90%);
-  color: hsl(0 0% 20%);
-
-  .light & {
-    background: hsl(0 0% 20%);
-    color: hsl(0 0% 95%);
-  }
+  background: light-dark(hsl(0 0 20%), hsl(0 0 90%));
+  color: light-dark(hsl(0 0 95%), hsl(0 0 20%));
 }
 
 .log-wake_commit {
@@ -89,13 +80,8 @@
   text-transform: uppercase;
   text-align: center;
   cursor: pointer;
-  background: hsl(330 80% 30%);
-  /* color: hsl(0 0% 20%); */
-
-  .light & {
-    background-color: hsl(330 60% 50%);
-    color: hsl(0 0 90%);
-  }
+  background: light-dark(hsl(330 60% 50%), hsl(330 80% 30%));
+  color: hsl(0 0 90%);
 }
 
 .log-item {
@@ -155,10 +141,7 @@
   &[data-severity=ERROR i],
   &[data-severity=FATAL i],
   &[data-severity=PANIC i] {
-    color: hsl(330 75% 65%);
-    .light & {
-      color: hsl(330 90% 38%);
-    }
+    color: light-dark(hsl(330 90% 38%), hsl(330 75% 65%));
   }
   /* &[data-severity=WARNING i] {
     color: hsl(55, 60%, 70%);
