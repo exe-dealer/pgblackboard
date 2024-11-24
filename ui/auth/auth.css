@@ -49,6 +49,10 @@
     background-repeat: no-repeat;
     animation: 2s infinite auth-submit_pending;
   }
+  &:focus-visible {
+    outline: 1px currentColor dotted;
+    outline-offset: -.25rem;
+  }
 }
 
 @keyframes auth-submit_pending {

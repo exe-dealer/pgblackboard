@@ -109,6 +109,7 @@ const methods = {
         { tag: xDatum, class: 'app-datum' },
         { tag: xMap, class: 'app-map' },
 
+        // TODO aria https://www.w3.org/WAI/ARIA/apg/patterns/windowsplitter/
         { tag: xGrip, class: 'app-split_left', origin: panes, onDrag: this.resize_left },
         { tag: xGrip, class: 'app-split_right', origin: panes, onDrag: this.resize_right },
         { tag: xGrip, class: 'app-split_out', origin: panes, onDrag: this.resize_out },

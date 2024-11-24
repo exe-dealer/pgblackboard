@@ -109,3 +109,26 @@ function broadcast_plugin(app) {
     },
   });
 }
+
+// https://github.com/microsoft/monaco-editor/issues/4379
+// https://bugzilla.mozilla.org/show_bug.cgi?id=1556240
+// fix click event on monaco and grip component
+function fix_firefox_click(doc) {
+  doc.addEventListener('pointerup', on_pointerup, true);
+  doc.addEventListener('click', on_click, true);
+
+  let last_pointerup_target;
+
+  function on_pointerup(event) {
+    last_pointerup_target = event.target;
+  }
+
+  function on_click(event) {
+    if (!event.pointerType) return; // allow syntetic clicks by kEnter
+    if (last_pointerup_target == event.target) return;
+    event.stopPropagation();
+    event.preventDefault();
+  }
+}
+
+fix_firefox_click(document);
