@@ -1,4 +1,4 @@
-FROM denoland/deno:alpine-2.1.0 AS deno
+FROM denoland/deno:alpine-2.1.1 AS deno
 EXPOSE 7890
 WORKDIR /app
 CMD ["pgbb", "postgres://postgres:5432"]
