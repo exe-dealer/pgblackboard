@@ -1,9 +1,7 @@
 /* reset */
 .app-run,
 .app-abort,
-.app-map_btn,
 .app-theme_btn,
-.app-edit_save_btn,
 .app-dump_changes_btn {
   all: unset;
   font-size: .75rem;

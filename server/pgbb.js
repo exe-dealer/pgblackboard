@@ -57,6 +57,12 @@ class App {
     if (req.method == 'POST' && url.pathname == '/') {
       return this._handle_api(req, url);
     }
+    if (/^(GET|HEAD)$/.test(req.method) && url.pathname == '/favicon.ico') {
+      return new Response(null, {
+        status: 302,
+        headers: { location: 'favicon.svg' },
+      });
+    }
     return this._serve_static(req);
   }
 
@@ -66,7 +72,7 @@ class App {
     }
     // TODO etag
     const url = new URL(req.url);
-    const pathname = url.pathname.replace(/^[/]$/g, '/index.html');
+    const pathname = url.pathname.replace(/^[/]$/, '/index.html');
     // TODO fix parent traverse
     const file_url = import.meta.resolve('../ui' + pathname);
     const file_res = await fetch(file_url);

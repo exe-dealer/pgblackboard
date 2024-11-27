@@ -2,7 +2,7 @@
 
 build: \
 	.dist/ui/index.html \
-	.dist/ui/favicon.ico \
+	.dist/ui/favicon.svg \
 	.dist/ui/ui.css \
 	.dist/ui/ui.js \
 	.dist/server/pgbb.js
@@ -15,7 +15,7 @@ build: \
 	esbuild server/pgbb.js --outfile=$@ --bundle --format=esm
 .dist/ui/index.html: ui/index.html .dist/ui
 	cp $< $@
-.dist/ui/favicon.ico: ui/favicon.ico .dist/ui
+.dist/ui/favicon.svg: ui/favicon.svg .dist/ui
 	cp $< $@
 .dist/ui:
 	mkdir -p .dist/ui
