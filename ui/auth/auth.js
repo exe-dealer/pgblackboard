@@ -3,46 +3,41 @@ const methods = {
     const { pending, error } = this.$store.auth;
 
     return {
-      tag: 'div',
+      tag: 'form',
       class: 'auth',
+      onSubmit: this.on_submit,
       inner: [
         {
-          tag: 'form',
-          class: 'auth-form',
-          onSubmit: this.on_submit,
-          inner: [
-            {
-              tag: 'input',
-              class: 'auth-user',
-              type: 'text',
-              name: 'user',
-              placeholder: 'user',
-              autofocus: true,
-              autocomplete: 'username',
-            },
+          tag: 'input',
+          class: 'auth-user',
+          type: 'text',
+          name: 'user',
+          placeholder: 'user',
+          autofocus: true,
+          autocomplete: 'username',
+          spellcheck: false,
+        },
 
-            {
-              tag: 'input',
-              class: 'auth-password',
-              type: 'password',
-              name: 'password',
-              placeholder: 'password',
-              autocomplete: 'current-password',
-            },
+        {
+          tag: 'input',
+          class: 'auth-password',
+          type: 'password',
+          name: 'password',
+          placeholder: 'password',
+          autocomplete: 'current-password',
+        },
 
-            {
-              tag: 'button',
-              class: 'auth-submit',
-              disabled: pending,
-              inner: 'Login',
-            },
+        {
+          tag: 'button',
+          class: 'auth-submit',
+          disabled: pending,
+          inner: 'Login',
+        },
 
-            {
-              tag: 'output',
-              class: 'auth-error',
-              inner: error,
-            },
-          ],
+        {
+          tag: 'output',
+          class: 'auth-error',
+          inner: error,
         },
       ],
     };

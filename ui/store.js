@@ -1,7 +1,7 @@
 import { editor, Uri } from './_vendor/monaco.js';
 
 export class Store {
-  light_theme = false;
+  dark = { sys: false, on: null };
   timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
   panes = { left: .2, right: .6, out: 1, map: 0 };
   auth = {
@@ -110,6 +110,7 @@ export class Store {
 
     this._load_drafts();
     setInterval(_ => this._flush_drafts(), 10e3);
+    // TODO visibilitychange
     globalThis.addEventListener('unload', _ => this._flush_drafts());
   }
 
@@ -434,8 +435,14 @@ export class Store {
     }
   }
 
-  toggle_theme() {
-    this.light_theme = !this.light_theme;
+  is_dark(fallback = this.dark.sys) {
+    return this.dark.on ?? fallback;
+  }
+  set_dark_sys(value) {
+    this.dark.sys = value;
+  }
+  toggle_dark() {
+    this.dark.on = !this.is_dark();
   }
 
   can_abort() {

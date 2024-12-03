@@ -1,29 +1,32 @@
 .auth {
-  background-color:  hsl(0 0% 14%);
-}
-
-.auth-form {
   display: flex;
   flex-direction: column;
-  width: 20em;
-  margin: 10em auto;
 }
 
 .auth-user,
 .auth-password {
   all: unset;
-  border-bottom: 1px solid #8885;
+  border-bottom: 1px solid hsl(0 0 50 / .2);
+  border-bottom-color: hsl(from currentColor h s l / .1);
   line-height: 2.5;
-  padding: 0 .5em;
-}
+  padding-inline: .5em;
+  margin-block: .125em;
 
-.auth-user {
-  /* border-top: 1px solid #8885; */
-}
-
-.auth-user:focus,
-.auth-password:focus {
-  outline: none;
+  &:focus {
+    outline: 1px dashed transparent;
+    outline-offset: -.25em;
+    border-bottom-color: hsl(0 0 50 / .8);
+    border-bottom-color: hsl(from currentColor h s l / .5);
+  }
+  &:autofill {
+    border-color: transparent;
+    outline-color: currentColor;
+  }
+  &::placeholder {
+    /* make placeholder color mixed with background color for more contrast */
+    color: currentColor;
+    opacity: .4;
+  }
 }
 
 .auth-submit {
@@ -32,7 +35,8 @@
   line-height: 2rem;
   font-weight: 500;
   font-stretch: normal;
-  background-color: #444;
+  background-color: light-dark(hsl(0 0 40), hsl(0 0 25));
+  color: hsl(0 0 90);
   border-radius: 1rem;
   text-transform: uppercase;
   margin: 1rem 2rem;
@@ -42,15 +46,13 @@
 
   &:disabled {
     cursor: initial;
-    opacity: .5;
-    /* background-color: #333; */
-
-    background-image: linear-gradient(to right, #fff0 0%, #fff2 50%, #fff0 100%);
+    opacity: .7;
+    background-image: linear-gradient(to right, hsl(0 0 100 / 0) 0%, hsl(0 0 100 / 0.25) 50%, hsl(0 0 100 / 0) 100%);
     background-repeat: no-repeat;
     animation: 2s infinite auth-submit_pending;
   }
   &:focus-visible {
-    outline: 1px currentColor dotted;
+    outline: 1px dashed currentColor;
     outline-offset: -.25rem;
   }
 }
@@ -63,5 +65,5 @@
 .auth-error {
   white-space: pre-wrap;
   line-height: 1.2;
-  color: #e26488;
+  color: light-dark(hsl(330 90 38), hsl(330 75 65));
 }

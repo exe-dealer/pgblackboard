@@ -7,7 +7,6 @@
   font-size: .75rem;
   font-weight: 500;
   font-stretch: normal;
-  border-radius: 1rem;
   text-transform: uppercase;
   text-align: center;
   cursor: pointer;
@@ -49,14 +48,8 @@
     minmax(var(--app-pane_code_min), 1fr)
     calc(var(--app-pane_right) * var(--app-dynw) + var(--app-pane_right_min))
   ;
-  color-scheme: dark;
-
   color: light-dark(hsl(0 0% 20%), hsl(0 0% 93%));
   background-color: light-dark(hsl(0 0% 95%), hsl(0 0% 14%));
-
-  &[data-light] {
-    color-scheme: light;
-  }
 }
 
 .app-measure {
@@ -70,6 +63,8 @@
   position: absolute;
   inset: 0;
   z-index: 10;
+  width: 20em;
+  margin: 10em auto;
 }
 
 .app-nav {
@@ -116,6 +111,7 @@
 }
 
 .app-run {
+  border-radius: 1rem;
   min-width: 5rem;
   margin-inline: .5rem;
   opacity: 1;
@@ -132,6 +128,7 @@
 }
 
 .app-abort {
+  border-radius: 1rem;
   min-width: 5rem;
   background-color: light-dark(hsl(330 60% 50%), hsl(330 80% 30%));
   opacity: 1;
@@ -150,13 +147,14 @@
 
 .app-nav_bar {
   grid-area: nav_b;
-  background-color: hsl(0 0% 50% / 0.1)
+  display: flex;
+  background-color: hsl(0 0% 50% / 0.1);
 }
 
 .app-theme_btn {
   width: 2rem;
-  height: 2.5rem;
   position: relative;
+  transition: opacity 200ms ease;
   opacity: .5;
 
   &::before {
@@ -166,7 +164,11 @@
     background-color: currentColor;
     mask: url('icon_theme.svg') center / 1rem no-repeat;
   }
-  &[data-light] {
+  &:hover {
+    opacity: 1;
+    background-color: hsl(0 0 50 / .2);
+  }
+  &[aria-checked="true"] {
     transform: scaleX(-1);
   }
 }

@@ -22,7 +22,8 @@ const methods = {
       };
     }
 
-    const { light_theme, panes } = this.$store;
+    const { panes } = this.$store;
+    const is_dark = this.$store.is_dark();
     const can_run = this.$store.can_run();
     const can_abort = this.$store.can_abort();
     const changes_num = this.$store.get_changes_num(); // TODO cache
@@ -30,7 +31,7 @@ const methods = {
     return {
       tag: 'div',
       class: 'app',
-      'data-light': light_theme || null,
+      // 'data-light': light_theme || null,
       style: {
         '--app-pane_left': panes.left,
         '--app-pane_right': panes.right,
@@ -46,9 +47,10 @@ const methods = {
               tag: 'button',
               class: 'app-theme_btn',
               type: 'button',
-              'aria-label': 'Toggle color theme',
-              'data-light': light_theme || null,
-              onClick: this.toggle_theme,
+              role: 'switch',
+              'aria-label': 'Dark theme',
+              'aria-checked': is_dark,
+              onClick: this.toggle_dark,
             },
           ],
         },
@@ -133,8 +135,8 @@ const methods = {
   abort() {
     this.$store.abort();
   },
-  toggle_theme() {
-    this.$store.toggle_theme();
+  toggle_dark() {
+    this.$store.toggle_dark();
   },
   dump_changes() {
     this.$store.dump_changes();
@@ -169,6 +171,4 @@ const methods = {
   },
 };
 
-export default {
-  methods,
-};
+export default { methods };

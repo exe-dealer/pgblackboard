@@ -1,7 +1,7 @@
 import monaco_worker from './_vendor/monaco_worker.js';
 import monaco_json_worker from './_vendor/monaco_json_worker.js';
 import { editor } from './_vendor/monaco.js';
-import { createApp, reactive, watchEffect, h as create_vnode } from './_vendor/vue.js';
+import { createApp, reactive, watch, h as create_vnode, computed } from './_vendor/vue.js';
 import root_component from './app/app.js';
 import { Store } from './store.js';
 
@@ -38,16 +38,29 @@ editor.defineTheme('pgbb-light', {
 
 const store = reactive(new Store());
 globalThis.debug_store = store;
-watchEffect(_ => {
-  editor.setTheme(store.light_theme ? 'pgbb-light' : 'pgbb-dark');
-});
 
-const app = createApp({
-  // TODO createApp(root_component) does not render by mixin
-  render() { return create_vnode(root_component); },
-});
+const m = matchMedia('(prefers-color-scheme: dark)');
+store.set_dark_sys(m.matches);
+m.addEventListener('change', _ => store.set_dark_sys(m.matches));
 
+watch(
+  _ => store.is_dark(),
+  is_dark => editor.setTheme(is_dark ? 'pgbb-dark' : 'pgbb-light'),
+  { immediate: true },
+);
+
+watch(
+  _ => store.is_dark(null),
+  is_dark => document.documentElement.setAttribute('data-theme', is_dark == null ? 'sys' : is_dark ? 'dark' : 'light'),
+  { immediate: true },
+);
+
+const app = createApp(create_vnode(root_component));
 app.config.globalProperties.$store = store;
+app.config.globalProperties.$cached = function (fn) {
+  const c = fn._vue_computed ||= computed(fn);
+  return c.value;
+};
 app.use(pojo_vdom_plugin);
 app.use(broadcast_plugin);
 app.mount('body');
@@ -57,6 +70,8 @@ function pojo_vdom_plugin(app) {
     render() {
       return transform_vdom(this._render());
     },
+
+    // TODO not related to pojo vdom
     mounted() {
       this._mounted?.();
     },

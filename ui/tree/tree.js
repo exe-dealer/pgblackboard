@@ -56,6 +56,7 @@ const methods = {
             node.expandable && {
               tag: 'button',
               class: 'tree-toggler',
+              type: 'button',
               onClick: e => (e.stopPropagation(), this.toggle(node_path)),
             },
           ],

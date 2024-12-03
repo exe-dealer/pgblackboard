@@ -22,6 +22,9 @@ docker run -it --rm -p 7890:7890 kagiskz/pgblackboard:3-20241121 pgbb postgres:/
 
 - table, virtual scroll
 
+- log, commit button feedback
+- log, commandcomplete/notices contrast
+
 - datum, jsonb pretty
 - datum, html/svg preview
 - datum, `explain` visualization
