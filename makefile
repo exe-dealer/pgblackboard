@@ -24,23 +24,23 @@ ui/_vendor/vue.js:
 	curl -o $@ 'https://unpkg.com/vue@3.5.13/dist/vue.esm-browser.js'
 
 ui/_vendor/maplibre.css:
-	curl 'https://esm.sh/maplibre-gl@4.7.1/dist/maplibre-gl.css' | deno fmt --ext css - > $@
+	curl 'https://esm.sh/maplibre-gl@5.0.0/dist/maplibre-gl.css' | deno fmt --ext css - > $@
 ui/_vendor/maplibre.js:
-	curl -o $@ 'https://esm.sh/v135/maplibre-gl@4.7.1/es2022/dist/maplibre-gl-dev.development.bundle.js'
+	curl -o $@ 'https://esm.sh/v135/maplibre-gl@5.0.0/es2022/dist/maplibre-gl-dev.development.bundle.js'
 
 ui/_vendor/monaco.css:
-	curl 'https://esm.sh/v135/monaco-editor@0.52.0/es2022/monaco-editor.css' | deno fmt --ext css - > $@
+	curl 'https://esm.sh/v135/monaco-editor@0.52.2/es2022/monaco-editor.css' | deno fmt --ext css - > $@
 ui/_vendor/monaco.js:
-	curl -o $@ 'https://esm.sh/v135/monaco-editor@0.52.0/es2022/esm/vs/editor/editor.main.development.bundle.js'
+	curl -o $@ 'https://esm.sh/v135/monaco-editor@0.52.2/es2022/esm/vs/editor/editor.main.development.bundle.js'
 ui/_vendor/monaco_worker.js:
-	curl -o $@ 'https://esm.sh/v135/monaco-editor@0.52.0/es2022/esm/vs/editor/editor.worker.development.bundle.js?worker'
+	curl -o $@ 'https://esm.sh/v135/monaco-editor@0.52.2/es2022/esm/vs/editor/editor.worker.development.bundle.js?worker'
 ui/_vendor/monaco_json_worker.js:
-	curl -o $@ 'https://esm.sh/v135/monaco-editor@0.52.0/es2022/esm/vs/language/json/json.worker.development.bundle.js?worker'
+	curl -o $@ 'https://esm.sh/v135/monaco-editor@0.52.2/es2022/esm/vs/language/json/json.worker.development.bundle.js?worker'
 
 server/_vendor/pgwire.js:
 	curl -o $@ 'https://raw.githubusercontent.com/kagis/pgwire/b992f307097ac5bd350ba41ea4c85d194ccb611f/mod.js'
 server/_vendor/parse_args.ts:
-	curl -o $@ 'https://jsr.io/@std/cli/1.0.6/parse_args.ts'
+	curl -o $@ 'https://jsr.io/@std/cli/1.0.9/parse_args.ts'
 
 
 # docker run -it --rm -v $PWD:/app -w /app alpine:3.20

@@ -146,7 +146,7 @@ const methods = {
           id: 'out_fill',
           type: 'fill',
           source: 'features',
-          filter: ['==', ['geometry-type'], 'Polygon'],
+          filter: ['in', ['geometry-type'], 'MultiPolygon'],
           paint: {
             'fill-opacity': .4,
             'fill-color': ['to-color', ['concat', 'hsl(', ['get', 'hue'], ' 100% 70%)']],
@@ -156,7 +156,7 @@ const methods = {
           id: 'hl_fill',
           type: 'fill',
           source: 'highlight',
-          filter: ['==', ['geometry-type'], 'Polygon'],
+          filter: ['in', ['geometry-type'], 'MultiPolygon'],
           paint: {
             'fill-opacity': .2,
             'fill-color': 'hsl(0 0% 33%)',
@@ -169,7 +169,7 @@ const methods = {
           id: 'out_line',
           type: 'line',
           source: 'features',
-          filter: ['==', ['geometry-type'], 'LineString'],
+          filter: ['in', ['geometry-type'], 'MultiLineString'],
           paint: {
             'line-width': 2,
             'line-color': ['to-color', ['concat', 'hsl(', ['get', 'hue'], ' 100% 70%)']],
@@ -179,7 +179,7 @@ const methods = {
           id: 'hl_path',
           type: 'line',
           source: 'highlight',
-          filter: ['!=', ['geometry-type'], 'Point'],
+          filter: ['in', ['geometry-type'], 'MultiLineString MultiPolygon'],
           paint: {
             'line-width': 1,
             'line-color': 'hsl(0 0% 33%)',
@@ -192,7 +192,7 @@ const methods = {
           id: 'hl_vertex',
           type: 'circle',
           source: 'highlight',
-          filter: ['!=', ['geometry-type'], 'Point'],
+          filter: ['in', ['geometry-type'], 'MultiLineString MultiPolygon'],
           paint: {
             'circle-radius': 2,
             'circle-color': 'hsl(0 0% 33%)',
@@ -220,7 +220,7 @@ const methods = {
           source: 'features',
           filter: [
             'all',
-            ['==', ['geometry-type'], 'Point'],
+            ['in', ['geometry-type'], 'MultiPoint'],
             ['==', null, ['get', 'zoom']], // not collapsed
           ],
           paint: {
@@ -262,7 +262,7 @@ const methods = {
           source: 'highlight',
           filter: [
             'all',
-            ['==', ['geometry-type'], 'Point'],
+            ['in', ['geometry-type'], 'MultiPoint'],
             ['<=', ['zoom'], ['coalesce', ['get', 'zoom'], 100]],
           ],
           paint: {
