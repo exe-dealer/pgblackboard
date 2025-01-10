@@ -21,6 +21,7 @@ docker run -it --rm -p 7890:7890 kagiskz/pgblackboard:3-20241121 pgbb postgres:/
 - tree, partitioned tables icon
 
 - table, virtual scroll
+- table, column auto width
 
 - log, commit button feedback
 - log, commandcomplete/notices contrast
@@ -39,6 +40,7 @@ docker run -it --rm -p 7890:7890 kagiskz/pgblackboard:3-20241121 pgbb postgres:/
   - guc (can be set in script, or user/database, or conn_uri)
 - map, city labels optimization
 
+- run in implicit transaction
 - `scroll to log` button
 - file upload
 - `copy to stdout` download

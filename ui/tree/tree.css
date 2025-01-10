@@ -1,177 +1,175 @@
 /* TODO group separator */
-.tree-branch:has(> [data-type~='column']) + .tree-branch:not(:has(> [data-type~='column'])) {
-  margin-block-start: 0.5em;
+.tree-item:has(> [data-type~='column']) + .tree-item:not(:has(> [data-type~='column'])) {
+  margin-block-start: .5em;
 }
 
-.tree-node {
-  position: relative;
-  padding-inline: calc(1rem + var(--tree-level) * 1rem) 2rem;
-  white-space: nowrap;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
+.tree {
+  all: unset;
+  display: block;
+}
 
-  &:hover {
-    background-color: hsl(0 0% 50% / 0.2);
-  }
-  &[data-selected] {
-    background-color: hsl(0 0% 50% / 0.3);
-  }
+.tree-item {
+  all: unset;
+  display: block;
 }
 
 .tree-error {
-  padding-inline: calc(1rem + var(--tree-level) * 1rem) 2rem;
-  padding-block: .4rem;
-  line-height: 1.2rem;
-  font-size: .875rem;
-  color: light-dark(hsl(330 90% 38%), hsl(330 75% 65%));
+  display: block;
+  padding-inline-start: calc(var(--tree-level) * 1em + 1em);
+  padding-inline-end: 1lh; /* toggler placeholder */
+  padding-block: .25em;
+  line-height: 1.5;
+  color: light-dark(hsl(330 90 38), hsl(330 75 65));
+}
+
+.tree-link {
+  display: block;
+  padding-inline-start: calc(var(--tree-level) * 1em);
+  padding-inline-end: 1lh; /* toggler placeholder */
+  max-height: 1lh; /* hide badge on overflow */
+  overflow: hidden;
+  word-break: break-all; /* no effect when white-space: no-wrap */
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  cursor: pointer;
+
+  &:hover {
+    background-color: hsl(0 0 50 / .2);
+  }
+  &[data-selected] {
+    background-color: hsl(0 0 50 / .3);
+  }
+
+  &[data-type~='index']::before,
+  &[data-type~='trigger']::before,
+  &[data-type~='constraint']::before {
+    content: '... ';
+    opacity: .5;
+  }
 }
 
 .tree-marker {
-  position: absolute;
-  inset: 0 auto;
-  inline-size: 2rem;
-  margin-inline-start: -2rem;
+  float: inline-start;
+  width: 1lh;
+  height: 1lh;
   background-color: currentcolor;
-  mask: url('./marker_file.svg') center / 1rem no-repeat; /* TODO fallback marker */
-  opacity: 0.5;
+  mask: url('./marker_file.svg') center / 1em no-repeat; /* TODO fallback marker */
+  opacity: .5;
 
-  .tree-node[data-type~='database'] & {
+  &[aria-label~='database'] {
     mask-image: url('./marker_database.svg');
   }
-  .tree-node[data-type~='schema'] & {
+  &[aria-label~='schema'] {
     mask-image: url('./marker_schema.svg');
   }
-  .tree-node[data-type~='table'] & {
+  &[aria-label~='table'] {
     mask-image: url('./marker_table.svg');
   }
-  .tree-node[data-type~='table_v'] & {
-    mask-image: url('./marker_view.svg');
+  &[aria-label~='table_v'] {
+    mask-image: url('./marker_table_v.svg');
   }
-  .tree-node[data-type~='table_f'] & {
-    mask-image: url('./marker_view.svg');
+  &[aria-label~='table_f'] {
+    mask-image: url('./marker_table_v.svg');
   }
-  .tree-node[data-type~='column'] & {
+  &[aria-label~='column'] {
     mask-image: url('./marker_column.svg');
   }
-  .tree-node[data-type~='column_pk'] & {
+  &[aria-label~='column_pk'] {
     mask-image: url('./marker_column_pk.svg');
-    opacity: 1;
+    opacity: .8;
   }
-  .tree-node[data-type~='func'] & {
-    mask-image: url('./marker_func.svg');
+  &[aria-label~='function'] {
+    mask-image: url('./marker_function.svg');
   }
-  .tree-node[data-type~='agg'] & {
-    mask-image: url('./marker_agg.svg');
+  &[aria-label~='aggregate'] {
+    mask-image: url('./marker_aggregate.svg');
   }
-  .tree-node[data-type~='index'] & {
+  &[aria-label~='index'] {
     mask-image: url('./marker_index.svg');
   }
-  .tree-node[data-type~='trigger'] & {
+  &[aria-label~='trigger'] {
     mask-image: url('./marker_trigger.svg');
   }
-  .tree-node[data-type~='constraint'] & {
-    mask-image: url('./marker_check.svg');
+  &[aria-label~='constraint'] {
+    mask-image: url('./marker_constraint.svg');
   }
-  .tree-node[data-type~='dir'] & {
+  &[aria-label~='dir'] {
     mask-image: url('./marker_dir.svg');
   }
-  .tree-node[data-type~='file'] & {
+  &[aria-label~='file'] {
     mask-image: url('./marker_file.svg');
   }
 }
 
-.tree-caption {
-  flex: 1;
-  min-width: 0;
-  text-overflow: ellipsis;
-  overflow: hidden;
-
-  .tree-node[data-type~='index'] &::before,
-  .tree-node[data-type~='trigger'] &::before,
-  .tree-node[data-type~='constraint'] &::before {
-    content: '...';
-    margin-inline-end: 0.25rem;
-    opacity: 0.5;
-  }
-}
-
-.tree-comment {
-  font-size: 0.875rem;
-  font-style: italic;
-  color: hsl(0 0% 50%);
-}
-
 .tree-badge {
+  float: inline-end;
+  margin-block: .25rem;
+  font-size: .75rem;
+  white-space: nowrap;
+  padding-inline: .5rem;
+  border-radius: 1em;
   font-weight: 400;
-  font-size: 0.75rem;
   font-variant-numeric: proportional-nums;
-  line-height: 1.25rem;
-  border-radius: 1rem;
-  padding-inline: 0.5rem;
-  color: light-dark(hsl(0 0 50%), hsl(0 0 60%));
-  background-color: light-dark(hsl(0 0 98%), hsl(0 0 12%));
+  color: light-dark(hsl(0 0 50), hsl(0 0 60));
+  background-color: light-dark(hsl(0 0 98), hsl(0 0 12));
+}
 
-  &:empty {
-    display: none;
-  }
+.tree-descr {
+  font-size: .875rem;
+  font-style: italic;
+  opacity: .7;
 }
 
 .tree-toggler {
-  position: absolute;
-  z-index: 10;
-  inset: 0 0 0 auto;
-  font-family: inherit;
-  font-size: inherit;
-  font-weight: inherit;
-  appearance: none;
-  padding: 0;
-  margin: 0;
-  border: none;
-  inline-size: 2em; /* TODO 1lh */
-  color: inherit;
-  background: none;
-  opacity: 0;
-  transition: opacity 400ms ease 1000ms;
+  all: unset;
+  display: block;
+  height: 1lh;
+  width: 1lh;
+  margin-block: -1lh 0;
+  margin-inline: auto 0;
+  position: relative;
   cursor: pointer;
 
-  &::before {
+  /* triangle */
+  &:enabled::before {
     content: '';
     position: absolute;
     inset: 0;
     background-color: currentcolor;
-    mask: url('./toggler.svg') center / 1rem no-repeat;
+    mask: url('./toggler.svg') center / 1em no-repeat;
+    opacity: 0; /* TODO inaccessable on touch devices (no hover) */
+    transition: opacity 400ms ease 1000ms;
   }
-  .tree:hover & {
+  /* TODO .nav:hover */
+  .tree:hover &::before {
     transition: opacity 200ms ease;
-    opacity: 0.3;
+    opacity: .3;
   }
-  .tree &:hover {
-    opacity: 0.7;
+  &:hover::before {
+    opacity: .7 !important;
   }
-  .tree-node[data-expanding] & {
-    visibility: hidden;
+  &[aria-expanded='true']::before {
+    transform: rotate(.25turn);
   }
-  .tree-node[data-expanded] & {
-    transform: rotate(0.25turn);
-  }
-}
 
-.tree-loader {
-  position: absolute;
-  inset: 0 0 0 auto;
-  border: 2px solid hsl(0 0% 50%);
-  width: 1rem;
-  margin: 0.5rem;
-  box-sizing: border-box;
-  border-radius: 50%;
-  border-left-color: transparent;
-  animation: 800ms linear tree-spin infinite;
-  pointer-events: none;
-  display: none;
-
-  .tree-node[data-expanding] & {
-    display: initial;
+  /* spinner */
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    margin: auto;
+    width: 1em;
+    height: 1em;
+    box-sizing: border-box;
+    border: 2px solid hsl(from currentcolor h s l / .3);
+    border-top-color: currentColor;
+    border-radius: 50%;
+    opacity: 0;
+  }
+  &:disabled::after {
+    opacity: .5;
+    transition: opacity 200ms cubic-bezier(1, 0, 1, .8); /* prevent blink on fast connection */
+    animation: 1000ms cubic-bezier(.7, .35, .7, .35) tree-spin infinite;
   }
 }
 

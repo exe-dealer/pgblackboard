@@ -151,8 +151,7 @@ class App {
   }
 
   /** @param {Request} _req */
-  async _api_tree(_req, { u: user, db: database, node }, password) {
-    const node_arr = node?.split('.')?.map(decodeURIComponent);
+  async _api_tree(_req, { u: user, db: database, ntype, noid, ntid }, password) {
     const pg = pgconnection({
       user,
       password,
@@ -166,11 +165,14 @@ class App {
     try {
       const { rows } = await pg.query({
         statement: tree_sql,
-        params: [{ type: 'text[]', value: node_arr }],
+        params: [
+          { type: 'text', value: ntype },
+          { type: 'oid', value: noid },
+          { type: 'text', value: ntid },
+        ],
       });
-      const result = rows.map(([db, id, type, name, comment, badge, expandable]) => ({
-        id: id.map(encodeURIComponent).map(x => x.replace(/\./g, '%2e')).join('.'),
-        type, db, name, comment, badge, expandable,
+      const result = rows.map(([db, ntype, noid, ntid, name, descr, mod, size, leaf]) => ({
+        db, ntype, noid: noid ?? undefined, ntid: ntid ?? undefined, name, descr, mod, size, leaf,
       }));
       return Response.json({ result });
     } finally {
@@ -179,8 +181,7 @@ class App {
   }
 
   /** @param {Request} _req */
-  async _api_defn(_req, { u: user, db: database, node }, password) {
-    const node_arr = node.split('.').map(decodeURIComponent);
+  async _api_defn(_req, { u: user, db: database, ntype, noid, ntid }, password) {
     const pg = pgconnection({
       user,
       password,
@@ -193,7 +194,11 @@ class App {
     try {
       const [result] = await pg.query({
         statement: defn_sql,
-        params: [{ type: 'text[]', value: node_arr }],
+        params: [
+          { type: 'text', value: ntype },
+          { type: 'oid', value: noid },
+          { type: 'text', value: ntid },
+        ],
       });
       return Response.json({ result });
     } finally {
@@ -304,6 +309,7 @@ class App {
         statement: 'begin',
         // TODO execute user script in single implicit transaction:
         // - not all statemements can be executed in explicit transaction.
+        // - CALL procedure() behaves differently in implicit and explicit transactions
         // - rollback/commit causes autocommit behavior
       });
 
@@ -474,208 +480,142 @@ class App {
   }
 }
 
-// db, postgres
-// ns, postgres, 1
-// rel, postgres, 2
-// col, postgres, 2, 1
-// fn, postgres, 10
-
-const tree_sql = /*sql*/  `
-  with arg (currdb, a1, a2, a3, a2_oid) as (
-    select current_database(), $1[1], $1[2], $1[3]
-      , case when $1[2] similar to '[0-9]+' then $1[2]::oid end
-  )
+const tree_sql = String.raw /*sql*/ `
+  select text ''          db
+    , text ''             ntype
+    , oid '0'             noid
+    , text ''             ntid
+    , text '' collate "C" "name"
+    , text ''             descr
+    , text ''             mod
+    , float8 '0'          size
+    , bool 'false'        leaf
+    , int2 '0'            ord
+  where false
 
   -- databases
-  select datname, array['db']::text[]
-    , 'database'
-    , datname::text collate "C"
-    , shobj_description(oid, 'pg_database')
-    , null
-    , true
-    , 1
-  from pg_database
-  where $1 is null and not datistemplate
+  union all
+  select datname, 'database', null, null, datname, descr, null, null, false, 1
+  from pg_database, shobj_description(oid, 'pg_database') descr
+  where $1 is null
+    and not datistemplate
 
   -- schemas
   union all
-  select currdb, array['ns', oid]::text[]
-    , 'schema'
-    , nspname
-    , obj_description(oid, 'pg_namespace')
-    , null
-    , true
-    , 1
-  from arg, pg_namespace
-  where 'db' = a1 and nspname not like all (array[
-    'pg\_toast',
-    'pg\_temp\_%',
-    'pg\_toast\_temp\_%'
-  ])
-
-  -- TODO group by extensions?
+  select current_catalog, 'schema', oid, null, nspname, descr, null, null, false, 1
+  from pg_namespace, obj_description(oid, 'pg_namespace') descr
+  where 'database' = $1
+    and nspname not like all ('{ pg\\_toast , pg\\_temp\\_% , pg\\_toast\\_temp\\_% }')
 
   -- functions
   union all
-  select currdb, array['fn', pg_proc.oid]::text[]
-    , case when pg_aggregate is null then 'func' else 'agg' end
-    , format(
-      e'%s (%s) \u2022 %s'
-      , proname
-      , pg_get_function_identity_arguments(pg_proc.oid)
-      -- TODO fix no result type when procedure
-      , pg_get_function_result(pg_proc.oid)
-    )
-    , obj_description(pg_proc.oid, 'pg_proc')
-    , null
-    , false
-    , 2
-  from arg, pg_proc
-  left join pg_aggregate on aggfnoid = pg_proc.oid
-  where ('ns', pronamespace) = (a1, a2_oid)
+  select current_catalog, 'function', p.oid, null, sign, descr, mod, null, true, 2
+  from pg_proc p
+  left join pg_aggregate agg on aggfnoid = oid
+  , obj_description(p.oid, 'pg_proc') descr
+  , pg_get_function_result(p.oid) fnres
+  , format(
+    '%s (%s)%s'
+    , proname
+    , pg_get_function_identity_arguments(p.oid)
+    , e' \u2022 ' || fnres
+  ) sign
+  ,concat_ws(' '
+    , case when agg is not null then 'aggregate' end
+    , case when fnres is null then 'procedure' end
+  ) mod
+  where ('schema', pronamespace) = ($1, $2)
 
   -- tables
   union all
-  select currdb, array['rel', pg_class.oid]::text[]
-    , format('table table_%s', relkind)
-    , relname
-    , obj_description(pg_class.oid, 'pg_class')
-    , badge
-    , true
-    , 1
-  from arg, pg_class, text(
-    case
-    -- TODO trailing .0 not dropped (FM)
-    when reltuples >= 1e9 then to_char(reltuples / 1e9, '999.9 "G"')
-    when reltuples >= 1e6 then to_char(reltuples / 1e6, '999.9 "M"')
-    when reltuples >= 1e3 then to_char(reltuples / 1e3, '999.9 "k"')
-    when reltuples > 0 then to_char(reltuples, '999')
-    end
-  ) badge
-  where ('ns', relnamespace) = (a1, a2_oid)
+  select current_catalog, 'table', oid, null, relname, descr, mod, size, false, 1
+  from pg_class
+  , obj_description(oid, 'pg_class') descr
+  , format('table_%s', relkind) mod
+  , nullif(reltuples, -1) size
+  where ('schema', relnamespace) = ($1, $2)
     and relkind not in ('i', 'I', 't', 'c', 'S')
 
   -- columns
   union all
-  select currdb, array['col', attrelid, attnum]::text[]
-    , concat_ws(' '
-      , 'column'
-      , (
-        select 'column_pk'
-        from pg_constraint
-        where conrelid = attrelid and contype = 'p' and attnum = any(conkey)
-        -- limit 1
-      )
+  select current_catalog, 'column', attrelid, text(attnum), attname, descr, mod, null, true, attnum
+  from pg_attribute
+  , concat_ws(' '
+    , format_type(atttypid, atttypmod)
+    , case when attnotnull then 'not null' end
+    , '-- ' || col_description(attrelid, attnum)
+  ) descr
+  , concat_ws(' '
+    , (
+      select 'column_pk'
+      from pg_constraint
+      where conrelid = attrelid and contype = 'p' and attnum = any(conkey)
+      -- limit 1
     )
-    , concat_ws(' '
-      , attname
-      , format_type(atttypid, atttypmod)
-      , case when attnotnull then 'not null' end
-    )
-    , col_description(attrelid, attnum)
-    , null
-    , false
-    , attnum
-  from arg, pg_attribute
-  left join pg_constraint pk on pk.conrelid = attrelid and pk.contype = 'p'
-  where ('rel', attrelid) = (a1, a2_oid)
-    and (attnum > 0 or attname = 'oid') and not attisdropped
+  ) mod
+  where ('table', attrelid) = ($1, $2)
+    and (attnum > 0 or attname = 'oid')
+    and not attisdropped
 
   -- constraints
   union all
-  select currdb, array['constraint', oid]::text[]
-    , concat_ws(' '
-      , 'constraint'
-      -- , format('constraint_%s', contype)
-      , case when not convalidated then 'constraint_not_validated' end
-    )
-    , conname
-    , obj_description(oid, 'pg_constraint')
-    , null
-    , false
-    , 10010
-  from arg, pg_constraint
-  where ('rel', conrelid) = (a1, a2_oid)
+  select current_catalog, 'constraint', oid, null, conname, descr, mod, null, true, 10010
+  from pg_constraint
+  , obj_description(oid, 'pg_constraint') descr
+  , concat_ws(' '
+    , format('constraint_%s', contype)
+    , case when not convalidated then 'constraint_not_validated' end
+  ) mod
+  where ('table', conrelid) = ($1, $2)
     -- and contype not in ()
 
   -- indexes
   union all
-  select currdb, array['index', indexrelid]::text[]
-    , 'index'
-    , relname
-    , obj_description(indexrelid, 'pg_class')
-    , null
-    , false
-    , 10020
-  from arg, pg_index join pg_class on indexrelid = oid
-  where ('rel', indrelid) = (a1, a2_oid)
+  select current_catalog, 'index', indexrelid, null, relname, descr, mod, null, true, 10020
+  from pg_index join pg_class on indexrelid = oid
+  , obj_description(indexrelid, 'pg_class') descr
+  , concat_ws(' ', null) mod -- TODO uniq
+  where ('table', indrelid) = ($1, $2)
 
   -- triggers
   union all
-  select currdb, array['trigger', oid]::text[]
-      -- TODO tgenabled=D
-    , 'trigger'
-    , tgname
-    , obj_description(oid, 'pg_trigger')
-    , null
-    , false
-    , 10030
-  from arg, pg_trigger
-  where ('rel', tgrelid) = (a1, a2_oid) and tgconstraint = 0
+  select current_catalog, 'trigger', oid, null, tgname, descr, mod, null, true, 10030
+  from pg_trigger
+  , obj_description(oid, 'pg_trigger') descr
+  , concat_ws(' ', null) mod -- TODO tgenabled=D
+  where ('table', tgrelid) = ($1, $2)
+    and tgconstraint = 0
 
-  -- fs root
+  -- fs
   union all
-  select currdb, array['dir', '.']::text[]
-    , 'dir'
-    , './' -- current_setting('data_directory') -- TODO '/'
-    , null
-    , null
-    , true
-    , 2
-  from arg
+  select current_catalog, 'dir', null, '.', './', null, null, null, false, 2
   where $1 is null
-  -- TODO: and current_setting('is_superuser')
+    and has_function_privilege('pg_ls_dir(text)', 'execute')
 
   -- dir
   union all
-  select currdb, array['dir', fpath]::text[]
-    , 'dir'
-    , fname
-    , null
-    , null
-    , true
-    , 1
-  from arg
-  , pg_ls_dir(a2) fname
-  , concat(a2, '/', fname) fpath
+  select current_catalog, 'dir', null, fpath, fname, null, null, null, false, 1
+  from pg_ls_dir($3) fname
+  , concat($3, '/', fname) fpath
   , pg_stat_file(fpath) stat
-  where 'dir' = a1 and stat.isdir
+  where 'dir' = $1
+    and stat.isdir
 
   -- file
   union all
-  select currdb, array['file', fpath]::text[]
-    , 'file'
-    , fname
-    , null
-    , null -- TODO file size
-    , false
-    , 2
-  from arg
-  , pg_ls_dir(a2) fname -- TODO not permitted for reqular user
-  , concat(a2, '/', fname) fpath
+  select current_catalog, 'file', null, fpath, fname, null, null, null, true, 2
+  from pg_ls_dir($3) fname
+  , concat($3, '/', fname) fpath
   , pg_stat_file(fpath) stat
-  where 'dir' = a1 and not stat.isdir
+  where 'dir' = $1
+    and not stat.isdir
 
-  order by 8, 4
+  order by ord, "name"
 `;
 
 
 const defn_sql = String.raw /*sql*/ `
-with arg (a1, a2, a3, a2_oid) as (
-  select $1[1], $1[2], $1[3]
-    , case when $1[2] similar to '[0-9]+' then $1[2]::oid end
-)
-, geom_typoid as (
+with geom_typoid as (
   select t.oid
   from pg_type t, pg_depend d, pg_extension e
   where d.deptype = 'e'
@@ -685,9 +625,8 @@ with arg (a1, a2, a3, a2_oid) as (
     and t.typname in ('geometry', 'geography')
     and e.extname = 'postgis'
 )
-select format(e'\\connect %I\n\n%s', current_database(), def)
-from arg
-, substring(current_setting('server_version') from '\d+') pg_major_ver
+select format(e'\\connect %I\n\n%s', current_catalog, def)
+from substring(current_setting('server_version') from '\d+') pg_major_ver
 , lateral (
 
   -- database
@@ -697,7 +636,7 @@ from arg
     , format('-- https://www.postgresql.org/docs/%s/sql-alterdatabase.html', pg_major_ver)
     , ''
   )
-  where a1 = 'db'
+  where 'database' = $1
 
   -- schema
   union all
@@ -705,12 +644,13 @@ from arg
     , format('-- https://www.postgresql.org/docs/%s/sql-alterschema.html', pg_major_ver)
     , ''
   )
-  where a1 = 'ns'
+  where 'schema' = $1
 
   -- table
   union all
   select concat_ws(e'\n'
-    , 'SELECT', select_cols
+    , 'SELECT'
+    , select_cols
     , format('FROM %I.%I', nspname, relname)
     , format('-- WHERE (%s) = ('''')', orderby_cols)
     , 'ORDER BY ' || orderby_cols
@@ -750,23 +690,26 @@ from arg
     ) col_fmt
     where attrelid = pg_class.oid and (attnum > 0 or attname = 'oid') and not attisdropped
   ) _(select_cols, orderby_cols)
-  where ('rel', pg_class.oid) = (a1, a2_oid)
+  where ('table', pg_class.oid) = ($1, $2)
 
   -- function
   union all
-  select format(e''
-    '%s;\n'
-    '\n'
-    '/*\n'
-    'DROP %s;\n'
-    '*/\n'
-    , create_fn_script
-    , fn_signature
+  select concat_ws(e'\n'
+    , pg_get_functiondef(p.oid) || ';'
+    , ''
+    , '/*'
+    , format('DROP %s %s(%s);'
+      , case when pg_get_function_result(p.oid) is null then 'PROCEDURE' else 'FUNCTION' end
+      , regproc(p.oid)
+      , pg_get_function_identity_arguments(p.oid)
+    )
+    , '*/'
+    , ''
   )
-  from pg_proc left join pg_aggregate on aggfnoid = pg_proc.oid
-  , pg_get_functiondef(pg_proc.oid) create_fn_script
-  , substring(create_fn_script from 'CREATE OR REPLACE (.*?)\n') fn_signature
-  where ('fn', pg_proc.oid) = (a1, a2_oid) and pg_aggregate is null
+  from pg_proc p
+  where ('function', p.oid) = ($1, $2)
+    and not exists (select from pg_aggregate where aggfnoid = p.oid)
+
 
   -- aggregate
   union all
@@ -785,7 +728,7 @@ from arg
     , ''
   )
   from pg_aggregate, pg_get_function_identity_arguments(aggfnoid) fnargs
-  where ('fn', aggfnoid) = (a1, a2_oid)
+  where ('function', aggfnoid) = ($1, $2)
 
   -- constraint
   union all
@@ -797,7 +740,7 @@ from arg
     , pg_get_constraintdef(oid)
   )
   from pg_constraint
-  where ('constraint', oid) = (a1, a2_oid)
+  where ('constraint', oid) = ($1, $2)
 
   -- index
   union all
@@ -808,7 +751,7 @@ from arg
     , pg_get_indexdef(oid)
   )
   from pg_class
-  where ('index', oid) = (a1, a2_oid)
+  where ('index', oid) = ($1, $2)
 
   -- trigger
   union all
@@ -820,12 +763,12 @@ from arg
     , pg_get_triggerdef(oid, true)
   )
   from pg_trigger
-  where ('trigger', oid) = (a1, a2_oid)
+  where ('trigger', oid) = ($1, $2)
 
   -- file
   union all
-  select format(e'SELECT pg_read_file(%L, 0, 5000);\n', a2)
-  where 'file' = a1
+  select format(e'SELECT pg_read_file(%L, 0, 5000);\n', $3)
+  where 'file' = $1
 
 ) _(def)
 `;

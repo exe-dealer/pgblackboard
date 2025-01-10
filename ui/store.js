@@ -16,7 +16,13 @@ export class Store {
   selected_treenode_path = null;
   selected_draft_id = null;
 
-  tree = {};
+  tree = {
+    children: {
+      nodes: [],
+      error: null,
+      ready: false,
+    },
+  };
   // TODO track run_count for drafts, gc least used
   drafts_kv = {};
   /** @type {string[]} */
@@ -190,23 +196,24 @@ export class Store {
   }
 
   async tree_toggle(path) {
-    const node = path.reduce(({ children }, idx) => children.value[idx], this.tree);
-    if (node.children) {
-      // collapse if expanded
-      node.children = null;
-      return;
-    }
-    node.children = { value: null, loading: true };
-    const { db, children, id } = node;
+    const node = path.reduce(({ children }, idx) => children.nodes[idx], this.tree);
+    const should_collapse = node.children.ready != false;
+    node.children = { nodes: [], error: null, ready: false };
+    if (should_collapse) return;
+    const { db, children, ntype, noid, ntid } = node;
     const { u, key } = this.auth;
     try {
-      const { result } = await this._api('tree', { u, db, node: id, key });
-      // TODO what if no children?
-      children.value = result;
+      children.ready = null; // loading
+      const { result } = await this._api('tree', { u, db, ntype, noid, ntid, key });
+      // await new Promise(res => setTimeout(res, 2000));
+      for (const cn of result) {
+        cn.children = { nodes: [], error: null, ready: false };
+        children.nodes.push(cn);
+      }
     } catch (ex) {
       children.error = String(ex);
     } finally {
-      children.loading = false;
+      children.ready = true;
     }
   }
 
@@ -220,12 +227,12 @@ export class Store {
     this.selected_draft_id = draft_id;
     this.selected_treenode_path = path;
     const node = path.reduce(
-      ({ children }, idx) => children.value[idx],
+      ({ children }, idx) => children.nodes[idx],
       this.tree,
     );
-    const { db, id } = node;
+    const { db, ntype, noid, ntid } = node;
     const { u, key } = this.auth;
-    const content = await this._api('defn', { u, db, node: id, key }).then(
+    const content = await this._api('defn', { u, db, ntype, noid, ntid, key }).then(
       ({ result }) => result || '',
       err => `/* ${err} */\n`,
     );
