@@ -43,14 +43,14 @@ server/_vendor/parse_args.ts:
 	curl -o $@ 'https://jsr.io/@std/cli/1.0.9/parse_args.ts'
 
 
-# docker run -it --rm -v $PWD:/app -w /app alpine:3.20
-# apk add --no-cache make clang17 wasi-sdk lld flex
+# docker run -it --rm -v $PWD:/app -w /app alpine:3.21.2
+# apk add --no-cache make clang wasi-sdk lld flex
 
 server/psqlscan/psqlscan.wasm.js: server/psqlscan/.psqlscan.wasm
-	base64 -w0 $< | awk '{ print "export default `" $$0 "`;"  }' > $@
+	base64 -w0 $< | awk '{ print "export default `data:application/wasm;base64," $$0 "`;"  }' > $@
 
 server/psqlscan/.psqlscan.wasm: server/psqlscan/.psqlscan.c
-	clang-17 --target=wasm32-wasi \
+	clang --target=wasm32-wasi \
 		--sysroot=/usr/share/wasi-sysroot \
 		-nostartfiles \
 		-Wl,--export,psql_stmt_len \

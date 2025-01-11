@@ -1,7 +1,6 @@
-import wasm_source_b64 from './psqlscan.wasm.js';
+import wasm_b64url from './psqlscan.wasm.js';
 
-const wasm_source = Uint8Array.from(atob(wasm_source_b64), x => x.charCodeAt());
-const wasm = await WebAssembly.instantiate(wasm_source, {
+const wasm = await WebAssembly.instantiateStreaming(fetch(wasm_b64url), {
   wasi_snapshot_preview1: {
     proc_exit() { throw Error('unimplemented'); },
     // https://wasix.org/docs/api-reference/wasi/fd_fdstat_get
