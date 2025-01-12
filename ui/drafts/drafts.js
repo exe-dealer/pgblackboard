@@ -1,50 +1,65 @@
 // TODO drafts hover preview
+// TODO keyboard navigation
 
-const methods = {
-  _render() {
-    const { selected_draft_id, stored_draft_ids, drafts_kv } = this.$store;
-    return {
-      tag: 'div',
-      class: 'drafts',
-      inner: stored_draft_ids.map(draft_id => ({
-        tag: 'div',
-        class: 'drafts-item',
+const xDrafts = {
+  methods: {
+    _render() {
+      const { stored_draft_ids } = this.$store;
+      return {
+        tag: 'ul',
+        class: 'drafts',
+        'aria-label': 'Drafts',
+        inner: stored_draft_ids.map(this._render_item, this),
+      };
+    },
+    _render_item(draft_id) {
+      return {
+        tag: xDraftsItem,
         key: draft_id,
-        'data-selected': draft_id == selected_draft_id || null,
-        onClick: _ => this.set_selected_draft(draft_id),
+        draft_id,
+      };
+    },
+  },
+};
+
+const xDraftsItem = {
+  props: {
+    draft_id: null,
+  },
+  methods: {
+    _render() {
+      const { draft_id } = this;
+      const { selected_draft_id, drafts_kv } = this.$store;
+      const { caption } = drafts_kv[draft_id];
+
+      return {
+        tag: 'li',
+        class: 'drafts-item',
+        'aria-selected': draft_id == selected_draft_id,
         inner: [
           {
-            tag: 'span',
-            class: 'drafts-marker',
-            // TODO aria
-          },
-          {
-            tag: 'span',
-            class: 'drafts-caption',
-            inner: drafts_kv[draft_id].caption,
+            tag: 'a',
+            class: 'drafts-link',
+            inner: caption, // .replaceAll('\n', '\u21b5'),
+            onClick: this.select,
           },
           {
             tag: 'button',
             class: 'drafts-delete',
             type: 'button',
             'aria-label': 'Delete draft',
-            onClick: e => this.on_rm_click(e, draft_id),
+            onClick: this.delete,
           },
         ],
-      })),
-    };
-  },
-  set_selected_draft(draft_id) {
-    this.$store.set_selected_draft(draft_id);
-  },
-  /** @param {MouseEvent} e */
-  on_rm_click(e, draft_id, button_el) {
-    e.stopPropagation();
-    this.$store.rm_draft(draft_id);
-    // console.log('focused', document.activeElement == button_el);
+      }
+    },
+    select() {
+      this.$store.set_selected_draft(this.draft_id);
+    },
+    delete() {
+      this.$store.rm_draft(this.draft_id);
+    },
   },
 };
 
-export default {
-  methods,
-};
+export default xDrafts;

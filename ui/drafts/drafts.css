@@ -1,67 +1,82 @@
+.drafts {
+  all: unset;
+  display: block;
+}
+
 .drafts-item {
-  padding-inline: 2rem;
-  cursor: pointer;
+  all: unset;
+  display: block;
+}
+
+.drafts-link {
+  display: block;
+  padding-inline: 0 1lh; /* delete button placeholder */
   white-space: nowrap;
   text-overflow: ellipsis;
   overflow: hidden;
-  position: relative;
-}
-.drafts-item:hover {
-  background-color: hsla(0 0% 50% / .1);
-}
-.drafts-item[data-selected] {
-  background-color: hsla(0 0% 50% / .25);
-}
+  cursor: pointer;
 
-.drafts-marker {
-  position: absolute;
-  inset: 0 auto;
-  inline-size: 2rem;
-  margin-inline: -2rem;
-  background-color: currentcolor;
-  mask: url('./marker_draft.svg') center / 1rem no-repeat;
-}
+  /* marker */
+  &::before {
+    content: '';
+    display: inline-block;
+    vertical-align: top;
+    width: 1lh;
+    height: 1lh;
+    background-color: currentcolor;
+    opacity: .7;
+    mask: url('./marker_draft.svg') center / 1em no-repeat;
+  }
 
-.drafts-caption {
-  /* margin-inline: .25em; */
-  &:empty::before {
+  &:empty::after {
     content: 'empty';
     font-style: italic;
-    opacity: .5;
+    opacity: .7;
+  }
+
+  &:hover {
+    background-color: hsl(0 0 50 / .1);
+  }
+
+  .drafts-item[aria-selected='true'] & {
+    background-color: hsl(0 0 50 / .25);
   }
 }
 
 .drafts-delete {
-  display: none;
-  position: absolute;
-  margin: 0;
-  padding: 0;
-  font-size: 2rem;
-  width: 1em;
-  height: 1em;
-  border: none;
-  inset: 0 0 0 auto;
+  all: unset;
+  display: block;
+  width: 1lh;
+  height: 1lh;
+  margin-inline: auto 0;
+  margin-block: -1lh 0;
   cursor: pointer;
-/*   background: none; */
-  background: #0001;
   color: inherit;
+  position: relative;
+  opacity: 0;
+  pointer-events: none;
+
+  .drafts-item[aria-selected='true'] & {
+    opacity: initial;
+    pointer-events: initial;
+  }
 
   &::before {
+    content: '';
     position: absolute;
     inset: 0;
     background-color: currentcolor;
-    mask: url('delete.svg') center / 1rem no-repeat;
-    content: '';
+    mask: url('./delete.svg') center / 1em no-repeat;
     opacity: .5;
     transition: opacity 200ms ease;
   }
-  .drafts-item[data-selected] & {
-    display: block;
-  }
+
   &:hover::before {
     opacity: 1;
   }
+
   &:focus {
-    color: hsl(0 330% 70%);
+    color: hsl(0 330 70);
+    opacity: initial;
   }
 }
