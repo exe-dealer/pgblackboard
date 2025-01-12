@@ -5,7 +5,11 @@ build: \
 	.dist/ui/favicon.svg \
 	.dist/ui/ui.css \
 	.dist/ui/ui.js \
-	.dist/server/pgbb.js
+	.dist/server/pgbb.js \
+	.dist/bin/pgbb
+
+.dist/bin/pgbb: bin/pgbb
+	install -D $< $@
 
 .dist/server/pgbb.js: server/pgbb.js # TODO imported deps
 	mkdir -p .dist && \

@@ -1,19 +1,8 @@
 FROM denoland/deno:alpine-2.1.5 AS deno
 EXPOSE 7890
 WORKDIR /app
+RUN ln -s /app/bin/pgbb /usr/local/bin/pgbb
 CMD ["pgbb", "postgres://postgres:5432"]
-RUN echo \
-  $'#!/bin/sh\n' \
-  exec deno run \
-    --allow-read=/app/ui \
-    --allow-net \
-    --v8-flags=--stack_trace_limit=30 \
-    --no-config \
-    --no-remote \
-    --no-npm \
-    /app/server/pgbb.js \
-    '"$@"' \
-  | install -m 755 /dev/stdin /usr/local/bin/pgbb
 
 FROM deno AS dev
 RUN apk add --no-cache make esbuild
