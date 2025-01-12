@@ -3,7 +3,7 @@
 cd "$( dirname "$( realpath "$0" )" )"
 
 exec deno run \
-  --allow-read=./ui \
+  --allow-read=../ui \
   --allow-net \
   --v8-flags=--stack_trace_limit=30 \
   --no-config \
