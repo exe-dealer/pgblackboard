@@ -1,17 +1,8 @@
 import wasm_b64url from './psqlscan.wasm.js';
+// https://deno.com/blog/v2.1#first-class-wasm-support
+// but esbuild not supports wasm imports.
 
-const wasm = await WebAssembly.instantiateStreaming(fetch(wasm_b64url), {
-  wasi_snapshot_preview1: {
-    proc_exit() { throw Error('unimplemented'); },
-    // https://wasix.org/docs/api-reference/wasi/fd_fdstat_get
-    fd_fdstat_get(fd, buf_ptr) { throw Error('unimplemented', { cause: { fn: 'fd_fdstat_get', fd, buf_btr: buf_ptr } }); },
-    fd_read() { throw Error('unimplemented'); },
-    fd_close() { throw Error('unimplemented'); },
-    fd_seek() { throw Error('unimplemented'); },
-    // https://wasix.org/docs/api-reference/wasi/fd_write
-    fd_write(fd, iovs, iovs_len, nwritten) { throw Error('unimplemented'); },
-  },
-});
+const wasm = await WebAssembly.instantiateStreaming(fetch(wasm_b64url));
 
 const { memory, psql_stmt_len, malloc, free } = wasm.instance.exports;
 const utf8d = new TextDecoder();
@@ -27,6 +18,7 @@ export function psqlscan_split(sql) {
     const res = [];
     for (let of = 0; of < written; ) {
       const len = psql_stmt_len(input_p + of, written - of);
+      // TODO avoid new strings allocation, use sql.slice(...)
       res.push(utf8d.decode(input_buf.subarray(of, of + len)));
       of += len;
     }

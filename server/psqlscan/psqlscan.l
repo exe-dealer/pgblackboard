@@ -97,6 +97,18 @@ typedef int YYSTYPE;
 
 #define ECHO ;
 
+#define YY_FATAL_ERROR(msg) handle_fatal_error(msg);
+
+void handle_fatal_error(char * msg) {
+  // TODO keep msg
+  abort();
+}
+
+#undef stdin
+#undef stdout
+#define stdin NULL
+#define stdout NULL
+
 %}
 
 %option reentrant

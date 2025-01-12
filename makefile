@@ -7,29 +7,41 @@ build: \
 	.dist/ui/ui.js \
 	.dist/server/pgbb.js
 
-.dist/ui/ui.css: .dist/ui
-	esbuild ui/ui.css --outfile=$@ --bundle --loader:.svg=dataurl --loader:.woff2=dataurl --target=chrome100
-.dist/ui/ui.js: .dist/ui
-	esbuild ui/ui.js --outfile=$@ --bundle --format=esm
-.dist/server/pgbb.js: .dist/ui
+.dist/server/pgbb.js: server/pgbb.js # TODO imported deps
+	mkdir -p .dist && \
 	esbuild server/pgbb.js --outfile=$@ --bundle --format=esm
-.dist/ui/index.html: ui/index.html .dist/ui
-	cp $< $@
-.dist/ui/favicon.svg: ui/favicon.svg .dist/ui
-	cp $< $@
-.dist/ui:
-	mkdir -p .dist/ui
+
+.dist/ui/ui.css: ui/ui.css # TODO imported deps
+	mkdir -p .dist/ui && \
+	esbuild ui/ui.css --outfile=$@ \
+		--bundle \
+		--target=chrome100 \
+		--loader:.svg=dataurl \
+		--loader:.woff2=dataurl \
+
+.dist/ui/ui.js: ui/ui.js # TODO imported deps
+	mkdir -p .dist/ui && \
+	esbuild ui/ui.js --outfile=$@ --bundle --format=esm
+
+.dist/ui/index.html: ui/index.html
+	install -D $< $@
+
+.dist/ui/favicon.svg: ui/favicon.svg
+	install -D $< $@
 
 ui/_vendor/vue.js:
+	# TODO https://unpkg.com/vue@3.5.13/dist/vue.esm-browser.prod.js
 	curl -o $@ 'https://unpkg.com/vue@3.5.13/dist/vue.esm-browser.js'
 
 ui/_vendor/maplibre.css:
-	curl 'https://esm.sh/maplibre-gl@5.0.0/dist/maplibre-gl.css' | deno fmt --ext css - > $@
+	curl -o $@ 'https://esm.sh/maplibre-gl@5.0.0/dist/maplibre-gl.css'
+	deno fmt $@
 ui/_vendor/maplibre.js:
 	curl -o $@ 'https://esm.sh/v135/maplibre-gl@5.0.0/es2022/dist/maplibre-gl-dev.development.bundle.js'
 
 ui/_vendor/monaco.css:
-	curl 'https://esm.sh/v135/monaco-editor@0.52.2/es2022/monaco-editor.css' | deno fmt --ext css - > $@
+	curl -o $@ 'https://esm.sh/v135/monaco-editor@0.52.2/es2022/monaco-editor.css'
+	deno fmt $@
 ui/_vendor/monaco.js:
 	curl -o $@ 'https://esm.sh/v135/monaco-editor@0.52.2/es2022/esm/vs/editor/editor.main.development.bundle.js'
 ui/_vendor/monaco_worker.js:
@@ -45,6 +57,7 @@ server/_vendor/parse_args.ts:
 
 # docker run -it --rm -v $PWD:/app -w /app alpine:3.21.2
 # apk add --no-cache make clang wasi-sdk lld flex
+# apk add --repository=https://dl-cdn.alpinelinux.org/alpine/edge/testing wabt
 
 server/psqlscan/psqlscan.wasm.js: server/psqlscan/.psqlscan.wasm
 	base64 -w0 $< | awk '{ print "export default `data:application/wasm;base64," $$0 "`;"  }' > $@
