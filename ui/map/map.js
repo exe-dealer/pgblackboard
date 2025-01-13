@@ -1,6 +1,6 @@
 import maplibregl from '../_vendor/maplibre.js';
-import ne_cities from './ne_cities.js';
-import ne_land from './ne_land.js';
+import ne_cities from './ne_cities.js'; // TODO gc after URL.createObjectURL
+import ne_land from './ne_land.js'; // TODO gc after URL.createObjectURL
 import glyphs from './glyphs.js';
 
 const { Map: MaplibreMap, LngLatBounds, MercatorCoordinate } = maplibregl;
@@ -146,7 +146,7 @@ const methods = {
           id: 'out_fill',
           type: 'fill',
           source: 'features',
-          filter: ['in', ['geometry-type'], 'MultiPolygon'],
+          filter: ['==', ['geometry-type'], 'Polygon'],
           paint: {
             'fill-opacity': .4,
             'fill-color': ['to-color', ['concat', 'hsl(', ['get', 'hue'], ' 100% 70%)']],
@@ -156,7 +156,7 @@ const methods = {
           id: 'hl_fill',
           type: 'fill',
           source: 'highlight',
-          filter: ['in', ['geometry-type'], 'MultiPolygon'],
+          filter: ['==', ['geometry-type'], 'Polygon'],
           paint: {
             'fill-opacity': .2,
             'fill-color': 'hsl(0 0% 33%)',
@@ -169,7 +169,7 @@ const methods = {
           id: 'out_line',
           type: 'line',
           source: 'features',
-          filter: ['in', ['geometry-type'], 'MultiLineString'],
+          filter: ['==', ['geometry-type'], 'LineString'],
           paint: {
             'line-width': 2,
             'line-color': ['to-color', ['concat', 'hsl(', ['get', 'hue'], ' 100% 70%)']],
@@ -179,7 +179,7 @@ const methods = {
           id: 'hl_path',
           type: 'line',
           source: 'highlight',
-          filter: ['in', ['geometry-type'], 'MultiLineString MultiPolygon'],
+          filter: ['!=', ['geometry-type'], 'Point'],
           paint: {
             'line-width': 1,
             'line-color': 'hsl(0 0% 33%)',
@@ -192,7 +192,7 @@ const methods = {
           id: 'hl_vertex',
           type: 'circle',
           source: 'highlight',
-          filter: ['in', ['geometry-type'], 'MultiLineString MultiPolygon'],
+          filter: ['!=', ['geometry-type'], 'Point'],
           paint: {
             'circle-radius': 2,
             'circle-color': 'hsl(0 0% 33%)',
@@ -220,7 +220,7 @@ const methods = {
           source: 'features',
           filter: [
             'all',
-            ['in', ['geometry-type'], 'MultiPoint'],
+            ['==', ['geometry-type'], 'Point'],
             ['==', null, ['get', 'zoom']], // not collapsed
           ],
           paint: {
@@ -262,7 +262,7 @@ const methods = {
           source: 'highlight',
           filter: [
             'all',
-            ['in', ['geometry-type'], 'MultiPoint'],
+            ['==', ['geometry-type'], 'Point'],
             ['<=', ['zoom'], ['coalesce', ['get', 'zoom'], 100]],
           ],
           paint: {

@@ -1,4 +1,4 @@
-/* esm.sh - esbuild bundle(maplibre-gl@5.0.0/dist/maplibre-gl-dev) es2022 development */
+/* esm.sh - esbuild bundle(maplibre-gl@5.0.1/dist/maplibre-gl-dev) es2022 development */
 var __global$ = globalThis || (typeof window !== "undefined" ? window : self);
 var __create = Object.create;
 var __defProp = Object.defineProperty;
@@ -31,9 +31,9 @@ var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__ge
   mod
 ));
 
-// ../esmd/npm/maplibre-gl@5.0.0/node_modules/.pnpm/maplibre-gl@5.0.0/node_modules/maplibre-gl/dist/maplibre-gl-dev.js
+// ../esmd/npm/maplibre-gl@5.0.1/node_modules/.pnpm/maplibre-gl@5.0.1/node_modules/maplibre-gl/dist/maplibre-gl-dev.js
 var require_maplibre_gl_dev = __commonJS({
-  "../esmd/npm/maplibre-gl@5.0.0/node_modules/.pnpm/maplibre-gl@5.0.0/node_modules/maplibre-gl/dist/maplibre-gl-dev.js"(exports, module) {
+  "../esmd/npm/maplibre-gl@5.0.1/node_modules/.pnpm/maplibre-gl@5.0.1/node_modules/maplibre-gl/dist/maplibre-gl-dev.js"(exports, module) {
     (function(global2, factory) {
       typeof exports === "object" && typeof module !== "undefined" ? module.exports = factory() : typeof define === "function" && define.amd ? define(factory) : (global2 = typeof globalThis !== "undefined" ? globalThis : global2 || self, global2.maplibregl = factory());
     })(exports, function() {
@@ -10161,123 +10161,7 @@ var require_maplibre_gl_dev = __commonJS({
             return this.args.every((arg) => arg.outputDefined());
           }
         }
-        function quickselect(arr, k, left = 0, right = arr.length - 1, compare2 = defaultCompare) {
-          while (right > left) {
-            if (right - left > 600) {
-              const n = right - left + 1;
-              const m = k - left + 1;
-              const z = Math.log(n);
-              const s = 0.5 * Math.exp(2 * z / 3);
-              const sd = 0.5 * Math.sqrt(z * s * (n - s) / n) * (m - n / 2 < 0 ? -1 : 1);
-              const newLeft = Math.max(left, Math.floor(k - m * s / n + sd));
-              const newRight = Math.min(right, Math.floor(k + (n - m) * s / n + sd));
-              quickselect(arr, k, newLeft, newRight, compare2);
-            }
-            const t = arr[k];
-            let i = left;
-            let j = right;
-            swap$2(arr, left, k);
-            if (compare2(arr[right], t) > 0)
-              swap$2(arr, left, right);
-            while (i < j) {
-              swap$2(arr, i, j);
-              i++;
-              j--;
-              while (compare2(arr[i], t) < 0)
-                i++;
-              while (compare2(arr[j], t) > 0)
-                j--;
-            }
-            if (compare2(arr[left], t) === 0)
-              swap$2(arr, left, j);
-            else {
-              j++;
-              swap$2(arr, j, right);
-            }
-            if (j <= k)
-              left = j + 1;
-            if (k <= j)
-              right = j - 1;
-          }
-        }
-        function swap$2(arr, i, j) {
-          const tmp = arr[i];
-          arr[i] = arr[j];
-          arr[j] = tmp;
-        }
-        function defaultCompare(a, b) {
-          return a < b ? -1 : a > b ? 1 : 0;
-        }
-        function classifyRings(rings, maxRings) {
-          const len2 = rings.length;
-          if (len2 <= 1)
-            return [rings];
-          const polygons = [];
-          let polygon;
-          let ccw;
-          for (const ring of rings) {
-            const area2 = calculateSignedArea(ring);
-            if (area2 === 0)
-              continue;
-            ring.area = Math.abs(area2);
-            if (ccw === void 0)
-              ccw = area2 < 0;
-            if (ccw === area2 < 0) {
-              if (polygon)
-                polygons.push(polygon);
-              polygon = [ring];
-            } else {
-              polygon.push(ring);
-            }
-          }
-          if (polygon)
-            polygons.push(polygon);
-          if (maxRings > 1) {
-            for (let j = 0; j < polygons.length; j++) {
-              if (polygons[j].length <= maxRings)
-                continue;
-              quickselect(polygons[j], maxRings, 1, polygons[j].length - 1, compareAreas);
-              polygons[j] = polygons[j].slice(0, maxRings);
-            }
-          }
-          return polygons;
-        }
-        function compareAreas(a, b) {
-          return b.area - a.area;
-        }
-        function calculateSignedArea(ring) {
-          let sum = 0;
-          for (let i = 0, len2 = ring.length, j = len2 - 1, p1, p2; i < len2; j = i++) {
-            p1 = ring[i];
-            p2 = ring[j];
-            sum += (p2.x - p1.x) * (p1.y + p2.y);
-          }
-          return sum;
-        }
-        function hasMultipleOuterRings(rings) {
-          const len2 = rings.length;
-          for (let i = 0, direction; i < len2; i++) {
-            const area2 = calculateSignedArea(rings[i]);
-            if (area2 === 0)
-              continue;
-            if (direction === void 0) {
-              direction = area2 < 0;
-            } else if (direction === area2 < 0) {
-              return true;
-            }
-          }
-          return false;
-        }
         const geometryTypes = ["Unknown", "Point", "LineString", "Polygon"];
-        const simpleGeometryType = {
-          "Unknown": "Unknown",
-          "Point": "Point",
-          "MultiPoint": "Point",
-          "LineString": "LineString",
-          "MultiLineString": "LineString",
-          "Polygon": "Polygon",
-          "MultiPolygon": "Polygon"
-        };
         class EvaluationContext {
           constructor() {
             this.globals = null;
@@ -10291,30 +10175,8 @@ var require_maplibre_gl_dev = __commonJS({
           id() {
             return this.feature && "id" in this.feature ? this.feature.id : null;
           }
-          geometryDollarType() {
-            return this.feature ? typeof this.feature.type === "number" ? geometryTypes[this.feature.type] : simpleGeometryType[this.feature.type] : null;
-          }
           geometryType() {
-            let geometryType = this.feature.type;
-            if (typeof geometryType !== "number") {
-              return geometryType;
-            }
-            geometryType = geometryTypes[this.feature.type];
-            if (geometryType === "Unknown") {
-              return geometryType;
-            }
-            const geom = this.geometry();
-            const len2 = geom.length;
-            if (len2 === 1) {
-              return geometryType;
-            }
-            if (geometryType !== "Polygon") {
-              return `Multi${geometryType}`;
-            }
-            if (hasMultipleOuterRings(geom)) {
-              return "MultiPolygon";
-            }
-            return "Polygon";
+            return this.feature ? typeof this.feature.type === "number" ? geometryTypes[this.feature.type] : this.feature.type : null;
           }
           geometry() {
             return this.feature && "geometry" in this.feature ? this.feature.geometry : null;
@@ -11903,9 +11765,9 @@ var require_maplibre_gl_dev = __commonJS({
           }
           evaluate(ctx) {
             if (ctx.geometry() != null && ctx.canonicalID() != null) {
-              if (ctx.geometryDollarType() === "Point") {
+              if (ctx.geometryType() === "Point") {
                 return pointsWithinPolygons(ctx, this.geometries);
-              } else if (ctx.geometryDollarType() === "LineString") {
+              } else if (ctx.geometryType() === "LineString") {
                 return linesWithinPolygons(ctx, this.geometries);
               }
             }
@@ -11976,6 +11838,99 @@ var require_maplibre_gl_dev = __commonJS({
             data[pos] = item;
           }
         };
+        function quickselect(arr, k, left = 0, right = arr.length - 1, compare2 = defaultCompare) {
+          while (right > left) {
+            if (right - left > 600) {
+              const n = right - left + 1;
+              const m = k - left + 1;
+              const z = Math.log(n);
+              const s = 0.5 * Math.exp(2 * z / 3);
+              const sd = 0.5 * Math.sqrt(z * s * (n - s) / n) * (m - n / 2 < 0 ? -1 : 1);
+              const newLeft = Math.max(left, Math.floor(k - m * s / n + sd));
+              const newRight = Math.min(right, Math.floor(k + (n - m) * s / n + sd));
+              quickselect(arr, k, newLeft, newRight, compare2);
+            }
+            const t = arr[k];
+            let i = left;
+            let j = right;
+            swap$2(arr, left, k);
+            if (compare2(arr[right], t) > 0)
+              swap$2(arr, left, right);
+            while (i < j) {
+              swap$2(arr, i, j);
+              i++;
+              j--;
+              while (compare2(arr[i], t) < 0)
+                i++;
+              while (compare2(arr[j], t) > 0)
+                j--;
+            }
+            if (compare2(arr[left], t) === 0)
+              swap$2(arr, left, j);
+            else {
+              j++;
+              swap$2(arr, j, right);
+            }
+            if (j <= k)
+              left = j + 1;
+            if (k <= j)
+              right = j - 1;
+          }
+        }
+        function swap$2(arr, i, j) {
+          const tmp = arr[i];
+          arr[i] = arr[j];
+          arr[j] = tmp;
+        }
+        function defaultCompare(a, b) {
+          return a < b ? -1 : a > b ? 1 : 0;
+        }
+        function classifyRings(rings, maxRings) {
+          const len2 = rings.length;
+          if (len2 <= 1)
+            return [rings];
+          const polygons = [];
+          let polygon;
+          let ccw;
+          for (const ring of rings) {
+            const area2 = calculateSignedArea(ring);
+            if (area2 === 0)
+              continue;
+            ring.area = Math.abs(area2);
+            if (ccw === void 0)
+              ccw = area2 < 0;
+            if (ccw === area2 < 0) {
+              if (polygon)
+                polygons.push(polygon);
+              polygon = [ring];
+            } else {
+              polygon.push(ring);
+            }
+          }
+          if (polygon)
+            polygons.push(polygon);
+          if (maxRings > 1) {
+            for (let j = 0; j < polygons.length; j++) {
+              if (polygons[j].length <= maxRings)
+                continue;
+              quickselect(polygons[j], maxRings, 1, polygons[j].length - 1, compareAreas);
+              polygons[j] = polygons[j].slice(0, maxRings);
+            }
+          }
+          return polygons;
+        }
+        function compareAreas(a, b) {
+          return b.area - a.area;
+        }
+        function calculateSignedArea(ring) {
+          let sum = 0;
+          for (let i = 0, len2 = ring.length, j = len2 - 1, p1, p2; i < len2; j = i++) {
+            p1 = ring[i];
+            p2 = ring[j];
+            sum += (p2.x - p1.x) * (p1.y + p2.y);
+          }
+          return sum;
+        }
         const RE = 6378.137;
         const FE = 1 / 298.257223563;
         const E2 = FE * (2 - FE);
@@ -12948,7 +12903,7 @@ var require_maplibre_gl_dev = __commonJS({
           "filter-type-==": [
             BooleanType,
             [StringType],
-            (ctx, [v]) => ctx.geometryDollarType() === v.value
+            (ctx, [v]) => ctx.geometryType() === v.value
           ],
           "filter-<": [
             BooleanType,
@@ -13035,7 +12990,7 @@ var require_maplibre_gl_dev = __commonJS({
           "filter-type-in": [
             BooleanType,
             [array(StringType)],
-            (ctx, [v]) => v.value.indexOf(ctx.geometryDollarType()) >= 0
+            (ctx, [v]) => v.value.indexOf(ctx.geometryType()) >= 0
           ],
           "filter-id-in": [
             BooleanType,
@@ -13735,7 +13690,7 @@ var require_maplibre_gl_dev = __commonJS({
         function geometryNeeded(filter2) {
           if (!Array.isArray(filter2))
             return false;
-          if (filter2[0] === "within" || filter2[0] === "distance" || filter2[0] === "geometry-type")
+          if (filter2[0] === "within" || filter2[0] === "distance")
             return true;
           for (let index = 1; index < filter2.length; index++) {
             if (geometryNeeded(filter2[index]))
@@ -13864,7 +13819,7 @@ var require_maplibre_gl_dev = __commonJS({
         function convertComparisonOp(property, value, op, expectedTypes) {
           let get2;
           if (property === "$type") {
-            return convertInOp("$type", [value], op === "!=");
+            return [op, ["geometry-type"], value];
           } else if (property === "$id") {
             get2 = ["id"];
           } else {
@@ -13896,10 +13851,6 @@ var require_maplibre_gl_dev = __commonJS({
             return negate2;
           let get2;
           if (property === "$type") {
-            const len2 = values.length;
-            for (let i = 0; i < len2; i++) {
-              values.push(`Multi${values[i]}`);
-            }
             get2 = ["geometry-type"];
           } else if (property === "$id") {
             get2 = ["id"];
@@ -29952,7 +29903,7 @@ ${currentIndent}`
         "use strict";
         var name = "maplibre-gl";
         var description = "BSD licensed community fork of mapbox-gl, a WebGL interactive maps library";
-        var version$2 = "5.0.0";
+        var version$2 = "5.0.1";
         var main = "dist/maplibre-gl.js";
         var style = "dist/maplibre-gl.css";
         var license = "BSD-3-Clause";
@@ -29975,7 +29926,7 @@ ${currentIndent}`
           "@mapbox/unitbezier": "^0.0.1",
           "@mapbox/vector-tile": "^1.3.1",
           "@mapbox/whoots-js": "^3.1.0",
-          "@maplibre/maplibre-gl-style-spec": "^22.0.1",
+          "@maplibre/maplibre-gl-style-spec": "^23.0.0",
           "@types/geojson": "^7946.0.15",
           "@types/geojson-vt": "3.2.5",
           "@types/mapbox__point-geometry": "^0.1.4",
@@ -30008,7 +29959,7 @@ ${currentIndent}`
           "@stylistic/eslint-plugin-ts": "^2.12.1",
           "@types/benchmark": "^2.1.5",
           "@types/d3": "^7.4.3",
-          "@types/diff": "^6.0.0",
+          "@types/diff": "^7.0.0",
           "@types/earcut": "^2.1.4",
           "@types/eslint": "^9.6.1",
           "@types/gl": "^6.0.5",
@@ -30017,28 +29968,28 @@ ${currentIndent}`
           "@types/minimist": "^1.2.5",
           "@types/murmurhash-js": "^1.0.6",
           "@types/nise": "^1.4.5",
-          "@types/node": "^22.10.2",
+          "@types/node": "^22.10.5",
           "@types/offscreencanvas": "^2019.7.3",
           "@types/pixelmatch": "^5.2.6",
           "@types/pngjs": "^6.0.5",
-          "@types/react": "^19.0.2",
+          "@types/react": "^19.0.4",
           "@types/react-dom": "^19.0.2",
           "@types/request": "^2.48.12",
           "@types/shuffle-seed": "^1.1.3",
           "@types/window-or-global": "^1.0.6",
-          "@typescript-eslint/eslint-plugin": "^8.19.0",
-          "@typescript-eslint/parser": "^8.19.0",
+          "@typescript-eslint/eslint-plugin": "^8.19.1",
+          "@typescript-eslint/parser": "^8.19.1",
           "@vitest/coverage-v8": "2.2.0-beta.2",
           "@vitest/ui": "2.2.0-beta.2",
           address: "^2.0.3",
           autoprefixer: "^10.4.20",
           benchmark: "^2.1.4",
-          canvas: "^2.11.2",
+          canvas: "^3.0.1",
           cspell: "^8.17.1",
           cssnano: "^7.0.6",
           d3: "^7.9.0",
           "d3-queue": "^3.0.7",
-          "devtools-protocol": "^0.0.1400418",
+          "devtools-protocol": "^0.0.1404580",
           diff: "^7.0.0",
           "dts-bundle-generator": "^9.5.1",
           eslint: "^9.17.0",
@@ -30048,10 +29999,10 @@ ${currentIndent}`
           "eslint-plugin-tsdoc": "0.4.0",
           "eslint-plugin-vitest": "^0.5.4",
           expect: "^29.7.0",
-          glob: "^11.0.0",
+          glob: "^11.0.1",
           globals: "^15.14.0",
           "is-builtin-module": "^4.0.0",
-          jsdom: "^25.0.1",
+          jsdom: "^26.0.0",
           "junit-report-builder": "^5.1.1",
           minimist: "^1.2.8",
           "mock-geolocation": "^1.0.11",
@@ -30066,10 +30017,10 @@ ${currentIndent}`
           "postcss-cli": "^11.0.0",
           "postcss-inline-svg": "^6.0.0",
           "pretty-bytes": "^6.1.1",
-          puppeteer: "^23.11.1",
+          puppeteer: "^24.0.0",
           react: "^19.0.0",
           "react-dom": "^19.0.0",
-          rollup: "^4.29.1",
+          rollup: "^4.30.1",
           "rollup-plugin-sourcemaps2": "^0.4.3",
           rw: "^1.3.3",
           semver: "^7.6.3",
@@ -30082,9 +30033,9 @@ ${currentIndent}`
           "ts-node": "^10.9.2",
           tslib: "^2.8.1",
           typedoc: "^0.27.6",
-          "typedoc-plugin-markdown": "^4.4.0",
+          "typedoc-plugin-markdown": "^4.4.1",
           "typedoc-plugin-missing-exports": "^3.1.0",
-          typescript: "^5.7.2",
+          typescript: "^5.7.3",
           vitest: "2.2.0-beta.2",
           "vitest-webgl-canvas-mock": "^1.1.0"
         };
@@ -55448,7 +55399,7 @@ ${projection.shaderPreludeCode.vertexSource}`,
   }
 });
 
-// ../esmd/npm/maplibre-gl@5.0.0/build.js
+// ../esmd/npm/maplibre-gl@5.0.1/build.js
 var build_exports = {};
 __export(build_exports, {
   default: () => build_default
@@ -55465,7 +55416,8 @@ export {
 maplibre-gl/dist/maplibre-gl-dev.js:
   (**
    * MapLibre GL JS
-   * @license 3-Clause BSD. Full text of license: https://github.com/maplibre/maplibre-gl-js/blob/v5.0.0/LICENSE.txt
+   * @license 3-Clause BSD. Full text of license: https://github.com/maplibre/maplibre-gl-js/blob/v5.0.1/LICENSE.txt
    *)
   (*! ieee754. BSD-3-Clause License. Feross Aboukhadijeh <https://feross.org/opensource> *)
 */
+//# sourceMappingURL=maplibre-gl-dev.development.bundle.js.map
