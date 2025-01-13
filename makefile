@@ -12,11 +12,9 @@ build: \
 	install -D $< $@
 
 .dist/server/pgbb.js: server/pgbb.js # TODO imported deps
-	mkdir -p .dist && \
 	esbuild server/pgbb.js --outfile=$@ --bundle --format=esm
 
 .dist/ui/ui.css: ui/ui.css # TODO imported deps
-	mkdir -p .dist/ui && \
 	esbuild ui/ui.css --outfile=$@ \
 		--bundle \
 		--target=chrome100 \
@@ -24,7 +22,6 @@ build: \
 		--loader:.woff2=dataurl \
 
 .dist/ui/ui.js: ui/ui.js # TODO imported deps
-	mkdir -p .dist/ui && \
 	esbuild ui/ui.js --outfile=$@ --bundle --format=esm
 
 .dist/ui/index.html: ui/index.html
@@ -66,6 +63,7 @@ server/_vendor/parse_args.ts:
 server/psqlscan/psqlscan.wasm.js: server/psqlscan/.psqlscan.wasm
 	base64 -w0 $< | awk '{ print "export default `data:application/wasm;base64," $$0 "`;"  }' > $@
 
+# TODO -O3 not works
 server/psqlscan/.psqlscan.wasm: server/psqlscan/.psqlscan.c
 	clang --target=wasm32-wasi \
 		--sysroot=/usr/share/wasi-sysroot \
