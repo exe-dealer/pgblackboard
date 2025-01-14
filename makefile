@@ -1,4 +1,4 @@
-.PHONY: build ui/_vendor/* server/_vendor/*
+.PHONY: build clean ui/_vendor/* server/_vendor/*
 
 build: \
 	.dist/ui/index.html \
@@ -8,26 +8,20 @@ build: \
 	.dist/server/pgbb.js \
 	.dist/bin/pgbb
 
-.dist/bin/pgbb: bin/pgbb
-	install -D $< $@
+clean:
+	rm -r .dist
 
-.dist/server/pgbb.js: server/pgbb.js # TODO imported deps
+.dist/%.js: %.js # TODO imported deps
 	esbuild server/pgbb.js --outfile=$@ --bundle --format=esm
 
-.dist/ui/ui.css: ui/ui.css # TODO imported deps
+.dist/%.css: %.css # TODO imported deps
 	esbuild ui/ui.css --outfile=$@ \
 		--bundle \
 		--target=chrome100 \
 		--loader:.svg=dataurl \
 		--loader:.woff2=dataurl \
 
-.dist/ui/ui.js: ui/ui.js # TODO imported deps
-	esbuild ui/ui.js --outfile=$@ --bundle --format=esm
-
-.dist/ui/index.html: ui/index.html
-	install -D $< $@
-
-.dist/ui/favicon.svg: ui/favicon.svg
+.dist/%: %
 	install -D $< $@
 
 ui/_vendor/vue.js:
