@@ -13,13 +13,13 @@ export function psqlscan_split(sql) {
   const input_cap = sql.length * 3;
   const input_p = malloc(input_cap);
   try {
-    const input_buf = new Uint8Array(memory.buffer, input_p, input_cap);
-    const { written } = utf8e.encodeInto(sql, input_buf);
+    const { written, read } = utf8e.encodeInto(sql, new Uint8Array(memory.buffer, input_p, input_cap));
+    if (read != sql.length) throw Error('utf8 buffer to small'); // impossible
     const res = [];
     for (let of = 0; of < written; ) {
       const len = psql_stmt_len(input_p + of, written - of);
       // TODO avoid new strings allocation, use sql.slice(...)
-      res.push(utf8d.decode(input_buf.subarray(of, of + len)));
+      res.push(utf8d.decode(new Uint8Array(memory.buffer, input_p + of, len)));
       of += len;
     }
     return res;
