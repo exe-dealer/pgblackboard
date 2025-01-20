@@ -15,10 +15,10 @@ clean:
 	rm -r .dist
 
 .dist/%.js: %.js # TODO imported deps
-	esbuild server/pgbb.js --outfile=$@ --bundle --format=esm
+	esbuild $< --outfile=$@ --bundle --format=esm
 
 .dist/%.css: %.css # TODO imported deps
-	esbuild ui/ui.css --outfile=$@ \
+	esbuild $< --outfile=$@ \
 		--bundle \
 		--target=chrome100 \
 		--loader:.svg=dataurl \
