@@ -1,5 +1,8 @@
 .PHONY: build clean ui/_vendor/* server/_vendor/*
 
+up:
+	docker compose up --build -w --menu=false
+
 build: \
 	.dist/ui/index.html \
 	.dist/ui/favicon.svg \
