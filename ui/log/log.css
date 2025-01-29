@@ -46,6 +46,7 @@
 
 .log-header_text {
   color: hsl(0 0% 50%);
+  white-space: nowrap;
 }
 
 .log-wake_more {
