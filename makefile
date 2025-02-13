@@ -65,7 +65,6 @@ server/psqlscan/.psqlscan.wasm: server/psqlscan/.psqlscan.c
 	clang --target=wasm32-wasi \
 		--sysroot=/usr/share/wasi-sysroot \
 		-nostartfiles \
-		-Wl,--export,psql_stmt_len \
 		-Wl,--export,malloc \
 		-Wl,--export,free \
 		-Wl,--no-entry \

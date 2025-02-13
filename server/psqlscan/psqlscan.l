@@ -901,11 +901,11 @@ other			.
 /* LCOV_EXCL_STOP */
 
 
-// This is the function that will be called from WebAssembly
+__attribute__((export_name("psql_stmt_len")))
 int psql_stmt_len(const char *sql, yy_size_t len) {
 	PsqlScanStateData state;
-  state.start_pos = 0;
-  state.end_pos = -1;
+	state.start_pos = 0;
+	state.end_pos = -1;
 	state.paren_depth = 0;
 	state.xcdepth = 0;
 	state.dolqstart = NULL;
@@ -914,17 +914,17 @@ int psql_stmt_len(const char *sql, yy_size_t len) {
 
 	yylex_init(state.scanner);
 	yyset_extra(&state, state.scanner);
-  yy_scan_bytes(sql, len, state.scanner);
-  yylex(NULL, state.scanner);
+	yy_scan_bytes(sql, len, state.scanner);
+	yylex(NULL, state.scanner);
 
 	if (state.dolqstart)
 		free(state.dolqstart);
 	yylex_destroy(state.scanner);
 
-  // consume trailing whitespaces
-  while (state.end_pos < len && strchr(" \t\n\r\f\v", sql[state.end_pos])) {
-    state.end_pos++;
-  }
+	// consume trailing whitespaces
+	while (state.end_pos < len && strchr(" \t\n\r\f\v", sql[state.end_pos])) {
+		state.end_pos++;
+	}
 
 	return state.end_pos;  // Return position after semicolon
 }
