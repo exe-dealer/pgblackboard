@@ -519,7 +519,7 @@ export class Store {
         .pipeThrough(new TextDecoderStream())
         .pipeThrough(new LineSplitter())
       );
-      for await (const line of iter_stream(msg_stream)) {
+      for await (const line of msg_stream) {
         const [tag, payload] = JSON.parse(line);
         out.suspended = null;
         switch (tag) {
@@ -534,10 +534,20 @@ export class Store {
             break;
           // TODO CopyData
           case 'rows':
-            out.frames.at(-1).rows.push(...payload.map(original => ({
-              original: Object.freeze(original),
-              modified: null,
-            })));
+            const frame = out.frames.at(-1);
+            for (const tuple of payload) {
+              for (let col_idx = 0; col_idx < frame.cols.length; col_idx++) {
+                const col = frame.cols[col_idx];
+                if (col.type == 'jsonb') {
+                  tuple[col_idx] = json_pretty(tuple[col_idx]);
+                }
+                // TODO wkb->wkt
+              }
+              frame.rows.push({
+                original: Object.freeze(tuple),
+                modified: null,
+              });
+            }
             // select first row in first non empty table
             // TODO select first frame regardless of rows count? (more predictable behavior)
             if (out.selected_frame_idx == null && payload.length) {
@@ -592,20 +602,6 @@ class LineSplitter extends TransformStream {
   }
 }
 
-// chrome 118 polyfill
-async function* iter_stream(stream) {
-  const reader = stream.getReader();
-  try {
-    for (;;) {
-      const { done, value } = await reader.read();
-      if (done) return;
-      yield value;
-    }
-  } finally {
-    reader.releaseLock();
-  }
-}
-
 // TODO move to backend
 // - return 'db' message from stream
 // - skip /^\\.*/ in draft title
@@ -621,4 +617,27 @@ function extract_dbname_from_sql(sql) {
     return ' '.repeat(line.length);
   });
   return { db, sql };
+}
+
+function json_pretty(/** @type {string} */ input) {
+  const indent = '  ';
+  const json_re = /\s*({|}|\[|]|,|:|true|false|null|-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?|"(?:\\.|[^"])*")\s*/yg;
+  let level = 0;
+
+  return input.replace(json_re, (_, token) => {
+    switch (token) {
+      case '{':
+      case '[':
+        return token + '\n' + indent.repeat(++level);
+      case '}':
+      case ']':
+        return '\n' + indent.repeat(--level) + token;
+      case ',':
+        return token + '\n' + indent.repeat(level);
+      case ':':
+        return token + ' ';
+      default:
+        return token;
+    }
+  });
 }

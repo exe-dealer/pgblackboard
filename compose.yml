@@ -12,17 +12,19 @@ services:
     # stop_signal: SIGKILL
     develop:
       watch:
+        - action: rebuild
+          path: dockerfile
         - action: sync+restart
           path: .
           target: /app
 
   pgbb_prod:
     # image: kagiskz/pgblackboard:3-20241203
-    image: docker.kagis.kz/geonomix/pgblackboard:3-20250120
+    image: docker.kagis.kz/geonomix/pgblackboard:3-20250216
     build: .
     ports: [7890:7890]
     command: [pgbb, postgres://192.168.55.152:5432]
     profiles: [prod]
 
   postgres:
-    image: docker.kagis.kz/geonomix/postgres:17.2-20250109
+    image: docker.kagis.kz/geonomix/postgres:17.3-20250213
