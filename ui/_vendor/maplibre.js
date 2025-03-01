@@ -1,4 +1,4 @@
-/* esm.sh - esbuild bundle(maplibre-gl@5.1.0/dist/maplibre-gl-dev) es2022 development */
+/* esm.sh - esbuild bundle(maplibre-gl@5.1.1/dist/maplibre-gl-dev) es2022 development */
 var __global$ = globalThis || (typeof window !== "undefined" ? window : self);
 var __create = Object.create;
 var __defProp = Object.defineProperty;
@@ -31,9 +31,9 @@ var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__ge
   mod
 ));
 
-// ../esmd/npm/maplibre-gl@5.1.0/node_modules/.pnpm/maplibre-gl@5.1.0/node_modules/maplibre-gl/dist/maplibre-gl-dev.js
+// ../esmd/npm/maplibre-gl@5.1.1/node_modules/.pnpm/maplibre-gl@5.1.1/node_modules/maplibre-gl/dist/maplibre-gl-dev.js
 var require_maplibre_gl_dev = __commonJS({
-  "../esmd/npm/maplibre-gl@5.1.0/node_modules/.pnpm/maplibre-gl@5.1.0/node_modules/maplibre-gl/dist/maplibre-gl-dev.js"(exports, module) {
+  "../esmd/npm/maplibre-gl@5.1.1/node_modules/.pnpm/maplibre-gl@5.1.1/node_modules/maplibre-gl/dist/maplibre-gl-dev.js"(exports, module) {
     (function(global2, factory) {
       typeof exports === "object" && typeof module !== "undefined" ? module.exports = factory() : typeof define === "function" && define.amd ? define(factory) : (global2 = typeof globalThis !== "undefined" ? globalThis : global2 || self, global2.maplibregl = factory());
     })(exports, function() {
@@ -16133,7 +16133,7 @@ ${currentIndent}`
           // 'Kangxi Radicals': (char) => char >= 0x2F00 && char <= 0x2FDF,
           "Ideographic Description Characters": (char) => char >= 12272 && char <= 12287,
           "CJK Symbols and Punctuation": (char) => char >= 12288 && char <= 12351,
-          // 'Hiragana': (char) => char >= 0x3040 && char <= 0x309F,
+          "Hiragana": (char) => char >= 12352 && char <= 12447,
           "Katakana": (char) => char >= 12448 && char <= 12543,
           // 'Bopomofo': (char) => char >= 0x3100 && char <= 0x312F,
           // 'Hangul Compatibility Jamo': (char) => char >= 0x3130 && char <= 0x318F,
@@ -16145,7 +16145,7 @@ ${currentIndent}`
           "CJK Compatibility": (char) => char >= 13056 && char <= 13311,
           // 'CJK Unified Ideographs Extension A': (char) => char >= 0x3400 && char <= 0x4DBF,
           "Yijing Hexagram Symbols": (char) => char >= 19904 && char <= 19967,
-          // 'CJK Unified Ideographs': (char) => char >= 0x4E00 && char <= 0x9FFF,
+          "CJK Unified Ideographs": (char) => char >= 19968 && char <= 40959,
           // 'Yi Syllables': (char) => char >= 0xA000 && char <= 0xA48F,
           // 'Yi Radicals': (char) => char >= 0xA490 && char <= 0xA4CF,
           // 'Lisu': (char) => char >= 0xA4D0 && char <= 0xA4FF,
@@ -16172,7 +16172,7 @@ ${currentIndent}`
           // 'Latin Extended-E': (char) => char >= 0xAB30 && char <= 0xAB6F,
           // 'Cherokee Supplement': (char) => char >= 0xAB70 && char <= 0xABBF,
           // 'Meetei Mayek': (char) => char >= 0xABC0 && char <= 0xABFF,
-          // 'Hangul Syllables': (char) => char >= 0xAC00 && char <= 0xD7AF,
+          "Hangul Syllables": (char) => char >= 44032 && char <= 55215,
           // 'Hangul Jamo Extended-B': (char) => char >= 0xD7B0 && char <= 0xD7FF,
           // 'High Surrogates': (char) => char >= 0xD800 && char <= 0xDB7F,
           // 'High Private Use Surrogates': (char) => char >= 0xDB80 && char <= 0xDBFF,
@@ -27700,6 +27700,7 @@ ${currentIndent}`
         exports2.transformMat4$2 = transformMat4;
         exports2.translate = translate$2;
         exports2.translatePosition = translatePosition;
+        exports2.unicodeBlockLookup = unicodeBlockLookup;
         exports2.uniqueId = uniqueId;
         exports2.v8Spec = v8Spec;
         exports2.validateCustomStyleLayer = validateCustomStyleLayer;
@@ -29992,7 +29993,7 @@ ${currentIndent}`
         "use strict";
         var name = "maplibre-gl";
         var description = "BSD licensed community fork of mapbox-gl, a WebGL interactive maps library";
-        var version$2 = "5.1.0";
+        var version$2 = "5.1.1";
         var main = "dist/maplibre-gl.js";
         var style = "dist/maplibre-gl.css";
         var license = "BSD-3-Clause";
@@ -30045,10 +30046,10 @@ ${currentIndent}`
           "@rollup/plugin-strip": "^3.0.4",
           "@rollup/plugin-terser": "^0.4.4",
           "@rollup/plugin-typescript": "^12.1.2",
-          "@stylistic/eslint-plugin-ts": "^3.0.0",
+          "@stylistic/eslint-plugin-ts": "^4.0.1",
           "@types/benchmark": "^2.1.5",
           "@types/d3": "^7.4.3",
-          "@types/diff": "^7.0.0",
+          "@types/diff": "^7.0.1",
           "@types/earcut": "^3.0.0",
           "@types/eslint": "^9.6.1",
           "@types/gl": "^6.0.5",
@@ -30057,31 +30058,31 @@ ${currentIndent}`
           "@types/minimist": "^1.2.5",
           "@types/murmurhash-js": "^1.0.6",
           "@types/nise": "^1.4.5",
-          "@types/node": "^22.12.0",
+          "@types/node": "^22.13.4",
           "@types/offscreencanvas": "^2019.7.3",
           "@types/pixelmatch": "^5.2.6",
           "@types/pngjs": "^6.0.5",
-          "@types/react": "^19.0.8",
-          "@types/react-dom": "^19.0.3",
+          "@types/react": "^19.0.10",
+          "@types/react-dom": "^19.0.4",
           "@types/request": "^2.48.12",
           "@types/shuffle-seed": "^1.1.3",
           "@types/window-or-global": "^1.0.6",
-          "@typescript-eslint/eslint-plugin": "^8.22.0",
-          "@typescript-eslint/parser": "^8.22.0",
-          "@vitest/coverage-v8": "3.0.3",
-          "@vitest/ui": "3.0.3",
+          "@typescript-eslint/eslint-plugin": "^8.24.1",
+          "@typescript-eslint/parser": "^8.24.1",
+          "@vitest/coverage-v8": "3.0.5",
+          "@vitest/ui": "3.0.5",
           address: "^2.0.3",
           autoprefixer: "^10.4.20",
           benchmark: "^2.1.4",
           canvas: "^3.1.0",
-          cspell: "^8.17.2",
+          cspell: "^8.17.4",
           cssnano: "^7.0.6",
           d3: "^7.9.0",
           "d3-queue": "^3.0.7",
-          "devtools-protocol": "^0.0.1410712",
+          "devtools-protocol": "^0.0.1422344",
           diff: "^7.0.0",
           "dts-bundle-generator": "^9.5.1",
-          eslint: "^9.19.0",
+          eslint: "^9.20.1",
           "eslint-plugin-html": "^8.1.2",
           "eslint-plugin-import": "^2.31.0",
           "eslint-plugin-react": "^7.37.4",
@@ -30089,30 +30090,30 @@ ${currentIndent}`
           "eslint-plugin-vitest": "^0.5.4",
           expect: "^29.7.0",
           glob: "^11.0.1",
-          globals: "^15.14.0",
+          globals: "^16.0.0",
           "is-builtin-module": "^4.0.0",
           jsdom: "^26.0.0",
           "junit-report-builder": "^5.1.1",
           minimist: "^1.2.8",
           "mock-geolocation": "^1.0.11",
-          "monocart-coverage-reports": "^2.12.0",
+          "monocart-coverage-reports": "^2.12.1",
           nise: "^6.1.1",
           "npm-font-open-sans": "^1.1.0",
           "npm-run-all": "^4.1.5",
           "pdf-merger-js": "^5.1.2",
           pixelmatch: "^6.0.0",
           pngjs: "^7.0.0",
-          postcss: "^8.5.1",
+          postcss: "^8.5.3",
           "postcss-cli": "^11.0.0",
           "postcss-inline-svg": "^6.0.0",
           "pretty-bytes": "^6.1.1",
           puppeteer: "^24.1.1",
           react: "^19.0.0",
           "react-dom": "^19.0.0",
-          rollup: "^4.32.1",
-          "rollup-plugin-sourcemaps2": "^0.4.3",
+          rollup: "^4.34.8",
+          "rollup-plugin-sourcemaps2": "^0.5.0",
           rw: "^1.3.3",
-          semver: "^7.6.3",
+          semver: "^7.7.1",
           sharp: "^0.33.5",
           "shuffle-seed": "^1.1.6",
           "source-map-explorer": "^2.5.3",
@@ -30121,11 +30122,11 @@ ${currentIndent}`
           "stylelint-config-standard": "^37.0.0",
           "ts-node": "^10.9.2",
           tslib: "^2.8.1",
-          typedoc: "^0.27.6",
-          "typedoc-plugin-markdown": "^4.4.1",
+          typedoc: "^0.27.7",
+          "typedoc-plugin-markdown": "^4.4.2",
           "typedoc-plugin-missing-exports": "^3.1.0",
           typescript: "^5.7.3",
-          vitest: "3.0.3",
+          vitest: "3.0.5",
           "vitest-webgl-canvas-mock": "^1.1.0"
         };
         var scripts = {
@@ -31175,7 +31176,11 @@ ${currentIndent}`
             });
           }
           _doesCharSupportLocalGlyph(id) {
-            return !!this.localIdeographFontFamily && /\p{Ideo}|\p{sc=Hang}|\p{sc=Hira}|\p{sc=Kana}/u.test(String.fromCodePoint(id));
+            return !!this.localIdeographFontFamily && (/\p{Ideo}|\p{sc=Hang}|\p{sc=Hira}|\p{sc=Kana}/u.test(String.fromCodePoint(id)) || // fallback: RegExp can't cover all cases. refer Issue #5420
+            performance$1.unicodeBlockLookup["CJK Unified Ideographs"](id) || performance$1.unicodeBlockLookup["Hangul Syllables"](id) || performance$1.unicodeBlockLookup["Hiragana"](id) || performance$1.unicodeBlockLookup["Katakana"](id) || // includes "ー"
+            // memo: these symbols are not all. others could be added if needed.
+            performance$1.unicodeBlockLookup["CJK Symbols and Punctuation"](id) || // 、。〃〄々〆〇〈〉《》「...
+            performance$1.unicodeBlockLookup["Halfwidth and Fullwidth Forms"](id));
           }
           _tinySDF(entry, stack, id) {
             const fontFamily = this.localIdeographFontFamily;
@@ -38109,7 +38114,7 @@ uniform ${precision} ${type2} u_${name2};
           allowVariableZoom(transform, options) {
             const zfov = transform.fov * (Math.abs(Math.cos(transform.rollInRadians)) * transform.height + Math.abs(Math.sin(transform.rollInRadians)) * transform.width) / transform.height;
             const maxConstantZoomPitch = performance$1.clamp(78.5 - zfov / 2, 0, 60);
-            return !!options.terrain || transform.pitch > maxConstantZoomPitch || transform.padding.top >= 0.1;
+            return !!options.terrain || transform.pitch > maxConstantZoomPitch;
           }
           allowWorldCopies() {
             return true;
@@ -41090,14 +41095,12 @@ uniform ${precision} ${type2} u_${name2};
             const optionsZoom = typeof options.zoom !== "undefined";
             const startCenter = tr.center;
             const startZoom = tr.zoom;
+            const startPadding = tr.padding;
             const doPadding = !tr.isPaddingEqual(options.padding);
             const constrainedCenter = tr.getConstrained(performance$1.LngLat.convert(options.center || options.locationAtOffset), startZoom).center;
             const targetZoom = optionsZoom ? +options.zoom : tr.zoom + getZoomAdjustment(tr.center.lat, constrainedCenter.lat);
             const clonedTr = tr.clone();
             clonedTr.setCenter(constrainedCenter);
-            if (doPadding) {
-              clonedTr.setPadding(options.padding);
-            }
             clonedTr.setZoom(targetZoom);
             clonedTr.setBearing(options.bearing);
             const clampedPoint = new performance$1.Point(performance$1.clamp(tr.centerPoint.x + options.offsetAsPoint.x, 0, tr.width), performance$1.clamp(tr.centerPoint.y + options.offsetAsPoint.y, 0, tr.height));
@@ -41122,6 +41125,9 @@ uniform ${precision} ${type2} u_${name2};
             const deltaLat = performance$1.differenceOfAnglesDegrees(startCenter.lat, targetCenter.lat);
             const easeFunc = (k, scale, centerFactor, _pointAtOffset) => {
               const interpolatedCenter = interpolateLngLatForGlobe(startCenter, deltaLng, deltaLat, centerFactor);
+              if (doPadding) {
+                tr.interpolatePadding(startPadding, options.padding, k);
+              }
               const newCenter = k === 1 ? targetCenter : interpolatedCenter;
               tr.setCenter(newCenter.wrap());
               const interpolatedZoom = normalizedStartZoom + performance$1.scaleZoom(scale);
@@ -46365,7 +46371,7 @@ ${projection.shaderPreludeCode.vertexSource}`,
             const zoom = +hash[0];
             const bearing = +(hash[3] || 0);
             const pitch = +(hash[4] || 0);
-            return zoom >= this._map.getMinZoom() && zoom <= this._map.getMaxZoom() && bearing >= 0 && bearing <= 180 && pitch >= this._map.getMinPitch() && pitch <= this._map.getMaxPitch();
+            return zoom >= this._map.getMinZoom() && zoom <= this._map.getMaxZoom() && bearing >= -180 && bearing <= 180 && pitch >= this._map.getMinPitch() && pitch <= this._map.getMaxPitch();
           }
         }
         const defaultInertiaOptions = {
@@ -53749,7 +53755,6 @@ ${projection.shaderPreludeCode.vertexSource}`,
             this._rotation = options && options.rotation || 0;
             this._rotationAlignment = options && options.rotationAlignment || "auto";
             this._pitchAlignment = options && options.pitchAlignment && options.pitchAlignment !== "auto" ? options.pitchAlignment : this._rotationAlignment;
-            this.setOpacity();
             this.setOpacity(options === null || options === void 0 ? void 0 : options.opacity, options === null || options === void 0 ? void 0 : options.opacityWhenCovered);
             if (!options || !options.element) {
               this._defaultMarker = true;
@@ -54234,7 +54239,7 @@ ${projection.shaderPreludeCode.vertexSource}`,
            * @param opacityWhenCovered - Sets the `opacityWhenCovered` property of the marker.
            */
           setOpacity(opacity, opacityWhenCovered) {
-            if (opacity === void 0 && opacityWhenCovered === void 0) {
+            if (this._opacity === void 0 || opacity === void 0 && opacityWhenCovered === void 0) {
               this._opacity = "1";
               this._opacityWhenCovered = "0.2";
             }
@@ -55494,7 +55499,7 @@ ${projection.shaderPreludeCode.vertexSource}`,
   }
 });
 
-// ../esmd/npm/maplibre-gl@5.1.0/build.js
+// ../esmd/npm/maplibre-gl@5.1.1/build.js
 var build_exports = {};
 __export(build_exports, {
   default: () => build_default
@@ -55511,7 +55516,7 @@ export {
 maplibre-gl/dist/maplibre-gl-dev.js:
   (**
    * MapLibre GL JS
-   * @license 3-Clause BSD. Full text of license: https://github.com/maplibre/maplibre-gl-js/blob/v5.1.0/LICENSE.txt
+   * @license 3-Clause BSD. Full text of license: https://github.com/maplibre/maplibre-gl-js/blob/v5.1.1/LICENSE.txt
    *)
   (*! ieee754. BSD-3-Clause License. Feross Aboukhadijeh <https://feross.org/opensource> *)
 */

@@ -32,14 +32,14 @@ ui/_vendor/vue.js:
 	curl -o $@ 'https://unpkg.com/vue@3.5.13/dist/vue.esm-browser.js'
 
 ui/_vendor/maplibre.css:
-	curl -o $@ 'https://esm.sh/maplibre-gl@5.1.0/dist/maplibre-gl.css'
-	deno fmt $@
+	curl -o $@ 'https://esm.sh/maplibre-gl@5.1.1/dist/maplibre-gl.css'
+	docker run --rm -v "./$@":/tmp/file.css denoland/deno:alpine-2.2.2 deno fmt /tmp/file.css
 ui/_vendor/maplibre.js:
-	curl -o $@ 'https://esm.sh/v135/maplibre-gl@5.1.0/es2022/dist/maplibre-gl-dev.development.bundle.js'
+	curl -o $@ 'https://esm.sh/v135/maplibre-gl@5.1.1/es2022/dist/maplibre-gl-dev.development.bundle.js'
 
 ui/_vendor/monaco.css:
 	curl -o $@ 'https://esm.sh/v135/monaco-editor@0.52.2/es2022/monaco-editor.css'
-	deno fmt $@
+	docker run --rm -v "./$@":/tmp/file.css denoland/deno:alpine-2.2.2 deno fmt /tmp/file.css
 ui/_vendor/monaco.js:
 	curl -o $@ 'https://esm.sh/v135/monaco-editor@0.52.2/es2022/esm/vs/editor/editor.main.development.bundle.js'
 ui/_vendor/monaco_worker.js:
