@@ -1,7 +1,10 @@
-.PHONY: build clean ui/_vendor/* server/_vendor/*
+.PHONY: up shell build clean ui/_vendor/* server/_vendor/*
 
 up:
-	docker compose up --build -w --menu=false
+	COMPOSE_BAKE=true docker compose up --build --watch --menu=false
+
+shell:
+	COMPOSE_BAKE=true docker compose run --build --rm --volume $(PWD):/w --workdir /w pgbb ash
 
 build: \
 	.dist/ui/index.html \
@@ -29,28 +32,28 @@ clean:
 
 ui/_vendor/vue.js:
 	# TODO https://unpkg.com/vue@3.5.13/dist/vue.esm-browser.prod.js
-	curl -o $@ 'https://unpkg.com/vue@3.5.13/dist/vue.esm-browser.js'
+	wget -O $@ 'https://unpkg.com/vue@3.5.13/dist/vue.esm-browser.js'
 
 ui/_vendor/maplibre.css:
-	curl -o $@ 'https://esm.sh/maplibre-gl@5.1.1/dist/maplibre-gl.css'
-	docker run --rm -v "./$@":/tmp/file.css denoland/deno:alpine-2.2.2 deno fmt /tmp/file.css
+	wget -O $@ 'https://esm.sh/maplibre-gl@5.2.0/dist/maplibre-gl.css'
+	deno fmt $@
 ui/_vendor/maplibre.js:
-	curl -o $@ 'https://esm.sh/v135/maplibre-gl@5.1.1/es2022/dist/maplibre-gl-dev.development.bundle.js'
+	wget -O $@ 'https://esm.sh/v135/maplibre-gl@5.2.0/es2022/dist/maplibre-gl-dev.development.bundle.js'
 
 ui/_vendor/monaco.css:
-	curl -o $@ 'https://esm.sh/v135/monaco-editor@0.52.2/es2022/monaco-editor.css'
-	docker run --rm -v "./$@":/tmp/file.css denoland/deno:alpine-2.2.2 deno fmt /tmp/file.css
+	wget -O $@ 'https://esm.sh/v135/monaco-editor@0.52.2/es2022/monaco-editor.css'
+	deno fmt $@
 ui/_vendor/monaco.js:
-	curl -o $@ 'https://esm.sh/v135/monaco-editor@0.52.2/es2022/esm/vs/editor/editor.main.development.bundle.js'
+	wget -O $@ 'https://esm.sh/v135/monaco-editor@0.52.2/es2022/esm/vs/editor/editor.main.development.bundle.js'
 ui/_vendor/monaco_worker.js:
-	curl -o $@ 'https://esm.sh/v135/monaco-editor@0.52.2/es2022/esm/vs/editor/editor.worker.development.bundle.js?worker'
+	wget -O $@ 'https://esm.sh/v135/monaco-editor@0.52.2/es2022/esm/vs/editor/editor.worker.development.bundle.js?worker'
 ui/_vendor/monaco_json_worker.js:
-	curl -o $@ 'https://esm.sh/v135/monaco-editor@0.52.2/es2022/esm/vs/language/json/json.worker.development.bundle.js?worker'
+	wget -O $@ 'https://esm.sh/v135/monaco-editor@0.52.2/es2022/esm/vs/language/json/json.worker.development.bundle.js?worker'
 
 server/_vendor/pgwire.js:
-	curl -o $@ 'https://raw.githubusercontent.com/kagis/pgwire/b992f307097ac5bd350ba41ea4c85d194ccb611f/mod.js'
+	wget -O $@ 'https://raw.githubusercontent.com/kagis/pgwire/b992f307097ac5bd350ba41ea4c85d194ccb611f/mod.js'
 server/_vendor/parse_args.ts:
-	curl -o $@ 'https://jsr.io/@std/cli/1.0.12/parse_args.ts'
+	wget -O $@ 'https://jsr.io/@std/cli/1.0.12/parse_args.ts'
 
 
 # docker run -it --rm -v $PWD:/app -w /app alpine:3.21.2
