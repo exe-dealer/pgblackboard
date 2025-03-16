@@ -1,4 +1,4 @@
-FROM denoland/deno:alpine-2.2.3 AS deno
+FROM denoland/deno:alpine-2.2.4 AS deno
 EXPOSE 7890
 WORKDIR /app
 RUN ln -s /app/bin/pgbb /usr/local/bin/pgbb
