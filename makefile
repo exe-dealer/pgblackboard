@@ -35,10 +35,10 @@ ui/_vendor/vue.js:
 	wget -O $@ 'https://unpkg.com/vue@3.5.13/dist/vue.esm-browser.js'
 
 ui/_vendor/maplibre.css:
-	wget -O $@ 'https://esm.sh/maplibre-gl@5.3.0/dist/maplibre-gl.css'
+	wget -O $@ 'https://esm.sh/maplibre-gl@5.3.1/dist/maplibre-gl.css'
 	deno fmt $@
 ui/_vendor/maplibre.js:
-	wget -O $@ 'https://esm.sh/v135/maplibre-gl@5.3.0/es2022/dist/maplibre-gl-dev.development.bundle.js'
+	wget -O $@ 'https://esm.sh/v135/maplibre-gl@5.3.1/es2022/dist/maplibre-gl-dev.development.bundle.js'
 
 ui/_vendor/monaco.css:
 	wget -O $@ 'https://esm.sh/v135/monaco-editor@0.52.2/es2022/monaco-editor.css'
