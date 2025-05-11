@@ -1,4 +1,4 @@
-/* esm.sh - esbuild bundle(maplibre-gl@5.3.1/dist/maplibre-gl-dev) es2022 development */
+/* esm.sh - esbuild bundle(maplibre-gl@5.5.0/dist/maplibre-gl-dev) es2022 development */
 var __global$ = globalThis || (typeof window !== "undefined" ? window : self);
 var __create = Object.create;
 var __defProp = Object.defineProperty;
@@ -31,9 +31,9 @@ var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__ge
   mod
 ));
 
-// ../esmd/npm/maplibre-gl@5.3.1/node_modules/.pnpm/maplibre-gl@5.3.1/node_modules/maplibre-gl/dist/maplibre-gl-dev.js
+// ../esmd/npm/maplibre-gl@5.5.0/node_modules/.pnpm/maplibre-gl@5.5.0/node_modules/maplibre-gl/dist/maplibre-gl-dev.js
 var require_maplibre_gl_dev = __commonJS({
-  "../esmd/npm/maplibre-gl@5.3.1/node_modules/.pnpm/maplibre-gl@5.3.1/node_modules/maplibre-gl/dist/maplibre-gl-dev.js"(exports, module) {
+  "../esmd/npm/maplibre-gl@5.5.0/node_modules/.pnpm/maplibre-gl@5.5.0/node_modules/maplibre-gl/dist/maplibre-gl-dev.js"(exports, module) {
     (function(global2, factory) {
       typeof exports === "object" && typeof module !== "undefined" ? module.exports = factory() : typeof define === "function" && define.amd ? define(factory) : (global2 = typeof globalThis !== "undefined" ? globalThis : global2 || self, global2.maplibregl = factory());
     })(exports, function() {
@@ -5784,6 +5784,10 @@ var require_maplibre_gl_dev = __commonJS({
             "default": 0,
             units: "degrees"
           },
+          state: {
+            type: "state",
+            "default": {}
+          },
           light: {
             type: "light"
           },
@@ -8383,10 +8387,24 @@ var require_maplibre_gl_dev = __commonJS({
         };
         var paint_hillshade = {
           "hillshade-illumination-direction": {
-            type: "number",
+            type: "numberArray",
             "default": 335,
             minimum: 0,
             maximum: 359,
+            transition: false,
+            expression: {
+              interpolated: true,
+              parameters: [
+                "zoom"
+              ]
+            },
+            "property-type": "data-constant"
+          },
+          "hillshade-illumination-altitude": {
+            type: "numberArray",
+            "default": 45,
+            minimum: 0,
+            maximum: 90,
             transition: false,
             expression: {
               interpolated: true,
@@ -8426,7 +8444,7 @@ var require_maplibre_gl_dev = __commonJS({
             "property-type": "data-constant"
           },
           "hillshade-shadow-color": {
-            type: "color",
+            type: "colorArray",
             "default": "#000000",
             transition: true,
             expression: {
@@ -8438,7 +8456,7 @@ var require_maplibre_gl_dev = __commonJS({
             "property-type": "data-constant"
           },
           "hillshade-highlight-color": {
-            type: "color",
+            type: "colorArray",
             "default": "#FFFFFF",
             transition: true,
             expression: {
@@ -8455,6 +8473,24 @@ var require_maplibre_gl_dev = __commonJS({
             transition: true,
             expression: {
               interpolated: true,
+              parameters: [
+                "zoom"
+              ]
+            },
+            "property-type": "data-constant"
+          },
+          "hillshade-method": {
+            type: "enum",
+            values: {
+              standard: {},
+              basic: {},
+              combined: {},
+              igor: {},
+              multidirectional: {}
+            },
+            "default": "standard",
+            expression: {
+              interpolated: false,
               parameters: [
                 "zoom"
               ]
@@ -8996,6 +9032,9 @@ var require_maplibre_gl_dev = __commonJS({
             if (!deepEqual(before.center, after.center)) {
               commands.push({ command: "setCenter", args: [after.center] });
             }
+            if (!deepEqual(before.state, after.state)) {
+              commands.push({ command: "setGlobalState", args: [after.state] });
+            }
             if (!deepEqual(before.centerAltitude, after.centerAltitude)) {
               commands.push({ command: "setCenterAltitude", args: [after.centerAltitude] });
             }
@@ -9124,6 +9163,8 @@ var require_maplibre_gl_dev = __commonJS({
         const CollatorType = { kind: "collator" };
         const FormattedType = { kind: "formatted" };
         const PaddingType = { kind: "padding" };
+        const ColorArrayType = { kind: "colorArray" };
+        const NumberArrayType = { kind: "numberArray" };
         const ResolvedImageType = { kind: "resolvedImage" };
         const VariableAnchorOffsetCollectionType = { kind: "variableAnchorOffsetCollection" };
         function array(itemType, N) {
@@ -9152,6 +9193,8 @@ var require_maplibre_gl_dev = __commonJS({
           ObjectType,
           array(ValueType),
           PaddingType,
+          NumberArrayType,
+          ColorArrayType,
           ResolvedImageType,
           VariableAnchorOffsetCollectionType
         ];
@@ -9265,12 +9308,18 @@ var require_maplibre_gl_dev = __commonJS({
           }
           return [f(0), f(8), f(4), alpha];
         }
+        const hasOwnProperty = Object.hasOwn || function hasOwnProperty2(object, key) {
+          return Object.prototype.hasOwnProperty.call(object, key);
+        };
+        function getOwn(object, key) {
+          return hasOwnProperty(object, key) ? object[key] : void 0;
+        }
         function parseCssColor(input) {
           input = input.toLowerCase().trim();
           if (input === "transparent") {
             return [0, 0, 0, 0];
           }
-          const namedColorsMatch = namedColors[input];
+          const namedColorsMatch = getOwn(namedColors, input);
           if (namedColorsMatch) {
             const [r, g, b] = namedColorsMatch;
             return [r / 255, g / 255, b / 255, 1];
@@ -9806,10 +9855,93 @@ var require_maplibre_gl_dev = __commonJS({
             return new Padding(interpolateArray(from.values, to.values, t));
           }
         }
-        class RuntimeError {
+        class NumberArray {
+          constructor(values) {
+            this.values = values.slice();
+          }
+          /**
+           * Numeric NumberArray values
+           * @param input A NumberArray value
+           * @returns A `NumberArray` instance, or `undefined` if the input is not a valid NumberArray value.
+           */
+          static parse(input) {
+            if (input instanceof NumberArray) {
+              return input;
+            }
+            if (typeof input === "number") {
+              return new NumberArray([input]);
+            }
+            if (!Array.isArray(input)) {
+              return void 0;
+            }
+            for (const val of input) {
+              if (typeof val !== "number") {
+                return void 0;
+              }
+            }
+            return new NumberArray(input);
+          }
+          toString() {
+            return JSON.stringify(this.values);
+          }
+          static interpolate(from, to, t) {
+            return new NumberArray(interpolateArray(from.values, to.values, t));
+          }
+        }
+        class ColorArray {
+          constructor(values) {
+            this.values = values.slice();
+          }
+          /**
+           * ColorArray values
+           * @param input A ColorArray value
+           * @returns A `ColorArray` instance, or `undefined` if the input is not a valid ColorArray value.
+           */
+          static parse(input) {
+            if (input instanceof ColorArray) {
+              return input;
+            }
+            if (typeof input === "string") {
+              const parsed_val = Color.parse(input);
+              if (!parsed_val) {
+                return void 0;
+              }
+              return new ColorArray([parsed_val]);
+            }
+            if (!Array.isArray(input)) {
+              return void 0;
+            }
+            const colors = [];
+            for (const val of input) {
+              if (typeof val !== "string") {
+                return void 0;
+              }
+              const parsed_val = Color.parse(val);
+              if (!parsed_val) {
+                return void 0;
+              }
+              colors.push(parsed_val);
+            }
+            return new ColorArray(colors);
+          }
+          toString() {
+            return JSON.stringify(this.values);
+          }
+          static interpolate(from, to, t, spaceKey = "rgb") {
+            const colors = [];
+            if (from.values.length != to.values.length) {
+              throw new Error(`colorArray: Arrays have mismatched length (${from.values.length} vs. ${to.values.length}), cannot interpolate.`);
+            }
+            for (let i = 0; i < from.values.length; i++) {
+              colors.push(Color.interpolate(from.values[i], to.values[i], t, spaceKey));
+            }
+            return new ColorArray(colors);
+          }
+        }
+        class RuntimeError extends Error {
           constructor(message) {
-            this.name = "ExpressionEvaluationError";
-            this.message = message;
+            super(message);
+            this.name = "RuntimeError";
           }
           toJSON() {
             return this.message;
@@ -9911,7 +10043,7 @@ var require_maplibre_gl_dev = __commonJS({
           return null;
         }
         function isValue(mixed) {
-          if (mixed === null || typeof mixed === "string" || typeof mixed === "boolean" || typeof mixed === "number" || mixed instanceof ProjectionDefinition || mixed instanceof Color || mixed instanceof Collator || mixed instanceof Formatted || mixed instanceof Padding || mixed instanceof VariableAnchorOffsetCollection || mixed instanceof ResolvedImage) {
+          if (mixed === null || typeof mixed === "string" || typeof mixed === "boolean" || typeof mixed === "number" || mixed instanceof ProjectionDefinition || mixed instanceof Color || mixed instanceof Collator || mixed instanceof Formatted || mixed instanceof Padding || mixed instanceof NumberArray || mixed instanceof ColorArray || mixed instanceof VariableAnchorOffsetCollection || mixed instanceof ResolvedImage) {
             return true;
           } else if (Array.isArray(mixed)) {
             for (const item of mixed) {
@@ -9950,6 +10082,10 @@ var require_maplibre_gl_dev = __commonJS({
             return FormattedType;
           } else if (value instanceof Padding) {
             return PaddingType;
+          } else if (value instanceof NumberArray) {
+            return NumberArrayType;
+          } else if (value instanceof ColorArray) {
+            return ColorArrayType;
           } else if (value instanceof VariableAnchorOffsetCollection) {
             return VariableAnchorOffsetCollectionType;
           } else if (value instanceof ResolvedImage) {
@@ -9979,7 +10115,7 @@ var require_maplibre_gl_dev = __commonJS({
             return "";
           } else if (type === "string" || type === "number" || type === "boolean") {
             return String(value);
-          } else if (value instanceof Color || value instanceof ProjectionDefinition || value instanceof Formatted || value instanceof Padding || value instanceof VariableAnchorOffsetCollection || value instanceof ResolvedImage) {
+          } else if (value instanceof Color || value instanceof ProjectionDefinition || value instanceof Formatted || value instanceof Padding || value instanceof NumberArray || value instanceof ColorArray || value instanceof VariableAnchorOffsetCollection || value instanceof ResolvedImage) {
             return value.toString();
           } else {
             return JSON.stringify(value);
@@ -10151,6 +10287,28 @@ var require_maplibre_gl_dev = __commonJS({
                 }
                 throw new RuntimeError(`Could not parse padding from value '${typeof input === "string" ? input : JSON.stringify(input)}'`);
               }
+              case "numberArray": {
+                let input;
+                for (const arg of this.args) {
+                  input = arg.evaluate(ctx);
+                  const val = NumberArray.parse(input);
+                  if (val) {
+                    return val;
+                  }
+                }
+                throw new RuntimeError(`Could not parse numberArray from value '${typeof input === "string" ? input : JSON.stringify(input)}'`);
+              }
+              case "colorArray": {
+                let input;
+                for (const arg of this.args) {
+                  input = arg.evaluate(ctx);
+                  const val = ColorArray.parse(input);
+                  if (val) {
+                    return val;
+                  }
+                }
+                throw new RuntimeError(`Could not parse colorArray from value '${typeof input === "string" ? input : JSON.stringify(input)}'`);
+              }
               case "variableAnchorOffsetCollection": {
                 let input;
                 for (const arg of this.args) {
@@ -10199,7 +10357,7 @@ var require_maplibre_gl_dev = __commonJS({
             this.feature = null;
             this.featureState = null;
             this.formattedSection = null;
-            this._parseColorCache = {};
+            this._parseColorCache = /* @__PURE__ */ new Map();
             this.availableImages = null;
             this.canonical = null;
           }
@@ -10219,9 +10377,10 @@ var require_maplibre_gl_dev = __commonJS({
             return this.feature && this.feature.properties || {};
           }
           parseColor(input) {
-            let cached = this._parseColorCache[input];
+            let cached = this._parseColorCache.get(input);
             if (!cached) {
-              cached = this._parseColorCache[input] = Color.parse(input);
+              cached = Color.parse(input);
+              this._parseColorCache.set(input, cached);
             }
             return cached;
           }
@@ -10281,13 +10440,7 @@ var require_maplibre_gl_dev = __commonJS({
                   const actual = parsed.type;
                   if ((expected.kind === "string" || expected.kind === "number" || expected.kind === "boolean" || expected.kind === "object" || expected.kind === "array") && actual.kind === "value") {
                     parsed = annotate(parsed, expected, options.typeAnnotation || "assert");
-                  } else if (expected.kind === "projectionDefinition" && (actual.kind === "string" || actual.kind === "array")) {
-                    parsed = annotate(parsed, expected, options.typeAnnotation || "coerce");
-                  } else if ((expected.kind === "color" || expected.kind === "formatted" || expected.kind === "resolvedImage") && (actual.kind === "value" || actual.kind === "string")) {
-                    parsed = annotate(parsed, expected, options.typeAnnotation || "coerce");
-                  } else if (expected.kind === "padding" && (actual.kind === "value" || actual.kind === "number" || actual.kind === "array")) {
-                    parsed = annotate(parsed, expected, options.typeAnnotation || "coerce");
-                  } else if (expected.kind === "variableAnchorOffsetCollection" && (actual.kind === "value" || actual.kind === "array")) {
+                  } else if ("projectionDefinition" === expected.kind && ["string", "array"].includes(actual.kind) || ["color", "formatted", "resolvedImage"].includes(expected.kind) && ["value", "string"].includes(actual.kind) || ["padding", "numberArray"].includes(expected.kind) && ["value", "number", "array"].includes(actual.kind) || "colorArray" === expected.kind && ["value", "string", "array"].includes(actual.kind) || "variableAnchorOffsetCollection" === expected.kind && ["value", "array"].includes(actual.kind)) {
                     parsed = annotate(parsed, expected, options.typeAnnotation || "coerce");
                   } else if (this.checkSubtype(expected, actual)) {
                     return null;
@@ -10971,7 +11124,7 @@ var require_maplibre_gl_dev = __commonJS({
               return null;
             const stops = [];
             let outputType = null;
-            if (operator === "interpolate-hcl" || operator === "interpolate-lab") {
+            if ((operator === "interpolate-hcl" || operator === "interpolate-lab") && context.expectedType != ColorArrayType) {
               outputType = ColorType;
             } else if (context.expectedType && context.expectedType.kind !== "value") {
               outputType = context.expectedType;
@@ -10993,7 +11146,7 @@ var require_maplibre_gl_dev = __commonJS({
               outputType = outputType || parsed.type;
               stops.push([label, parsed]);
             }
-            if (!verifyType(outputType, NumberType) && !verifyType(outputType, ProjectionDefinitionType) && !verifyType(outputType, ColorType) && !verifyType(outputType, PaddingType) && !verifyType(outputType, VariableAnchorOffsetCollectionType) && !verifyType(outputType, array(NumberType))) {
+            if (!verifyType(outputType, NumberType) && !verifyType(outputType, ProjectionDefinitionType) && !verifyType(outputType, ColorType) && !verifyType(outputType, PaddingType) && !verifyType(outputType, NumberArrayType) && !verifyType(outputType, ColorArrayType) && !verifyType(outputType, VariableAnchorOffsetCollectionType) && !verifyType(outputType, array(NumberType))) {
               return context.error(`Type ${typeToString(outputType)} is not interpolatable.`);
             }
             return new Interpolate(outputType, operator, interpolation, input, stops);
@@ -11027,6 +11180,10 @@ var require_maplibre_gl_dev = __commonJS({
                     return Color.interpolate(outputLower, outputUpper, t);
                   case "padding":
                     return Padding.interpolate(outputLower, outputUpper, t);
+                  case "colorArray":
+                    return ColorArray.interpolate(outputLower, outputUpper, t);
+                  case "numberArray":
+                    return NumberArray.interpolate(outputLower, outputUpper, t);
                   case "variableAnchorOffsetCollection":
                     return VariableAnchorOffsetCollection.interpolate(outputLower, outputUpper, t);
                   case "array":
@@ -11035,9 +11192,19 @@ var require_maplibre_gl_dev = __commonJS({
                     return ProjectionDefinition.interpolate(outputLower, outputUpper, t);
                 }
               case "interpolate-hcl":
-                return Color.interpolate(outputLower, outputUpper, t, "hcl");
+                switch (this.type.kind) {
+                  case "color":
+                    return Color.interpolate(outputLower, outputUpper, t, "hcl");
+                  case "colorArray":
+                    return ColorArray.interpolate(outputLower, outputUpper, t, "hcl");
+                }
               case "interpolate-lab":
-                return Color.interpolate(outputLower, outputUpper, t, "lab");
+                switch (this.type.kind) {
+                  case "color":
+                    return Color.interpolate(outputLower, outputUpper, t, "lab");
+                  case "colorArray":
+                    return ColorArray.interpolate(outputLower, outputUpper, t, "lab");
+                }
             }
           }
           eachChild(fn) {
@@ -11065,6 +11232,8 @@ var require_maplibre_gl_dev = __commonJS({
           color: Color.interpolate,
           number: interpolateNumber,
           padding: Padding.interpolate,
+          numberArray: NumberArray.interpolate,
+          colorArray: ColorArray.interpolate,
           variableAnchorOffsetCollection: VariableAnchorOffsetCollection.interpolate,
           array: interpolateArray
         };
@@ -12536,6 +12705,37 @@ var require_maplibre_gl_dev = __commonJS({
             return true;
           }
         }
+        class GlobalState {
+          constructor(key) {
+            this.type = ValueType;
+            this.key = key;
+          }
+          static parse(args, context) {
+            if (args.length !== 2) {
+              return context.error(`Expected 1 argument, but found ${args.length - 1} instead.`);
+            }
+            const key = args[1];
+            if (key === void 0 || key === null) {
+              return context.error("Global state property must be defined.");
+            }
+            if (typeof key !== "string") {
+              return context.error(`Global state property must be string, but found ${typeof args[1]} instead.`);
+            }
+            return new GlobalState(key);
+          }
+          evaluate(ctx) {
+            var _a;
+            const globalState = (_a = ctx.globals) === null || _a === void 0 ? void 0 : _a.globalState;
+            if (!globalState || Object.keys(globalState).length === 0)
+              return null;
+            return getOwn(globalState, this.key);
+          }
+          eachChild() {
+          }
+          outputDefined() {
+            return false;
+          }
+        }
         const expressions$1 = {
           // special forms
           "==": Equals,
@@ -12573,7 +12773,8 @@ var require_maplibre_gl_dev = __commonJS({
           "to-string": Coercion,
           "var": Var,
           "within": Within,
-          "distance": Distance
+          "distance": Distance,
+          "global-state": GlobalState
         };
         class CompoundExpression {
           constructor(name, type, evaluate, args) {
@@ -13147,6 +13348,8 @@ var require_maplibre_gl_dev = __commonJS({
             return false;
           } else if (expression2 instanceof Distance) {
             return false;
+          } else if (expression2 instanceof GlobalState) {
+            return false;
           }
           const isTypeAnnotation = expression2 instanceof Coercion || expression2 instanceof Assertion;
           let childrenConstant = true;
@@ -13247,19 +13450,46 @@ var require_maplibre_gl_dev = __commonJS({
           }
         }
         function isFunction$1(value) {
-          return typeof value === "object" && value !== null && !Array.isArray(value);
+          return typeof value === "object" && value !== null && !Array.isArray(value) && typeOf(value) === ObjectType;
         }
         function identityFunction(x) {
           return x;
         }
+        function getParseFunction(propertySpec) {
+          switch (propertySpec.type) {
+            case "color":
+              return Color.parse;
+            case "padding":
+              return Padding.parse;
+            case "numberArray":
+              return NumberArray.parse;
+            case "colorArray":
+              return ColorArray.parse;
+            default:
+              return null;
+          }
+        }
+        function getInnerFunction(type) {
+          switch (type) {
+            case "exponential":
+              return evaluateExponentialFunction;
+            case "interval":
+              return evaluateIntervalFunction;
+            case "categorical":
+              return evaluateCategoricalFunction;
+            case "identity":
+              return evaluateIdentityFunction;
+            default:
+              throw new Error(`Unknown function type "${type}"`);
+          }
+        }
         function createFunction(parameters, propertySpec) {
-          const isColor = propertySpec.type === "color";
           const zoomAndFeatureDependent = parameters.stops && typeof parameters.stops[0][0] === "object";
           const featureDependent = zoomAndFeatureDependent || parameters.property !== void 0;
           const zoomDependent = zoomAndFeatureDependent || !featureDependent;
           const type = parameters.type || (supportsInterpolation(propertySpec) ? "exponential" : "interval");
-          if (isColor || propertySpec.type === "padding") {
-            const parseFn = isColor ? Color.parse : Padding.parse;
+          const parseFn = getParseFunction(propertySpec);
+          if (parseFn) {
             parameters = extendBy({}, parameters);
             if (parameters.stops) {
               parameters.stops = parameters.stops.map((stop) => {
@@ -13275,24 +13505,15 @@ var require_maplibre_gl_dev = __commonJS({
           if (parameters.colorSpace && !isSupportedInterpolationColorSpace(parameters.colorSpace)) {
             throw new Error(`Unknown color space: "${parameters.colorSpace}"`);
           }
-          let innerFun;
+          const innerFun = getInnerFunction(type);
           let hashedStops;
           let categoricalKeyType;
-          if (type === "exponential") {
-            innerFun = evaluateExponentialFunction;
-          } else if (type === "interval") {
-            innerFun = evaluateIntervalFunction;
-          } else if (type === "categorical") {
-            innerFun = evaluateCategoricalFunction;
+          if (type === "categorical") {
             hashedStops = /* @__PURE__ */ Object.create(null);
             for (const stop of parameters.stops) {
               hashedStops[stop[0]] = stop[1];
             }
             categoricalKeyType = typeof parameters.stops[0][0];
-          } else if (type === "identity") {
-            innerFun = evaluateIdentityFunction;
-          } else {
-            throw new Error(`Unknown function type "${type}"`);
           }
           if (zoomAndFeatureDependent) {
             const featureFunctions = {};
@@ -13419,6 +13640,12 @@ var require_maplibre_gl_dev = __commonJS({
               break;
             case "padding":
               input = Padding.parse(input);
+              break;
+            case "colorArray":
+              input = ColorArray.parse(input);
+              break;
+            case "numberArray":
+              input = NumberArray.parse(input);
               break;
             default:
               if (getType(input) !== propertySpec.type && (propertySpec.type !== "enum" || !propertySpec.values[input])) {
@@ -13590,6 +13817,10 @@ var require_maplibre_gl_dev = __commonJS({
               constant = Color.parse(value);
             } else if (specification.type === "padding" && (typeof value === "number" || Array.isArray(value))) {
               constant = Padding.parse(value);
+            } else if (specification.type === "numberArray" && (typeof value === "number" || Array.isArray(value))) {
+              constant = NumberArray.parse(value);
+            } else if (specification.type === "colorArray" && (typeof value === "string" || Array.isArray(value))) {
+              constant = ColorArray.parse(value);
             } else if (specification.type === "variableAnchorOffsetCollection" && Array.isArray(value)) {
               constant = VariableAnchorOffsetCollection.parse(value);
             } else if (specification.type === "projectionDefinition" && typeof value === "string") {
@@ -13639,6 +13870,8 @@ var require_maplibre_gl_dev = __commonJS({
             boolean: BooleanType,
             formatted: FormattedType,
             padding: PaddingType,
+            numberArray: NumberArrayType,
+            colorArray: ColorArrayType,
             projectionDefinition: ProjectionDefinitionType,
             resolvedImage: ResolvedImageType,
             variableAnchorOffsetCollection: VariableAnchorOffsetCollectionType
@@ -13651,18 +13884,22 @@ var require_maplibre_gl_dev = __commonJS({
         function getDefaultValue(spec) {
           if (spec.type === "color" && isFunction$1(spec.default)) {
             return new Color(0, 0, 0, 0);
-          } else if (spec.type === "color") {
-            return Color.parse(spec.default) || null;
-          } else if (spec.type === "padding") {
-            return Padding.parse(spec.default) || null;
-          } else if (spec.type === "variableAnchorOffsetCollection") {
-            return VariableAnchorOffsetCollection.parse(spec.default) || null;
-          } else if (spec.type === "projectionDefinition") {
-            return ProjectionDefinition.parse(spec.default) || null;
-          } else if (spec.default === void 0) {
-            return null;
-          } else {
-            return spec.default;
+          }
+          switch (spec.type) {
+            case "color":
+              return Color.parse(spec.default) || null;
+            case "padding":
+              return Padding.parse(spec.default) || null;
+            case "numberArray":
+              return NumberArray.parse(spec.default) || null;
+            case "colorArray":
+              return ColorArray.parse(spec.default) || null;
+            case "variableAnchorOffsetCollection":
+              return VariableAnchorOffsetCollection.parse(spec.default) || null;
+            case "projectionDefinition":
+              return ProjectionDefinition.parse(spec.default) || null;
+            default:
+              return spec.default === void 0 ? null : spec.default;
           }
         }
         function isExpressionFilter(filter2) {
@@ -14304,11 +14541,11 @@ var require_maplibre_gl_dev = __commonJS({
           }
           for (const objectKey in object) {
             const elementSpecKey = objectKey.split(".")[0];
-            const elementSpec = elementSpecs[elementSpecKey] || elementSpecs["*"];
+            const elementSpec = getOwn(elementSpecs, elementSpecKey) || elementSpecs["*"];
             let validateElement;
-            if (elementValidators[elementSpecKey]) {
+            if (getOwn(elementValidators, elementSpecKey)) {
               validateElement = elementValidators[elementSpecKey];
-            } else if (elementSpecs[elementSpecKey]) {
+            } else if (getOwn(elementSpecs, elementSpecKey)) {
               validateElement = validateSpec;
             } else if (elementValidators["*"]) {
               validateElement = elementValidators["*"];
@@ -14503,7 +14740,6 @@ var require_maplibre_gl_dev = __commonJS({
               errors2 = errors2.concat(validateStopDomainValue({
                 key: `${key}[0]`,
                 value: value[0],
-                valueSpec: {},
                 validateSpec: options2.validateSpec,
                 style: options2.style,
                 styleSpec: options2.styleSpec
@@ -14780,6 +15016,9 @@ Use an identity property function instead: \`{ "type": "identity", "property": $
           const key = options.key;
           const style = options.style;
           const styleSpec = options.styleSpec;
+          if (getType(layer2) !== "object") {
+            return [new ValidationError(key, layer2, `object expected, ${getType(layer2)} found`)];
+          }
           if (!layer2.type && !layer2.ref) {
             errors.push(new ValidationError(key, layer2, 'either "type" or "ref" is required'));
           }
@@ -14994,13 +15233,11 @@ Use an identity property function instead: \`{ "type": "identity", "property": $
                   errors.push(...validateExpression({
                     key: `${key}.${prop}.map`,
                     value: mapExpr,
-                    validateSpec,
                     expressionContext: "cluster-map"
                   }));
                   errors.push(...validateExpression({
                     key: `${key}.${prop}.reduce`,
                     value: reduceExpr,
-                    validateSpec,
                     expressionContext: "cluster-reduce"
                   }));
                 }
@@ -15030,10 +15267,7 @@ Use an identity property function instead: \`{ "type": "identity", "property": $
               return validateEnum({
                 key: `${key}.type`,
                 value: value.type,
-                valueSpec: { values: ["vector", "raster", "raster-dem", "geojson", "video", "image"] },
-                style,
-                validateSpec,
-                styleSpec
+                valueSpec: { values: ["vector", "raster", "raster-dem", "geojson", "video", "image"] }
               });
           }
         }
@@ -15184,6 +15418,58 @@ Use an identity property function instead: \`{ "type": "identity", "property": $
             });
           }
         }
+        function validateNumberArray(options) {
+          const key = options.key;
+          const value = options.value;
+          const type = getType(value);
+          if (type === "array") {
+            const arrayElementSpec = {
+              type: "number"
+            };
+            if (value.length < 1) {
+              return [new ValidationError(key, value, "array length at least 1 expected, length 0 found")];
+            }
+            let errors = [];
+            for (let i = 0; i < value.length; i++) {
+              errors = errors.concat(options.validateSpec({
+                key: `${key}[${i}]`,
+                value: value[i],
+                validateSpec: options.validateSpec,
+                valueSpec: arrayElementSpec
+              }));
+            }
+            return errors;
+          } else {
+            return validateNumber({
+              key,
+              value,
+              valueSpec: {}
+            });
+          }
+        }
+        function validateColorArray(options) {
+          const key = options.key;
+          const value = options.value;
+          const type = getType(value);
+          if (type === "array") {
+            if (value.length < 1) {
+              return [new ValidationError(key, value, "array length at least 1 expected, length 0 found")];
+            }
+            let errors = [];
+            for (let i = 0; i < value.length; i++) {
+              errors = errors.concat(validateColor({
+                key: `${key}[${i}]`,
+                value: value[i]
+              }));
+            }
+            return errors;
+          } else {
+            return validateColor({
+              key,
+              value
+            });
+          }
+        }
         function validateVariableAnchorOffsetCollection(options) {
           const key = options.key;
           const value = options.value;
@@ -15300,6 +15586,17 @@ Use an identity property function instead: \`{ "type": "identity", "property": $
         function isProjectionDefinitionValue(value) {
           return Array.isArray(value) && value.length === 3 && typeof value[0] === "string" && typeof value[1] === "string" && typeof value[2] === "number";
         }
+        function isObjectLiteral(anything) {
+          return Boolean(anything) && anything.constructor === Object;
+        }
+        function validateState(options) {
+          if (!isObjectLiteral(options.value)) {
+            return [
+              new ValidationError(options.key, options.value, `object expected, ${getType(options.value)} found`)
+            ];
+          }
+          return [];
+        }
         const VALIDATORS = {
           "*"() {
             return [];
@@ -15324,8 +15621,11 @@ Use an identity property function instead: \`{ "type": "identity", "property": $
           "formatted": validateFormatted,
           "resolvedImage": validateImage,
           "padding": validatePadding,
+          "numberArray": validateNumberArray,
+          "colorArray": validateColorArray,
           "variableAnchorOffsetCollection": validateVariableAnchorOffsetCollection,
-          "sprite": validateSprite
+          "sprite": validateSprite,
+          "state": validateState
         };
         function validate(options) {
           const value = options.value;
@@ -15378,10 +15678,7 @@ Use an identity property function instead: \`{ "type": "identity", "property": $
           if (style["constants"]) {
             errors = errors.concat(validateConstants({
               key: "constants",
-              value: style["constants"],
-              style,
-              styleSpec,
-              validateSpec: validate
+              value: style["constants"]
             }));
           }
           return sortErrors(errors);
@@ -15392,6 +15689,7 @@ Use an identity property function instead: \`{ "type": "identity", "property": $
         validateStyleMin.light = wrapCleanErrors(injectValidateSpec(validateLight$1));
         validateStyleMin.sky = wrapCleanErrors(injectValidateSpec(validateSky$1));
         validateStyleMin.terrain = wrapCleanErrors(injectValidateSpec(validateTerrain$1));
+        validateStyleMin.state = wrapCleanErrors(injectValidateSpec(validateState));
         validateStyleMin.layer = wrapCleanErrors(injectValidateSpec(validateLayer));
         validateStyleMin.filter = wrapCleanErrors(injectValidateSpec(validateFilter$1));
         validateStyleMin.paintProperty = wrapCleanErrors(injectValidateSpec(validatePaintProperty$1));
@@ -18685,6 +18983,38 @@ ${currentIndent}`
             }
           }
         }
+        class UniformColorArray extends Uniform {
+          constructor(context, location2) {
+            super(context, location2);
+            this.current = new Array();
+          }
+          set(v) {
+            if (v != this.current) {
+              this.current = v;
+              const values = new Float32Array(v.length * 4);
+              for (let i = 0; i < v.length; i++) {
+                values[4 * i] = v[i].r;
+                values[4 * i + 1] = v[i].g;
+                values[4 * i + 2] = v[i].b;
+                values[4 * i + 3] = v[i].a;
+              }
+              this.gl.uniform4fv(this.location, values);
+            }
+          }
+        }
+        class UniformFloatArray extends Uniform {
+          constructor(context, location2) {
+            super(context, location2);
+            this.current = new Array();
+          }
+          set(v) {
+            if (v != this.current) {
+              this.current = v;
+              const values = new Float32Array(v);
+              this.gl.uniform1fv(this.location, values);
+            }
+          }
+        }
         const emptyMat4 = new Float32Array(16);
         class UniformMatrix4f extends Uniform {
           constructor(context, location2) {
@@ -19790,11 +20120,13 @@ ${currentIndent}`
         let paint$6;
         const getPaint$6 = () => paint$6 = paint$6 || new Properties({
           "hillshade-illumination-direction": new DataConstantProperty(v8Spec["paint_hillshade"]["hillshade-illumination-direction"]),
+          "hillshade-illumination-altitude": new DataConstantProperty(v8Spec["paint_hillshade"]["hillshade-illumination-altitude"]),
           "hillshade-illumination-anchor": new DataConstantProperty(v8Spec["paint_hillshade"]["hillshade-illumination-anchor"]),
           "hillshade-exaggeration": new DataConstantProperty(v8Spec["paint_hillshade"]["hillshade-exaggeration"]),
           "hillshade-shadow-color": new DataConstantProperty(v8Spec["paint_hillshade"]["hillshade-shadow-color"]),
           "hillshade-highlight-color": new DataConstantProperty(v8Spec["paint_hillshade"]["hillshade-highlight-color"]),
-          "hillshade-accent-color": new DataConstantProperty(v8Spec["paint_hillshade"]["hillshade-accent-color"])
+          "hillshade-accent-color": new DataConstantProperty(v8Spec["paint_hillshade"]["hillshade-accent-color"]),
+          "hillshade-method": new DataConstantProperty(v8Spec["paint_hillshade"]["hillshade-method"])
         });
         var properties$6 = { get paint() {
           return getPaint$6();
@@ -19803,6 +20135,21 @@ ${currentIndent}`
         class HillshadeStyleLayer extends StyleLayer {
           constructor(layer2) {
             super(layer2, properties$6);
+            this.recalculate({ zoom: 0, zoomHistory: {} }, void 0);
+          }
+          getIlluminationProperties() {
+            let direction = this.paint.get("hillshade-illumination-direction").values;
+            let altitude = this.paint.get("hillshade-illumination-altitude").values;
+            let highlightColor = this.paint.get("hillshade-highlight-color").values;
+            let shadowColor = this.paint.get("hillshade-shadow-color").values;
+            const numIlluminationSources = Math.max(direction.length, altitude.length, highlightColor.length, shadowColor.length);
+            direction = direction.concat(Array(numIlluminationSources - direction.length).fill(direction.at(-1)));
+            altitude = altitude.concat(Array(numIlluminationSources - altitude.length).fill(altitude.at(-1)));
+            highlightColor = highlightColor.concat(Array(numIlluminationSources - highlightColor.length).fill(highlightColor.at(-1)));
+            shadowColor = shadowColor.concat(Array(numIlluminationSources - shadowColor.length).fill(shadowColor.at(-1)));
+            const altitudeRadians = altitude.map(degreesToRadians);
+            const directionRadians = direction.map(degreesToRadians);
+            return { directionRadians, altitudeRadians, shadowColor, highlightColor };
           }
           hasOffscreenPass() {
             return this.paint.get("hillshade-exaggeration") !== 0 && this.visibility !== "none";
@@ -27580,6 +27927,8 @@ ${currentIndent}`
         exports2.Uniform3f = Uniform3f;
         exports2.Uniform4f = Uniform4f;
         exports2.UniformColor = UniformColor;
+        exports2.UniformColorArray = UniformColorArray;
+        exports2.UniformFloatArray = UniformFloatArray;
         exports2.UniformMatrix4f = UniformMatrix4f;
         exports2.UnwrappedTileID = UnwrappedTileID;
         exports2.ValidationError = ValidationError;
@@ -27676,6 +28025,7 @@ ${currentIndent}`
         exports2.isTouchableOrPointableType = isTouchableOrPointableType;
         exports2.isWorker = isWorker;
         exports2.keysDifference = keysDifference;
+        exports2.len = len$4;
         exports2.length = length;
         exports2.length$1 = length$4;
         exports2.lerp = lerp;
@@ -27724,6 +28074,7 @@ ${currentIndent}`
         exports2.scale = scale$5;
         exports2.scale$1 = scale;
         exports2.scale$2 = scale$4;
+        exports2.scaleAndAdd = scaleAndAdd$2;
         exports2.scaleZoom = scaleZoom;
         exports2.slerp = slerp;
         exports2.sphericalToCartesian = sphericalToCartesian;
@@ -30030,7 +30381,7 @@ ${currentIndent}`
         "use strict";
         var name = "maplibre-gl";
         var description = "BSD licensed community fork of mapbox-gl, a WebGL interactive maps library";
-        var version$2 = "5.3.1";
+        var version$2 = "5.5.0";
         var main = "dist/maplibre-gl.js";
         var style = "dist/maplibre-gl.css";
         var license = "BSD-3-Clause";
@@ -30053,7 +30404,7 @@ ${currentIndent}`
           "@mapbox/unitbezier": "^0.0.1",
           "@mapbox/vector-tile": "^1.3.1",
           "@mapbox/whoots-js": "^3.1.0",
-          "@maplibre/maplibre-gl-style-spec": "^23.1.0",
+          "@maplibre/maplibre-gl-style-spec": "^23.2.2",
           "@types/geojson": "^7946.0.16",
           "@types/geojson-vt": "3.2.5",
           "@types/mapbox__point-geometry": "^0.1.4",
@@ -30095,45 +30446,45 @@ ${currentIndent}`
           "@types/minimist": "^1.2.5",
           "@types/murmurhash-js": "^1.0.6",
           "@types/nise": "^1.4.5",
-          "@types/node": "^22.14.1",
+          "@types/node": "^22.15.12",
           "@types/offscreencanvas": "^2019.7.3",
           "@types/pixelmatch": "^5.2.6",
           "@types/pngjs": "^6.0.5",
-          "@types/react": "^19.1.1",
-          "@types/react-dom": "^19.1.2",
+          "@types/react": "^19.1.3",
+          "@types/react-dom": "^19.1.3",
           "@types/request": "^2.48.12",
           "@types/shuffle-seed": "^1.1.3",
           "@types/window-or-global": "^1.0.6",
-          "@typescript-eslint/eslint-plugin": "^8.29.1",
-          "@typescript-eslint/parser": "^8.29.1",
-          "@vitest/coverage-v8": "3.1.1",
-          "@vitest/ui": "3.1.1",
+          "@typescript-eslint/eslint-plugin": "^8.32.0",
+          "@typescript-eslint/parser": "^8.32.0",
+          "@vitest/coverage-v8": "3.1.2",
+          "@vitest/ui": "3.1.2",
           address: "^2.0.3",
           autoprefixer: "^10.4.21",
           benchmark: "^2.1.4",
           canvas: "^3.1.0",
-          cspell: "^8.18.1",
+          cspell: "^8.19.4",
           cssnano: "^7.0.6",
           d3: "^7.9.0",
           "d3-queue": "^3.0.7",
-          "devtools-protocol": "^0.0.1445099",
+          "devtools-protocol": "^0.0.1456087",
           diff: "^7.0.0",
           "dts-bundle-generator": "^9.5.1",
-          eslint: "^9.24.0",
+          eslint: "^9.26.0",
           "eslint-plugin-html": "^8.1.2",
           "eslint-plugin-import": "^2.31.0",
           "eslint-plugin-react": "^7.37.5",
           "eslint-plugin-tsdoc": "0.4.0",
           "eslint-plugin-vitest": "^0.5.4",
           expect: "^29.7.0",
-          glob: "^11.0.1",
+          glob: "^11.0.2",
           globals: "^16.0.0",
           "is-builtin-module": "^5.0.0",
           jsdom: "^26.1.0",
           "junit-report-builder": "^5.1.1",
           minimist: "^1.2.8",
           "mock-geolocation": "^1.0.11",
-          "monocart-coverage-reports": "^2.12.3",
+          "monocart-coverage-reports": "^2.12.4",
           nise: "^6.1.1",
           "npm-font-open-sans": "^1.1.0",
           "npm-run-all": "^4.1.5",
@@ -30143,27 +30494,27 @@ ${currentIndent}`
           postcss: "^8.5.3",
           "postcss-cli": "^11.0.1",
           "postcss-inline-svg": "^6.0.0",
-          "pretty-bytes": "^6.1.1",
+          "pretty-bytes": "^7.0.0",
           puppeteer: "^24.1.1",
           react: "^19.0.0",
           "react-dom": "^19.1.0",
-          rollup: "^4.40.0",
-          "rollup-plugin-sourcemaps2": "^0.5.0",
+          rollup: "^4.40.2",
+          "rollup-plugin-sourcemaps2": "^0.5.1",
           rw: "^1.3.3",
           semver: "^7.7.1",
           sharp: "^0.34.1",
           "shuffle-seed": "^1.1.6",
           "source-map-explorer": "^2.5.3",
           st: "^3.0.1",
-          stylelint: "^16.18.0",
+          stylelint: "^16.19.1",
           "stylelint-config-standard": "^38.0.0",
           "ts-node": "^10.9.2",
           tslib: "^2.8.1",
-          typedoc: "^0.28.2",
-          "typedoc-plugin-markdown": "^4.6.2",
+          typedoc: "^0.28.4",
+          "typedoc-plugin-markdown": "^4.6.3",
           "typedoc-plugin-missing-exports": "^4.0.0",
           typescript: "^5.8.3",
-          vitest: "3.1.1",
+          vitest: "3.1.2",
           "vitest-webgl-canvas-mock": "^1.1.0"
         };
         var scripts = {
@@ -32462,7 +32813,7 @@ ${currentIndent}`
                   return;
                 }
                 if (response && response.data) {
-                  if (this.map._refreshExpiredTiles && response.cacheControl && response.expires) {
+                  if (this.map._refreshExpiredTiles && (response.cacheControl || response.expires)) {
                     tile.setExpiryData({ cacheControl: response.cacheControl, expires: response.expires });
                   }
                   const context = this.map.painter.context;
@@ -32538,7 +32889,7 @@ ${currentIndent}`
                 }
                 if (response && response.data) {
                   const img = response.data;
-                  if (this.map._refreshExpiredTiles && response.cacheControl && response.expires) {
+                  if (this.map._refreshExpiredTiles && (response.cacheControl || response.expires)) {
                     tile.setExpiryData({ cacheControl: response.cacheControl, expires: response.expires });
                   }
                   const transfer = performance$1.isImageBitmap(img) && performance$1.offscreenCanvasSupported();
@@ -34119,6 +34470,43 @@ ${currentIndent}`
             }
           }
         }
+        const maxMercatorHorizonAngle = 89.25;
+        function tileCoordinatesToMercatorCoordinates(inTileX, inTileY, canonicalTileID) {
+          const scale = 1 / (1 << canonicalTileID.z);
+          return new performance$1.MercatorCoordinate(inTileX / performance$1.EXTENT * scale + canonicalTileID.x * scale, inTileY / performance$1.EXTENT * scale + canonicalTileID.y * scale);
+        }
+        function tileCoordinatesToLocation(inTileX, inTileY, canonicalTileID) {
+          return tileCoordinatesToMercatorCoordinates(inTileX, inTileY, canonicalTileID).toLngLat();
+        }
+        function projectToWorldCoordinates(worldSize, lnglat) {
+          const lat = performance$1.clamp(lnglat.lat, -performance$1.MAX_VALID_LATITUDE, performance$1.MAX_VALID_LATITUDE);
+          return new performance$1.Point(performance$1.mercatorXfromLng(lnglat.lng) * worldSize, performance$1.mercatorYfromLat(lat) * worldSize);
+        }
+        function unprojectFromWorldCoordinates(worldSize, point) {
+          return new performance$1.MercatorCoordinate(point.x / worldSize, point.y / worldSize).toLngLat();
+        }
+        function getMercatorHorizon(transform) {
+          return transform.cameraToCenterDistance * Math.min(Math.tan(performance$1.degreesToRadians(90 - transform.pitch)) * 0.85, Math.tan(performance$1.degreesToRadians(maxMercatorHorizonAngle - transform.pitch)));
+        }
+        function calculateTileMatrix(unwrappedTileID, worldSize) {
+          const canonical = unwrappedTileID.canonical;
+          const scale = worldSize / performance$1.zoomScale(canonical.z);
+          const unwrappedX = canonical.x + Math.pow(2, canonical.z) * unwrappedTileID.wrap;
+          const worldMatrix = performance$1.identity(new Float64Array(16));
+          performance$1.translate(worldMatrix, worldMatrix, [unwrappedX * scale, canonical.y * scale, 0]);
+          performance$1.scale(worldMatrix, worldMatrix, [scale / performance$1.EXTENT, scale / performance$1.EXTENT, 1]);
+          return worldMatrix;
+        }
+        function cameraMercatorCoordinateFromCenterAndRotation(center, elevation, pitch, bearing, distance) {
+          const centerMercator = performance$1.MercatorCoordinate.fromLngLat(center, elevation);
+          const mercUnitsPerMeter = performance$1.mercatorZfromAltitude(1, center.lat);
+          const dMercator = distance * mercUnitsPerMeter;
+          const dzMercator = dMercator * Math.cos(performance$1.degreesToRadians(pitch));
+          const dhMercator = Math.sqrt(dMercator * dMercator - dzMercator * dzMercator);
+          const dxMercator = dhMercator * Math.sin(performance$1.degreesToRadians(-bearing));
+          const dyMercator = dhMercator * Math.cos(performance$1.degreesToRadians(-bearing));
+          return new performance$1.MercatorCoordinate(centerMercator.x + dxMercator, centerMercator.y + dyMercator, centerMercator.z + dzMercator);
+        }
         function isTileVisible(frustum, aabb, plane) {
           const frustumTest = aabb.intersectsFrustum(frustum);
           if (!plane) {
@@ -34133,17 +34521,36 @@ ${currentIndent}`
           }
           return 1;
         }
-        function calculateTileZoom(requestedCenterZoom, distanceToTile2D, distanceToTileZ, distanceToCenter3D, cameraVerticalFOV) {
-          const pitchTileLoadingBehavior = 1;
-          const tileZoomDeadband = 0;
-          let thisTileDesiredZ = requestedCenterZoom;
-          const thisTilePitch = Math.atan(distanceToTile2D / distanceToTileZ);
-          const distanceToTile3D = Math.hypot(distanceToTile2D, distanceToTileZ);
-          thisTileDesiredZ = requestedCenterZoom + performance$1.scaleZoom(distanceToCenter3D / distanceToTile3D / Math.max(0.5, Math.cos(performance$1.degreesToRadians(cameraVerticalFOV / 2))));
-          thisTileDesiredZ += pitchTileLoadingBehavior * performance$1.scaleZoom(Math.cos(thisTilePitch)) / 2;
-          thisTileDesiredZ = thisTileDesiredZ + performance$1.clamp(requestedCenterZoom - thisTileDesiredZ, -tileZoomDeadband, tileZoomDeadband);
-          return thisTileDesiredZ;
+        function integralOfCosXByP(p, x1, x2) {
+          const numPoints = 10;
+          let sum = 0;
+          const dx = (x2 - x1) / numPoints;
+          for (let i = 0; i < numPoints; i++) {
+            const x = x1 + (i + 0.5) / numPoints * (x2 - x1);
+            sum += dx * Math.pow(Math.cos(x), p);
+          }
+          return sum;
         }
+        function createCalculateTileZoomFunction(maxZoomLevelsOnScreen, tileCountMaxMinRatio) {
+          return function(requestedCenterZoom, distanceToTile2D, distanceToTileZ, distanceToCenter3D, cameraVerticalFOV) {
+            const pitchTileLoadingBehavior = 2 * ((maxZoomLevelsOnScreen - 1) / performance$1.scaleZoom(Math.cos(performance$1.degreesToRadians(maxMercatorHorizonAngle - cameraVerticalFOV)) / Math.cos(performance$1.degreesToRadians(maxMercatorHorizonAngle))) - 1);
+            const centerPitch = Math.acos(distanceToTileZ / distanceToCenter3D);
+            const tileCountPitch0 = 2 * integralOfCosXByP(pitchTileLoadingBehavior - 1, 0, performance$1.degreesToRadians(cameraVerticalFOV / 2));
+            const highestPitch = Math.min(performance$1.degreesToRadians(maxMercatorHorizonAngle), centerPitch + performance$1.degreesToRadians(cameraVerticalFOV / 2));
+            const lowestPitch = Math.min(highestPitch, centerPitch - performance$1.degreesToRadians(cameraVerticalFOV / 2));
+            const tileCount = integralOfCosXByP(pitchTileLoadingBehavior - 1, lowestPitch, highestPitch);
+            const thisTilePitch = Math.atan(distanceToTile2D / distanceToTileZ);
+            const distanceToTile3D = Math.hypot(distanceToTile2D, distanceToTileZ);
+            let thisTileDesiredZ = requestedCenterZoom;
+            thisTileDesiredZ = thisTileDesiredZ + performance$1.scaleZoom(distanceToCenter3D / distanceToTile3D / Math.max(0.5, Math.cos(performance$1.degreesToRadians(cameraVerticalFOV / 2))));
+            thisTileDesiredZ += pitchTileLoadingBehavior * performance$1.scaleZoom(Math.cos(thisTilePitch)) / 2;
+            thisTileDesiredZ -= performance$1.scaleZoom(Math.max(1, tileCount / tileCountPitch0 / tileCountMaxMinRatio)) / 2;
+            return thisTileDesiredZ;
+          };
+        }
+        const defaultMaxZoomLevelsOnScreen = 9.314;
+        const defaultTileCountMaxMinRatio = 3;
+        const defaultCalculateTileZoom = createCalculateTileZoomFunction(defaultMaxZoomLevelsOnScreen, defaultTileCountMaxMinRatio);
         function coveringZoomLevel(transform, options) {
           const z = (options.roundZoom ? Math.round : Math.floor)(transform.zoom + performance$1.scaleZoom(transform.tileSize / options.tileSize));
           return Math.max(0, z);
@@ -34200,7 +34607,7 @@ ${currentIndent}`
             const distToTile2d = detailsProvider.distanceToTile2d(cameraCoord.x, cameraCoord.y, tileID, aabb);
             let thisTileDesiredZ = desiredZ;
             if (allowVariableZoom) {
-              const tileZoomFunc = options.calculateTileZoom || calculateTileZoom;
+              const tileZoomFunc = options.calculateTileZoom || defaultCalculateTileZoom;
               thisTileDesiredZ = tileZoomFunc(transform.zoom + performance$1.scaleZoom(transform.tileSize / options.tileSize), distToTile2d, distanceZ, distanceToCenter3d, transform.fov);
             }
             thisTileDesiredZ = (options.roundZoom ? Math.round : Math.floor)(thisTileDesiredZ);
@@ -34857,6 +35264,19 @@ ${currentIndent}`
             }
           }
           /**
+           * Reload any currently renderable tiles that are match one of the incoming `tileId` x/y/z
+           */
+          refreshTiles(tileIds) {
+            for (const id in this._tiles) {
+              if (!this._isIdRenderable(id)) {
+                continue;
+              }
+              if (tileIds.some((tid) => tid.equals(this._tiles[id].tileID.canonical))) {
+                this._reloadTile(id, "expired");
+              }
+            }
+          }
+          /**
            * Remove a tile, given its id, from the pyramid
            */
           _removeTile(id) {
@@ -34933,7 +35353,7 @@ ${currentIndent}`
               if (tile.holdingForFade()) {
                 continue;
               }
-              const tileID = tile.tileID;
+              const tileID = transform.getCoveringTilesDetailsProvider().allowWorldCopies() ? tile.tileID : tile.tileID.unwrapTo(0);
               const scale = Math.pow(2, transform.zoom - tile.tileID.overscaledZ);
               const queryPadding = maxPitchScaleFactor * tile.queryPadding * performance$1.EXTENT / tile.tileSize / scale;
               const tileSpaceBounds = [
@@ -37254,9 +37674,9 @@ ${currentIndent}`
         var fillExtrusionVert = "uniform vec3 u_lightcolor;uniform lowp vec3 u_lightpos;uniform lowp vec3 u_lightpos_globe;uniform lowp float u_lightintensity;uniform float u_vertical_gradient;uniform lowp float u_opacity;uniform vec2 u_fill_translate;in vec2 a_pos;in vec4 a_normal_ed;\n#ifdef TERRAIN3D\nin vec2 a_centroid;\n#endif\nout vec4 v_color;\n#pragma mapbox: define highp float base\n#pragma mapbox: define highp float height\n#pragma mapbox: define highp vec4 color\nvoid main() {\n#pragma mapbox: initialize highp float base\n#pragma mapbox: initialize highp float height\n#pragma mapbox: initialize highp vec4 color\nvec3 normal=a_normal_ed.xyz;\n#ifdef TERRAIN3D\nfloat height_terrain3d_offset=get_elevation(a_centroid);float base_terrain3d_offset=height_terrain3d_offset-(base > 0.0 ? 0.0 : 10.0);\n#else\nfloat height_terrain3d_offset=0.0;float base_terrain3d_offset=0.0;\n#endif\nbase=max(0.0,base)+base_terrain3d_offset;height=max(0.0,height)+height_terrain3d_offset;float t=mod(normal.x,2.0);float elevation=t > 0.0 ? height : base;vec2 posInTile=a_pos+u_fill_translate;\n#ifdef GLOBE\nvec3 spherePos=projectToSphere(posInTile,a_pos);gl_Position=interpolateProjectionFor3D(posInTile,spherePos,elevation);\n#else\ngl_Position=u_projection_matrix*vec4(posInTile,elevation,1.0);\n#endif\nfloat colorvalue=color.r*0.2126+color.g*0.7152+color.b*0.0722;v_color=vec4(0.0,0.0,0.0,1.0);vec4 ambientlight=vec4(0.03,0.03,0.03,1.0);color+=ambientlight;vec3 normalForLighting=normal/16384.0;float directional=clamp(dot(normalForLighting,u_lightpos),0.0,1.0);\n#ifdef GLOBE\nmat3 rotMatrix=globeGetRotationMatrix(spherePos);normalForLighting=rotMatrix*normalForLighting;directional=mix(directional,clamp(dot(normalForLighting,u_lightpos_globe),0.0,1.0),u_projection_transition);\n#endif\ndirectional=mix((1.0-u_lightintensity),max((1.0-colorvalue+u_lightintensity),1.0),directional);if (normal.y !=0.0) {directional*=((1.0-u_vertical_gradient)+(u_vertical_gradient*clamp((t+base)*pow(height/150.0,0.5),mix(0.7,0.98,1.0-u_lightintensity),1.0)));}v_color.r+=clamp(color.r*directional*u_lightcolor.r,mix(0.0,0.3,1.0-u_lightcolor.r),1.0);v_color.g+=clamp(color.g*directional*u_lightcolor.g,mix(0.0,0.3,1.0-u_lightcolor.g),1.0);v_color.b+=clamp(color.b*directional*u_lightcolor.b,mix(0.0,0.3,1.0-u_lightcolor.b),1.0);v_color*=u_opacity;}";
         var fillExtrusionPatternFrag = "uniform vec2 u_texsize;uniform float u_fade;uniform sampler2D u_image;in vec2 v_pos_a;in vec2 v_pos_b;in vec4 v_lighting;\n#pragma mapbox: define lowp float base\n#pragma mapbox: define lowp float height\n#pragma mapbox: define lowp vec4 pattern_from\n#pragma mapbox: define lowp vec4 pattern_to\n#pragma mapbox: define lowp float pixel_ratio_from\n#pragma mapbox: define lowp float pixel_ratio_to\nvoid main() {\n#pragma mapbox: initialize lowp float base\n#pragma mapbox: initialize lowp float height\n#pragma mapbox: initialize mediump vec4 pattern_from\n#pragma mapbox: initialize mediump vec4 pattern_to\n#pragma mapbox: initialize lowp float pixel_ratio_from\n#pragma mapbox: initialize lowp float pixel_ratio_to\nvec2 pattern_tl_a=pattern_from.xy;vec2 pattern_br_a=pattern_from.zw;vec2 pattern_tl_b=pattern_to.xy;vec2 pattern_br_b=pattern_to.zw;vec2 imagecoord=mod(v_pos_a,1.0);vec2 pos=mix(pattern_tl_a/u_texsize,pattern_br_a/u_texsize,imagecoord);vec4 color1=texture(u_image,pos);vec2 imagecoord_b=mod(v_pos_b,1.0);vec2 pos2=mix(pattern_tl_b/u_texsize,pattern_br_b/u_texsize,imagecoord_b);vec4 color2=texture(u_image,pos2);vec4 mixedColor=mix(color1,color2,u_fade);fragColor=mixedColor*v_lighting;\n#ifdef OVERDRAW_INSPECTOR\nfragColor=vec4(1.0);\n#endif\n}";
         var fillExtrusionPatternVert = "uniform vec2 u_pixel_coord_upper;uniform vec2 u_pixel_coord_lower;uniform float u_height_factor;uniform vec3 u_scale;uniform float u_vertical_gradient;uniform lowp float u_opacity;uniform vec2 u_fill_translate;uniform vec3 u_lightcolor;uniform lowp vec3 u_lightpos;uniform lowp vec3 u_lightpos_globe;uniform lowp float u_lightintensity;in vec2 a_pos;in vec4 a_normal_ed;\n#ifdef TERRAIN3D\nin vec2 a_centroid;\n#endif\n#ifdef GLOBE\nout vec3 v_sphere_pos;\n#endif\nout vec2 v_pos_a;out vec2 v_pos_b;out vec4 v_lighting;\n#pragma mapbox: define lowp float base\n#pragma mapbox: define lowp float height\n#pragma mapbox: define lowp vec4 pattern_from\n#pragma mapbox: define lowp vec4 pattern_to\n#pragma mapbox: define lowp float pixel_ratio_from\n#pragma mapbox: define lowp float pixel_ratio_to\nvoid main() {\n#pragma mapbox: initialize lowp float base\n#pragma mapbox: initialize lowp float height\n#pragma mapbox: initialize mediump vec4 pattern_from\n#pragma mapbox: initialize mediump vec4 pattern_to\n#pragma mapbox: initialize lowp float pixel_ratio_from\n#pragma mapbox: initialize lowp float pixel_ratio_to\nvec2 pattern_tl_a=pattern_from.xy;vec2 pattern_br_a=pattern_from.zw;vec2 pattern_tl_b=pattern_to.xy;vec2 pattern_br_b=pattern_to.zw;float tileRatio=u_scale.x;float fromScale=u_scale.y;float toScale=u_scale.z;vec3 normal=a_normal_ed.xyz;float edgedistance=a_normal_ed.w;vec2 display_size_a=(pattern_br_a-pattern_tl_a)/pixel_ratio_from;vec2 display_size_b=(pattern_br_b-pattern_tl_b)/pixel_ratio_to;\n#ifdef TERRAIN3D\nfloat height_terrain3d_offset=get_elevation(a_centroid);float base_terrain3d_offset=height_terrain3d_offset-(base > 0.0 ? 0.0 : 10.0);\n#else\nfloat height_terrain3d_offset=0.0;float base_terrain3d_offset=0.0;\n#endif\nbase=max(0.0,base)+base_terrain3d_offset;height=max(0.0,height)+height_terrain3d_offset;float t=mod(normal.x,2.0);float elevation=t > 0.0 ? height : base;vec2 posInTile=a_pos+u_fill_translate;\n#ifdef GLOBE\nvec3 spherePos=projectToSphere(posInTile,a_pos);vec3 elevatedPos=spherePos*(1.0+elevation/GLOBE_RADIUS);v_sphere_pos=elevatedPos;gl_Position=interpolateProjectionFor3D(posInTile,spherePos,elevation);\n#else\ngl_Position=u_projection_matrix*vec4(posInTile,elevation,1.0);\n#endif\nvec2 pos=normal.x==1.0 && normal.y==0.0 && normal.z==16384.0\n? a_pos\n: vec2(edgedistance,elevation*u_height_factor);v_pos_a=get_pattern_pos(u_pixel_coord_upper,u_pixel_coord_lower,fromScale*display_size_a,tileRatio,pos);v_pos_b=get_pattern_pos(u_pixel_coord_upper,u_pixel_coord_lower,toScale*display_size_b,tileRatio,pos);v_lighting=vec4(0.0,0.0,0.0,1.0);float directional=clamp(dot(normal/16383.0,u_lightpos),0.0,1.0);directional=mix((1.0-u_lightintensity),max((0.5+u_lightintensity),1.0),directional);if (normal.y !=0.0) {directional*=((1.0-u_vertical_gradient)+(u_vertical_gradient*clamp((t+base)*pow(height/150.0,0.5),mix(0.7,0.98,1.0-u_lightintensity),1.0)));}v_lighting.rgb+=clamp(directional*u_lightcolor,mix(vec3(0.0),vec3(0.3),1.0-u_lightcolor),vec3(1.0));v_lighting*=u_opacity;}";
-        var hillshadePrepareFrag = "#ifdef GL_ES\nprecision highp float;\n#endif\nuniform sampler2D u_image;in vec2 v_pos;uniform vec2 u_dimension;uniform float u_zoom;uniform vec4 u_unpack;float getElevation(vec2 coord,float bias) {vec4 data=texture(u_image,coord)*255.0;data.a=-1.0;return dot(data,u_unpack)/4.0;}void main() {vec2 epsilon=1.0/u_dimension;float a=getElevation(v_pos+vec2(-epsilon.x,-epsilon.y),0.0);float b=getElevation(v_pos+vec2(0,-epsilon.y),0.0);float c=getElevation(v_pos+vec2(epsilon.x,-epsilon.y),0.0);float d=getElevation(v_pos+vec2(-epsilon.x,0),0.0);float e=getElevation(v_pos,0.0);float f=getElevation(v_pos+vec2(epsilon.x,0),0.0);float g=getElevation(v_pos+vec2(-epsilon.x,epsilon.y),0.0);float h=getElevation(v_pos+vec2(0,epsilon.y),0.0);float i=getElevation(v_pos+vec2(epsilon.x,epsilon.y),0.0);float exaggerationFactor=u_zoom < 2.0 ? 0.4 : u_zoom < 4.5 ? 0.35 : 0.3;float exaggeration=u_zoom < 15.0 ? (u_zoom-15.0)*exaggerationFactor : 0.0;vec2 deriv=vec2((c+f+f+i)-(a+d+d+g),(g+h+h+i)-(a+b+b+c))/pow(2.0,exaggeration+(19.2562-u_zoom));fragColor=clamp(vec4(deriv.x/2.0+0.5,deriv.y/2.0+0.5,1.0,1.0),0.0,1.0);\n#ifdef OVERDRAW_INSPECTOR\nfragColor=vec4(1.0);\n#endif\n}";
+        var hillshadePrepareFrag = "#ifdef GL_ES\nprecision highp float;\n#endif\nuniform sampler2D u_image;in vec2 v_pos;uniform vec2 u_dimension;uniform float u_zoom;uniform vec4 u_unpack;float getElevation(vec2 coord,float bias) {vec4 data=texture(u_image,coord)*255.0;data.a=-1.0;return dot(data,u_unpack);}void main() {vec2 epsilon=1.0/u_dimension;float tileSize=u_dimension.x-2.0;float a=getElevation(v_pos+vec2(-epsilon.x,-epsilon.y),0.0);float b=getElevation(v_pos+vec2(0,-epsilon.y),0.0);float c=getElevation(v_pos+vec2(epsilon.x,-epsilon.y),0.0);float d=getElevation(v_pos+vec2(-epsilon.x,0),0.0);float e=getElevation(v_pos,0.0);float f=getElevation(v_pos+vec2(epsilon.x,0),0.0);float g=getElevation(v_pos+vec2(-epsilon.x,epsilon.y),0.0);float h=getElevation(v_pos+vec2(0,epsilon.y),0.0);float i=getElevation(v_pos+vec2(epsilon.x,epsilon.y),0.0);float exaggerationFactor=u_zoom < 2.0 ? 0.4 : u_zoom < 4.5 ? 0.35 : 0.3;float exaggeration=u_zoom < 15.0 ? (u_zoom-15.0)*exaggerationFactor : 0.0;vec2 deriv=vec2((c+f+f+i)-(a+d+d+g),(g+h+h+i)-(a+b+b+c))*tileSize/pow(2.0,exaggeration+(28.2562-u_zoom));fragColor=clamp(vec4(deriv.x/8.0+0.5,deriv.y/8.0+0.5,1.0,1.0),0.0,1.0);\n#ifdef OVERDRAW_INSPECTOR\nfragColor=vec4(1.0);\n#endif\n}";
         var hillshadePrepareVert = "uniform mat4 u_matrix;uniform vec2 u_dimension;in vec2 a_pos;in vec2 a_texture_pos;out vec2 v_pos;void main() {gl_Position=u_matrix*vec4(a_pos,0,1);highp vec2 epsilon=1.0/u_dimension;float scale=(u_dimension.x-2.0)/u_dimension.x;v_pos=(a_texture_pos/8192.0)*scale+epsilon;}";
-        var hillshadeFrag = "uniform sampler2D u_image;in vec2 v_pos;uniform vec2 u_latrange;uniform vec2 u_light;uniform vec4 u_shadow;uniform vec4 u_highlight;uniform vec4 u_accent;\n#define PI 3.141592653589793\nvoid main() {vec4 pixel=texture(u_image,v_pos);vec2 deriv=((pixel.rg*2.0)-1.0);float scaleFactor=cos(radians((u_latrange[0]-u_latrange[1])*(1.0-v_pos.y)+u_latrange[1]));float slope=atan(1.25*length(deriv)/scaleFactor);float aspect=deriv.x !=0.0 ? atan(deriv.y,-deriv.x) : PI/2.0*(deriv.y > 0.0 ? 1.0 :-1.0);float intensity=u_light.x;float azimuth=u_light.y+PI;float base=1.875-intensity*1.75;float maxValue=0.5*PI;float scaledSlope=intensity !=0.5 ? ((pow(base,slope)-1.0)/(pow(base,maxValue)-1.0))*maxValue : slope;float accent=cos(scaledSlope);vec4 accent_color=(1.0-accent)*u_accent*clamp(intensity*2.0,0.0,1.0);float shade=abs(mod((aspect+azimuth)/PI+0.5,2.0)-1.0);vec4 shade_color=mix(u_shadow,u_highlight,shade)*sin(scaledSlope)*clamp(intensity*2.0,0.0,1.0);fragColor=accent_color*(1.0-shade_color.a)+shade_color;\n#ifdef OVERDRAW_INSPECTOR\nfragColor=vec4(1.0);\n#endif\n}";
+        var hillshadeFrag = "uniform sampler2D u_image;in vec2 v_pos;uniform vec2 u_latrange;uniform float u_exaggeration;uniform vec4 u_accent;uniform int u_method;uniform float u_altitudes[NUM_ILLUMINATION_SOURCES];uniform float u_azimuths[NUM_ILLUMINATION_SOURCES];uniform vec4 u_shadows[NUM_ILLUMINATION_SOURCES];uniform vec4 u_highlights[NUM_ILLUMINATION_SOURCES];\n#define PI 3.141592653589793\n#define STANDARD 0\n#define COMBINED 1\n#define IGOR 2\n#define MULTIDIRECTIONAL 3\n#define BASIC 4\nfloat get_aspect(vec2 deriv){return deriv.x !=0.0 ? atan(deriv.y,-deriv.x) : PI/2.0*(deriv.y > 0.0 ? 1.0 :-1.0);}void igor_hillshade(vec2 deriv){deriv=deriv*u_exaggeration*2.0;float aspect=get_aspect(deriv);float azimuth=u_azimuths[0]+PI;float slope_stength=atan(length(deriv))*2.0/PI;float aspect_strength=1.0-abs(mod((aspect+azimuth)/PI+0.5,2.0)-1.0);float shadow_strength=slope_stength*aspect_strength;float highlight_strength=slope_stength*(1.0-aspect_strength);fragColor=u_shadows[0]*shadow_strength+u_highlights[0]*highlight_strength;}void standard_hillshade(vec2 deriv){float azimuth=u_azimuths[0]+PI;float slope=atan(0.625*length(deriv));float aspect=get_aspect(deriv);float intensity=u_exaggeration;float base=1.875-intensity*1.75;float maxValue=0.5*PI;float scaledSlope=intensity !=0.5 ? ((pow(base,slope)-1.0)/(pow(base,maxValue)-1.0))*maxValue : slope;float accent=cos(scaledSlope);vec4 accent_color=(1.0-accent)*u_accent*clamp(intensity*2.0,0.0,1.0);float shade=abs(mod((aspect+azimuth)/PI+0.5,2.0)-1.0);vec4 shade_color=mix(u_shadows[0],u_highlights[0],shade)*sin(scaledSlope)*clamp(intensity*2.0,0.0,1.0);fragColor=accent_color*(1.0-shade_color.a)+shade_color;}void basic_hillshade(vec2 deriv){deriv=deriv*u_exaggeration*2.0;float azimuth=u_azimuths[0]+PI;float cos_az=cos(azimuth);float sin_az=sin(azimuth);float cos_alt=cos(u_altitudes[0]);float sin_alt=sin(u_altitudes[0]);float cang=(sin_alt-(deriv.y*cos_az*cos_alt-deriv.x*sin_az*cos_alt))/sqrt(1.0+dot(deriv,deriv));float shade=clamp(cang,0.0,1.0);if(shade > 0.5){fragColor=u_highlights[0]*(2.0*shade-1.0);}else\n{fragColor=u_shadows[0]*(1.0-2.0*shade);}}void multidirectional_hillshade(vec2 deriv){deriv=deriv*u_exaggeration*2.0;fragColor=vec4(0,0,0,0);for(int i=0; i < NUM_ILLUMINATION_SOURCES; i++){float cos_alt=cos(u_altitudes[i]);float sin_alt=sin(u_altitudes[i]);float cos_az=-cos(u_azimuths[i]);float sin_az=-sin(u_azimuths[i]);float cang=(sin_alt-(deriv.y*cos_az*cos_alt-deriv.x*sin_az*cos_alt))/sqrt(1.0+dot(deriv,deriv));float shade=clamp(cang,0.0,1.0);if(shade > 0.5){fragColor+=u_highlights[i]*(2.0*shade-1.0)/float(NUM_ILLUMINATION_SOURCES);}else\n{fragColor+=u_shadows[i]*(1.0-2.0*shade)/float(NUM_ILLUMINATION_SOURCES);}}}void combined_hillshade(vec2 deriv){deriv=deriv*u_exaggeration*2.0;float azimuth=u_azimuths[0]+PI;float cos_az=cos(azimuth);float sin_az=sin(azimuth);float cos_alt=cos(u_altitudes[0]);float sin_alt=sin(u_altitudes[0]);float cang=acos((sin_alt-(deriv.y*cos_az*cos_alt-deriv.x*sin_az*cos_alt))/sqrt(1.0+dot(deriv,deriv)));cang=clamp(cang,0.0,PI/2.0);float shade=cang*atan(length(deriv))*4.0/PI/PI;float highlight=(PI/2.0-cang)*atan(length(deriv))*4.0/PI/PI;fragColor=u_shadows[0]*shade+u_highlights[0]*highlight;}void main() {vec4 pixel=texture(u_image,v_pos);float scaleFactor=cos(radians((u_latrange[0]-u_latrange[1])*(1.0-v_pos.y)+u_latrange[1]));vec2 deriv=((pixel.rg*8.0)-4.0)/scaleFactor;switch(u_method){case BASIC:\nbasic_hillshade(deriv);break;case COMBINED:\ncombined_hillshade(deriv);break;case IGOR:\nigor_hillshade(deriv);break;case MULTIDIRECTIONAL:\nmultidirectional_hillshade(deriv);break;case STANDARD:\ndefault:\nstandard_hillshade(deriv);break;}\n#ifdef OVERDRAW_INSPECTOR\nfragColor=vec4(1.0);\n#endif\n}";
         var hillshadeVert = "uniform mat4 u_matrix;in vec2 a_pos;out vec2 v_pos;void main() {gl_Position=projectTile(a_pos,a_pos);v_pos=a_pos/8192.0;if (a_pos.y <-32767.5) {v_pos.y=0.0;}if (a_pos.y > 32766.5) {v_pos.y=1.0;}}";
         var lineFrag = "uniform lowp float u_device_pixel_ratio;in vec2 v_width2;in vec2 v_normal;in float v_gamma_scale;\n#ifdef GLOBE\nin float v_depth;\n#endif\n#pragma mapbox: define highp vec4 color\n#pragma mapbox: define lowp float blur\n#pragma mapbox: define lowp float opacity\nvoid main() {\n#pragma mapbox: initialize highp vec4 color\n#pragma mapbox: initialize lowp float blur\n#pragma mapbox: initialize lowp float opacity\nfloat dist=length(v_normal)*v_width2.s;float blur2=(blur+1.0/u_device_pixel_ratio)*v_gamma_scale;float alpha=clamp(min(dist-(v_width2.t-blur2),v_width2.s-dist)/blur2,0.0,1.0);fragColor=color*(alpha*opacity);\n#ifdef GLOBE\nif (v_depth > 1.0) {discard;}\n#endif\n#ifdef OVERDRAW_INSPECTOR\nfragColor=vec4(1.0);\n#endif\n}";
         var lineVert = "\n#define scale 0.015873016\nin vec2 a_pos_normal;in vec4 a_data;uniform vec2 u_translation;uniform mediump float u_ratio;uniform vec2 u_units_to_pixels;uniform lowp float u_device_pixel_ratio;out vec2 v_normal;out vec2 v_width2;out float v_gamma_scale;out highp float v_linesofar;\n#ifdef GLOBE\nout float v_depth;\n#endif\n#pragma mapbox: define highp vec4 color\n#pragma mapbox: define lowp float blur\n#pragma mapbox: define lowp float opacity\n#pragma mapbox: define mediump float gapwidth\n#pragma mapbox: define lowp float offset\n#pragma mapbox: define mediump float width\nvoid main() {\n#pragma mapbox: initialize highp vec4 color\n#pragma mapbox: initialize lowp float blur\n#pragma mapbox: initialize lowp float opacity\n#pragma mapbox: initialize mediump float gapwidth\n#pragma mapbox: initialize lowp float offset\n#pragma mapbox: initialize mediump float width\nfloat ANTIALIASING=1.0/u_device_pixel_ratio/2.0;vec2 a_extrude=a_data.xy-128.0;float a_direction=mod(a_data.z,4.0)-1.0;v_linesofar=(floor(a_data.z/4.0)+a_data.w*64.0)*2.0;vec2 pos=floor(a_pos_normal*0.5);mediump vec2 normal=a_pos_normal-2.0*pos;normal.y=normal.y*2.0-1.0;v_normal=normal;gapwidth=gapwidth/2.0;float halfwidth=width/2.0;offset=-1.0*offset;float inset=gapwidth+(gapwidth > 0.0 ? ANTIALIASING : 0.0);float outset=gapwidth+halfwidth*(gapwidth > 0.0 ? 2.0 : 1.0)+(halfwidth==0.0 ? 0.0 : ANTIALIASING);mediump vec2 dist=outset*a_extrude*scale;mediump float u=0.5*a_direction;mediump float t=1.0-abs(u);mediump vec2 offset2=offset*a_extrude*scale*normal.y*mat2(t,-u,u,t);float adjustedThickness=projectLineThickness(pos.y);vec4 projected_no_extrude=projectTile(pos+offset2/u_ratio*adjustedThickness+u_translation);vec4 projected_with_extrude=projectTile(pos+offset2/u_ratio*adjustedThickness+u_translation+dist/u_ratio*adjustedThickness);gl_Position=projected_with_extrude;\n#ifdef GLOBE\nv_depth=gl_Position.z/gl_Position.w;\n#endif\n#ifdef TERRAIN3D\nv_gamma_scale=1.0;\n#else\nfloat extrude_length_without_perspective=length(dist);float extrude_length_with_perspective=length((projected_with_extrude.xy-projected_no_extrude.xy)/projected_with_extrude.w*u_units_to_pixels);v_gamma_scale=extrude_length_without_perspective/extrude_length_with_perspective;\n#endif\nv_width2=vec2(outset,inset);}";
@@ -37505,43 +37925,6 @@ uniform ${precision} ${type2} u_${name2};
           }
           setErrorQueryLatitudeDegrees(_value) {
           }
-        }
-        const maxMercatorHorizonAngle = 89.25;
-        function tileCoordinatesToMercatorCoordinates(inTileX, inTileY, canonicalTileID) {
-          const scale = 1 / (1 << canonicalTileID.z);
-          return new performance$1.MercatorCoordinate(inTileX / performance$1.EXTENT * scale + canonicalTileID.x * scale, inTileY / performance$1.EXTENT * scale + canonicalTileID.y * scale);
-        }
-        function tileCoordinatesToLocation(inTileX, inTileY, canonicalTileID) {
-          return tileCoordinatesToMercatorCoordinates(inTileX, inTileY, canonicalTileID).toLngLat();
-        }
-        function projectToWorldCoordinates(worldSize, lnglat) {
-          const lat = performance$1.clamp(lnglat.lat, -performance$1.MAX_VALID_LATITUDE, performance$1.MAX_VALID_LATITUDE);
-          return new performance$1.Point(performance$1.mercatorXfromLng(lnglat.lng) * worldSize, performance$1.mercatorYfromLat(lat) * worldSize);
-        }
-        function unprojectFromWorldCoordinates(worldSize, point) {
-          return new performance$1.MercatorCoordinate(point.x / worldSize, point.y / worldSize).toLngLat();
-        }
-        function getMercatorHorizon(transform) {
-          return transform.cameraToCenterDistance * Math.min(Math.tan(performance$1.degreesToRadians(90 - transform.pitch)) * 0.85, Math.tan(performance$1.degreesToRadians(maxMercatorHorizonAngle - transform.pitch)));
-        }
-        function calculateTileMatrix(unwrappedTileID, worldSize) {
-          const canonical = unwrappedTileID.canonical;
-          const scale = worldSize / performance$1.zoomScale(canonical.z);
-          const unwrappedX = canonical.x + Math.pow(2, canonical.z) * unwrappedTileID.wrap;
-          const worldMatrix = performance$1.identity(new Float64Array(16));
-          performance$1.translate(worldMatrix, worldMatrix, [unwrappedX * scale, canonical.y * scale, 0]);
-          performance$1.scale(worldMatrix, worldMatrix, [scale / performance$1.EXTENT, scale / performance$1.EXTENT, 1]);
-          return worldMatrix;
-        }
-        function cameraMercatorCoordinateFromCenterAndRotation(center, elevation, pitch, bearing, distance) {
-          const centerMercator = performance$1.MercatorCoordinate.fromLngLat(center, elevation);
-          const mercUnitsPerMeter = performance$1.mercatorZfromAltitude(1, center.lat);
-          const dMercator = distance * mercUnitsPerMeter;
-          const dzMercator = dMercator * Math.cos(performance$1.degreesToRadians(pitch));
-          const dhMercator = Math.sqrt(dMercator * dMercator - dzMercator * dzMercator);
-          const dxMercator = dhMercator * Math.sin(performance$1.degreesToRadians(-bearing));
-          const dyMercator = dhMercator * Math.cos(performance$1.degreesToRadians(-bearing));
-          return new performance$1.MercatorCoordinate(centerMercator.x + dxMercator, centerMercator.y + dyMercator, centerMercator.z + dzMercator);
         }
         class EdgeInsets {
           constructor(top = 0, bottom = 0, left = 0, right = 0) {
@@ -39686,6 +40069,21 @@ uniform ${precision} ${type2} u_${name2};
             return new performance$1.LngLat(0, latDegrees);
           }
         }
+        function horizonPlaneToCenterAndRadius(horizonPlane) {
+          const center = performance$1.createVec3f64();
+          center[0] = horizonPlane[0] * -horizonPlane[3];
+          center[1] = horizonPlane[1] * -horizonPlane[3];
+          center[2] = horizonPlane[2] * -horizonPlane[3];
+          const radius = Math.sqrt(1 - horizonPlane[3] * horizonPlane[3]);
+          return { center, radius };
+        }
+        function clampToSphere(center, radius, point) {
+          const relativeToCenter = performance$1.createVec3f64();
+          performance$1.sub(relativeToCenter, point, center);
+          const clamped = performance$1.createVec3f64();
+          performance$1.scaleAndAdd(clamped, center, relativeToCenter, radius / performance$1.len(relativeToCenter));
+          return clamped;
+        }
         function planetScaleAtLatitude(latitudeDegrees) {
           return Math.cos(latitudeDegrees * Math.PI / 180);
         }
@@ -40144,7 +40542,7 @@ uniform ${precision} ${type2} u_${name2};
             performance$1.rotateZ$1(planeVector, planeVector, [0, 0, 0], -this.bearingInRadians);
             performance$1.rotateX$1(planeVector, planeVector, [0, 0, 0], -1 * this.center.lat * Math.PI / 180);
             performance$1.rotateY(planeVector, planeVector, [0, 0, 0], this.center.lng * Math.PI / 180);
-            const scale = 0.25;
+            const scale = 1 / performance$1.length$1(planeVector);
             performance$1.scale$2(planeVector, planeVector, scale);
             return [...planeVector, -tangentPlaneDistanceToC * scale];
           }
@@ -40567,8 +40965,9 @@ uniform ${precision} ${type2} u_${name2};
               performance$1.normalize(sphereSurface, intersectionPoint);
               return sphereSurfacePointToCoordinates(sphereSurface);
             }
-            const directionDotPlaneXyz = this._cachedClippingPlane[0] * rayDirection[0] + this._cachedClippingPlane[1] * rayDirection[1] + this._cachedClippingPlane[2] * rayDirection[2];
-            const originToPlaneDistance = performance$1.pointPlaneSignedDistance(this._cachedClippingPlane, rayOrigin);
+            const horizonPlane = this._cachedClippingPlane;
+            const directionDotPlaneXyz = horizonPlane[0] * rayDirection[0] + horizonPlane[1] * rayDirection[1] + horizonPlane[2] * rayDirection[2];
+            const originToPlaneDistance = performance$1.pointPlaneSignedDistance(horizonPlane, rayOrigin);
             const distanceToIntersection = -originToPlaneDistance / directionDotPlaneXyz;
             const maxRayLength = 2;
             const planeIntersection = performance$1.createVec3f64();
@@ -40592,8 +40991,8 @@ uniform ${precision} ${type2} u_${name2};
                 this._cachedClippingPlane[2] * distanceFromPlane
               ]);
             }
-            const closestOnHorizon = performance$1.createVec3f64();
-            performance$1.normalize(closestOnHorizon, planeIntersection);
+            const horizonDisk = horizonPlaneToCenterAndRadius(horizonPlane);
+            const closestOnHorizon = clampToSphere(horizonDisk.center, horizonDisk.radius, planeIntersection);
             return sphereSurfacePointToCoordinates(closestOnHorizon);
           }
           getMatrixForModel(location2, altitude) {
@@ -42864,7 +43263,7 @@ uniform ${precision} ${type2} u_${name2};
           return result;
         }
         class Program {
-          constructor(context, source, configuration, fixedUniforms, showOverdrawInspector, hasTerrain, projectionPrelude, projectionDefine) {
+          constructor(context, source, configuration, fixedUniforms, showOverdrawInspector, hasTerrain, projectionPrelude, projectionDefine, extraDefines = []) {
             const gl = context.gl;
             this.program = gl.createProgram();
             const staticAttrInfo = getTokenizedAttributesAndUniforms(source.staticAttributes);
@@ -42892,6 +43291,9 @@ uniform ${precision} ${type2} u_${name2};
             }
             if (projectionDefine) {
               defines.push(projectionDefine);
+            }
+            if (extraDefines) {
+              defines.push(...extraDefines);
             }
             let fragmentSource = defines.concat(shaders.prelude.fragmentSource, projectionPrelude.fragmentSource, source.fragmentSource).join("\n");
             let vertexSource = defines.concat(shaders.prelude.vertexSource, projectionPrelude.vertexSource, source.vertexSource).join("\n");
@@ -43229,10 +43631,13 @@ uniform ${precision} ${type2} u_${name2};
         const hillshadeUniforms = (context, locations) => ({
           "u_image": new performance$1.Uniform1i(context, locations.u_image),
           "u_latrange": new performance$1.Uniform2f(context, locations.u_latrange),
-          "u_light": new performance$1.Uniform2f(context, locations.u_light),
-          "u_shadow": new performance$1.UniformColor(context, locations.u_shadow),
-          "u_highlight": new performance$1.UniformColor(context, locations.u_highlight),
-          "u_accent": new performance$1.UniformColor(context, locations.u_accent)
+          "u_exaggeration": new performance$1.Uniform1f(context, locations.u_exaggeration),
+          "u_altitudes": new performance$1.UniformFloatArray(context, locations.u_altitudes),
+          "u_azimuths": new performance$1.UniformFloatArray(context, locations.u_azimuths),
+          "u_accent": new performance$1.UniformColor(context, locations.u_accent),
+          "u_method": new performance$1.Uniform1i(context, locations.u_method),
+          "u_shadows": new performance$1.UniformColorArray(context, locations.u_shadows),
+          "u_highlights": new performance$1.UniformColorArray(context, locations.u_highlights)
         });
         const hillshadePrepareUniforms = (context, locations) => ({
           "u_matrix": new performance$1.UniformMatrix4f(context, locations.u_matrix),
@@ -43242,20 +43647,42 @@ uniform ${precision} ${type2} u_${name2};
           "u_unpack": new performance$1.Uniform4f(context, locations.u_unpack)
         });
         const hillshadeUniformValues = (painter, tile, layer) => {
-          const shadow = layer.paint.get("hillshade-shadow-color");
-          const highlight = layer.paint.get("hillshade-highlight-color");
           const accent = layer.paint.get("hillshade-accent-color");
-          let azimuthal = layer.paint.get("hillshade-illumination-direction") * (Math.PI / 180);
-          if (layer.paint.get("hillshade-illumination-anchor") === "viewport") {
-            azimuthal += painter.transform.bearingInRadians;
+          let method;
+          switch (layer.paint.get("hillshade-method")) {
+            case "basic":
+              method = 4;
+              break;
+            case "combined":
+              method = 1;
+              break;
+            case "igor":
+              method = 2;
+              break;
+            case "multidirectional":
+              method = 3;
+              break;
+            case "standard":
+            default:
+              method = 0;
+              break;
+          }
+          const illumination = layer.getIlluminationProperties();
+          for (let i = 0; i < illumination.directionRadians.length; i++) {
+            if (layer.paint.get("hillshade-illumination-anchor") === "viewport") {
+              illumination.directionRadians[i] += painter.transform.bearingInRadians;
+            }
           }
           return {
             "u_image": 0,
             "u_latrange": getTileLatRange(painter, tile.tileID),
-            "u_light": [layer.paint.get("hillshade-exaggeration"), azimuthal],
-            "u_shadow": shadow,
-            "u_highlight": highlight,
-            "u_accent": accent
+            "u_exaggeration": layer.paint.get("hillshade-exaggeration"),
+            "u_altitudes": illumination.altitudeRadians,
+            "u_azimuths": illumination.directionRadians,
+            "u_accent": accent,
+            "u_method": method,
+            "u_highlights": illumination.highlightColor,
+            "u_shadows": illumination.shadowColor
           };
         };
         const hillshadeUniformPrepareValues = (tileID, dem) => {
@@ -45144,13 +45571,7 @@ uniform ${precision} ${type2} u_${name2};
               context.activeTexture.set(gl.TEXTURE0);
               gradientTexture.bind(layer.stepInterpolant ? gl.NEAREST : gl.LINEAR, gl.CLAMP_TO_EDGE);
             }
-            let stencil;
-            if (isRenderingToTexture) {
-              const [stencilModes] = painter.getStencilConfigForOverlapAndUpdateStencilID(coords);
-              stencil = stencilModes[coord.overscaledZ];
-            } else {
-              stencil = painter.stencilModeForClipping(coord);
-            }
+            const stencil = painter.stencilModeForClipping(coord);
             program.draw(context, gl.TRIANGLES, depthMode, stencil, colorMode, CullFaceMode.disabled, uniformValues, terrainData, projectionData, layer.id, bucket.layoutVertexBuffer, bucket.indexBuffer, bucket.segments, layer.paint, painter.transform.zoom, programConfiguration, bucket.layoutVertexBuffer2);
             firstTile = false;
           }
@@ -45244,13 +45665,7 @@ uniform ${precision} ${type2} u_${name2};
               const drawingBufferSize = [gl.drawingBufferWidth, gl.drawingBufferHeight];
               uniformValues = programName === "fillOutlinePattern" && image ? fillOutlinePatternUniformValues(painter, crossfade, tile, drawingBufferSize, translateForUniforms) : fillOutlineUniformValues(drawingBufferSize, translateForUniforms);
             }
-            let stencil;
-            if (painter.renderPass === "translucent" && isRenderingToTexture) {
-              const [stencilModes] = painter.getStencilConfigForOverlapAndUpdateStencilID(coords);
-              stencil = stencilModes[coord.overscaledZ];
-            } else {
-              stencil = painter.stencilModeForClipping(coord);
-            }
+            const stencil = painter.stencilModeForClipping(coord);
             program.draw(painter.context, drawMode, depthMode, stencil, colorMode, CullFaceMode.backCCW, uniformValues, terrainData, projectionData, layer.id, bucket.layoutVertexBuffer, indexBuffer, segments, layer.paint, painter.transform.zoom, programConfiguration);
           }
         }
@@ -45331,7 +45746,8 @@ uniform ${precision} ${type2} u_${name2};
           const context = painter.context;
           const transform = painter.transform;
           const gl = context.gl;
-          const program = painter.useProgram("hillshade");
+          const defines = [`#define NUM_ILLUMINATION_SOURCES ${layer.paint.get("hillshade-highlight-color").values.length}`];
+          const program = painter.useProgram("hillshade", null, false, defines);
           const align = !painter.options.moving;
           for (const coord of coords) {
             const tile = sourceCache.getTile(coord);
@@ -45951,7 +46367,7 @@ ${projection.shaderPreludeCode.vertexSource}`,
               const stencilRef = tileStencilRefs[tileID.key];
               const terrainData = this.style.map.terrain && this.style.map.terrain.getTerrainData(tileID);
               const mesh = projection.getMeshFromTileID(this.context, tileID.canonical, useBorders, true, "stencil");
-              const projectionData = transform.getProjectionData({ overscaledTileID: tileID, applyGlobeMatrix: true, applyTerrainMatrix: true });
+              const projectionData = transform.getProjectionData({ overscaledTileID: tileID, applyGlobeMatrix: !renderToTexture, applyTerrainMatrix: true });
               program.draw(
                 context,
                 gl.TRIANGLES,
@@ -46176,7 +46592,7 @@ ${projection.shaderPreludeCode.vertexSource}`,
                 }
               }
               const coords = (layer.type === "symbol" ? coordsDescendingSymbol : coordsDescending)[layer.source];
-              this._renderTileClippingMasks(layer, coordsAscending[layer.source], false);
+              this._renderTileClippingMasks(layer, coordsAscending[layer.source], !!this.renderToTexture);
               this.renderLayer(this, sourceCache, layer, coords, renderOptions);
             }
             if (renderOptions.isRenderingGlobe) {
@@ -46274,12 +46690,12 @@ ${projection.shaderPreludeCode.vertexSource}`,
            * Finds the required shader and its variant (base/terrain/globe, etc.) and binds it, compiling a new shader if required.
            * @param name - Name of the desired shader.
            * @param programConfiguration - Configuration of shader's inputs.
-           * @param defines - Additional macros to be injected at the beginning of the shader. Expected format is `['#define XYZ']`, etc.
            * @param forceSimpleProjection - Whether to force the use of a shader variant with simple mercator projection vertex shader.
+           * @param defines - Additional macros to be injected at the beginning of the shader. Expected format is `['#define XYZ']`, etc.
            * False by default. Use true when drawing with a simple projection matrix is desired, eg. when drawing a fullscreen quad.
            * @returns
            */
-          useProgram(name2, programConfiguration, forceSimpleProjection = false) {
+          useProgram(name2, programConfiguration, forceSimpleProjection = false, defines = []) {
             this.cache = this.cache || {};
             const useTerrain = !!this.style.map.terrain;
             const projection = this.style.projection;
@@ -46289,9 +46705,10 @@ ${projection.shaderPreludeCode.vertexSource}`,
             const configurationKey = programConfiguration ? programConfiguration.cacheKey : "";
             const overdrawKey = this._showOverdrawInspector ? "/overdraw" : "";
             const terrainKey = useTerrain ? "/terrain" : "";
-            const key = name2 + configurationKey + projectionKey + overdrawKey + terrainKey;
+            const definesKey = defines ? `/${defines.join("/")}` : "";
+            const key = name2 + configurationKey + projectionKey + overdrawKey + terrainKey + definesKey;
             if (!this.cache[key]) {
-              this.cache[key] = new Program(this.context, shaders[name2], programConfiguration, programUniforms[name2], this._showOverdrawInspector, useTerrain, projectionPrelude, projectionDefine);
+              this.cache[key] = new Program(this.context, shaders[name2], programConfiguration, programUniforms[name2], this._showOverdrawInspector, useTerrain, projectionPrelude, projectionDefine, defines);
             }
             return this.cache[key];
           }
@@ -48019,7 +48436,7 @@ ${projection.shaderPreludeCode.vertexSource}`,
                 scale = 1 / scale;
               }
               const fromScale = typeof this._targetZoom !== "number" ? tr.scale : performance$1.zoomScale(this._targetZoom);
-              this._targetZoom = Math.min(tr.maxZoom, Math.max(tr.minZoom, performance$1.scaleZoom(fromScale * scale)));
+              this._targetZoom = tr.getConstrained(tr.getCameraLngLat(), performance$1.scaleZoom(fromScale * scale)).zoom;
               if (this._type === "wheel") {
                 this._startZoom = tr.zoom;
                 this._easing = this._smoothOutEasing(200);
@@ -52389,6 +52806,64 @@ ${projection.shaderPreludeCode.vertexSource}`,
             return this.style.getSource(id);
           }
           /**
+               * Change the tile Level of Detail behavior of the specified source. These parameters have no effect when
+               * pitch == 0, and the largest effect when the horizon is visible on screen.
+               *
+               * @param maxZoomLevelsOnScreen - The maximum number of distinct zoom levels allowed on screen at a time.
+               * There will generally be fewer zoom levels on the screen, the maximum can only be reached when the horizon
+               * is at the top of the screen. Increasing the maximum number of zoom levels causes the zoom level to decay
+               * faster toward the horizon.
+               * @param tileCountMaxMinRatio - The ratio of the maximum number of tiles loaded (at high pitch) to the minimum
+               * number of tiles loaded. Increasing this ratio allows more tiles to be loaded at high pitch angles. If the ratio
+               * would otherwise be exceeded, the zoom level is reduced uniformly to keep the number of tiles within the limit.
+               * @param sourceId - The ID of the source to set tile LOD parameters for. All sources will be updated if unspecified.
+               * If `sourceId` is specified but a corresponding source does not exist, an error is thrown.
+               * @example
+               * ```ts
+               * map.setSourceTileLodParams(4.0, 3.0, 'terrain');
+               * ```
+               * @see [Modify Level of Detail behavior](https://maplibre.org/maplibre-gl-js/docs/examples/lod-control/)
+          
+               */
+          setSourceTileLodParams(maxZoomLevelsOnScreen, tileCountMaxMinRatio, sourceId) {
+            if (sourceId) {
+              const source = this.getSource(sourceId);
+              if (!source) {
+                throw new Error(`There is no source with ID "${sourceId}", cannot set LOD parameters`);
+              }
+              source.calculateTileZoom = createCalculateTileZoomFunction(Math.max(1, maxZoomLevelsOnScreen), Math.max(1, tileCountMaxMinRatio));
+            } else {
+              for (const id in this.style.sourceCaches) {
+                this.style.sourceCaches[id].getSource().calculateTileZoom = createCalculateTileZoomFunction(Math.max(1, maxZoomLevelsOnScreen), Math.max(1, tileCountMaxMinRatio));
+              }
+            }
+            this._update(true);
+            return this;
+          }
+          /**
+           * Triggers a reload of the selected tiles
+           *
+           * @param sourceId - The ID of the source
+           * @param tileIds - An array of tile IDs to be reloaded. If not defined, all tiles will be reloaded.
+           * @example
+           * ```ts
+           * map.refreshTiles('satellite', [{x:1024, y: 1023, z: 11}, {x:1023, y: 1023, z: 11}]);
+           * ```
+           */
+          refreshTiles(sourceId, tileIds) {
+            const sourceCache = this.style.sourceCaches[sourceId];
+            if (!sourceCache) {
+              throw new Error(`There is no source cache with ID "${sourceId}", cannot refresh tile`);
+            }
+            if (tileIds === void 0) {
+              sourceCache.reload();
+            } else {
+              sourceCache.refreshTiles(tileIds.map((tileId) => {
+                return new performance$1.CanonicalTileID(tileId.z, tileId.x, tileId.y);
+              }));
+            }
+          }
+          /**
            * Add an image to the style. This image can be displayed on the map like any other icon in the style's
            * sprite using the image's ID with
            * [`icon-image`](https://maplibre.org/maplibre-style-spec/layers/#layout-symbol-icon-image),
@@ -53796,7 +54271,10 @@ ${projection.shaderPreludeCode.vertexSource}`,
             return supportsGeolocation;
           });
         }
-        function smartWrap(lngLat, priorPos, transform) {
+        function smartWrap(lngLat, priorPos, transform, useNormalWrap = false) {
+          if (useNormalWrap || !transform.getCoveringTilesDetailsProvider().allowWorldCopies()) {
+            return lngLat === null || lngLat === void 0 ? void 0 : lngLat.wrap();
+          }
           const originalLngLat = new performance$1.LngLat(lngLat.lng, lngLat.lat);
           lngLat = new performance$1.LngLat(lngLat.lng, lngLat.lat);
           if (priorPos) {
@@ -53864,18 +54342,13 @@ ${projection.shaderPreludeCode.vertexSource}`,
               }
             };
             this._update = (e) => {
-              var _a;
               if (!this._map)
                 return;
               const isFullyLoaded = this._map.loaded() && !this._map.isMoving();
               if ((e === null || e === void 0 ? void 0 : e.type) === "terrain" || (e === null || e === void 0 ? void 0 : e.type) === "render" && !isFullyLoaded) {
                 this._map.once("render", this._update);
               }
-              if (this._map.transform.renderWorldCopies) {
-                this._lngLat = smartWrap(this._lngLat, this._flatPos, this._map.transform);
-              } else {
-                this._lngLat = (_a = this._lngLat) === null || _a === void 0 ? void 0 : _a.wrap();
-              }
+              this._lngLat = smartWrap(this._lngLat, this._flatPos, this._map.transform);
               this._flatPos = this._pos = this._map.project(this._lngLat)._add(this._offset);
               if (this._map.terrain) {
                 this._flatPos = this._map.transform.locationToScreenPoint(this._lngLat)._add(this._offset);
@@ -54264,8 +54737,8 @@ ${projection.shaderPreludeCode.vertexSource}`,
           _updateOpacity(force = false) {
             var _a, _b;
             const terrain = (_a = this._map) === null || _a === void 0 ? void 0 : _a.terrain;
-            if (!terrain) {
-              const occluded = this._map.transform.isLocationOccluded(this._lngLat);
+            const occluded = this._map.transform.isLocationOccluded(this._lngLat);
+            if (!terrain || occluded) {
               const targetOpacity = occluded ? this._opacityWhenCovered : this._opacity;
               if (this._element.style.opacity !== targetOpacity) {
                 this._element.style.opacity = targetOpacity;
@@ -54556,26 +55029,24 @@ ${projection.shaderPreludeCode.vertexSource}`,
               if (!this._map) {
                 return;
               }
-              if (this.options.trackUserLocation) {
-                if (error.code === 1) {
-                  this._watchState = "OFF";
-                  this._geolocateButton.classList.remove("maplibregl-ctrl-geolocate-waiting");
-                  this._geolocateButton.classList.remove("maplibregl-ctrl-geolocate-active");
-                  this._geolocateButton.classList.remove("maplibregl-ctrl-geolocate-active-error");
-                  this._geolocateButton.classList.remove("maplibregl-ctrl-geolocate-background");
-                  this._geolocateButton.classList.remove("maplibregl-ctrl-geolocate-background-error");
-                  this._geolocateButton.disabled = true;
-                  const title = this._map._getUIString("GeolocateControl.LocationNotAvailable");
-                  this._geolocateButton.title = title;
-                  this._geolocateButton.setAttribute("aria-label", title);
-                  if (this._geolocationWatchID !== void 0) {
-                    this._clearWatch();
-                  }
-                } else if (error.code === 3 && noTimeout) {
-                  return;
-                } else {
-                  this._setErrorState();
+              if (error.code === 1) {
+                this._watchState = "OFF";
+                this._geolocateButton.classList.remove("maplibregl-ctrl-geolocate-waiting");
+                this._geolocateButton.classList.remove("maplibregl-ctrl-geolocate-active");
+                this._geolocateButton.classList.remove("maplibregl-ctrl-geolocate-active-error");
+                this._geolocateButton.classList.remove("maplibregl-ctrl-geolocate-background");
+                this._geolocateButton.classList.remove("maplibregl-ctrl-geolocate-background-error");
+                this._geolocateButton.disabled = true;
+                const title = this._map._getUIString("GeolocateControl.LocationNotAvailable");
+                this._geolocateButton.title = title;
+                this._geolocateButton.setAttribute("aria-label", title);
+                if (this._geolocationWatchID !== void 0) {
+                  this._clearWatch();
                 }
+              } else if (error.code === 3 && noTimeout) {
+                return;
+              } else if (this.options.trackUserLocation) {
+                this._setErrorState();
               }
               if (this._watchState !== "OFF" && this.options.showUserLocation) {
                 this._dotElement.classList.add("maplibregl-user-location-dot-stale");
@@ -55179,7 +55650,6 @@ ${projection.shaderPreludeCode.vertexSource}`,
               this._update(event.point);
             };
             this._update = (cursor) => {
-              var _a;
               const hasPosition = this._lngLat || this._trackPointer;
               if (!this._map || !hasPosition || !this._content) {
                 return;
@@ -55203,11 +55673,7 @@ ${projection.shaderPreludeCode.vertexSource}`,
               if (this.options.maxWidth && this._container.style.maxWidth !== this.options.maxWidth) {
                 this._container.style.maxWidth = this.options.maxWidth;
               }
-              if (this._map.transform.renderWorldCopies && !this._trackPointer) {
-                this._lngLat = smartWrap(this._lngLat, this._flatPos, this._map.transform);
-              } else {
-                this._lngLat = (_a = this._lngLat) === null || _a === void 0 ? void 0 : _a.wrap();
-              }
+              this._lngLat = smartWrap(this._lngLat, this._flatPos, this._map.transform, this._trackPointer);
               if (this._trackPointer && !cursor)
                 return;
               const pos = this._flatPos = this._pos = this._trackPointer && cursor ? cursor : this._map.project(this._lngLat);
@@ -55711,7 +56177,7 @@ ${projection.shaderPreludeCode.vertexSource}`,
   }
 });
 
-// ../esmd/npm/maplibre-gl@5.3.1/build.js
+// ../esmd/npm/maplibre-gl@5.5.0/build.js
 var build_exports = {};
 __export(build_exports, {
   default: () => build_default
@@ -55728,7 +56194,7 @@ export {
 maplibre-gl/dist/maplibre-gl-dev.js:
   (**
    * MapLibre GL JS
-   * @license 3-Clause BSD. Full text of license: https://github.com/maplibre/maplibre-gl-js/blob/v5.3.1/LICENSE.txt
+   * @license 3-Clause BSD. Full text of license: https://github.com/maplibre/maplibre-gl-js/blob/v5.5.0/LICENSE.txt
    *)
   (*! ieee754. BSD-3-Clause License. Feross Aboukhadijeh <https://feross.org/opensource> *)
 */
