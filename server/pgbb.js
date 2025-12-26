@@ -113,7 +113,7 @@ class App {
     // TODO rate limit
     // TODO body size limit
     const { password } = await req.json(); // base64 ?
-    const pg = pgconnection({ password, user: u, _debug: false }, this.pg_uri, { database: 'postgres' });
+    const pg = pgconnection({ password, user: u }, this.pg_uri, { database: 'postgres' });
     try {
       await pg.query();
     } catch (ex) {
@@ -152,7 +152,7 @@ class App {
 
   /** @param {Request} _req */
   async _api_tree(_req, { u: user, db: database, ntype, noid, ntid }, password) {
-    const pg = pgconnection({
+    await using pg = pgconnection({
       user,
       password,
       database,
@@ -162,27 +162,23 @@ class App {
       database: 'postgres',
       statement_timeout: '10s',
     });
-    try {
-      const { rows } = await pg.query({
-        statement: tree_sql,
-        params: [
-          { type: 'text', value: ntype },
-          { type: 'oid', value: noid },
-          { type: 'text', value: ntid },
-        ],
-      });
-      const result = rows.map(([db, ntype, noid, ntid, name, descr, mod, size, leaf]) => ({
-        db, ntype, noid: noid ?? undefined, ntid: ntid ?? undefined, name, descr, mod, size, leaf,
-      }));
-      return Response.json({ result });
-    } finally {
-      await pg.end();
-    }
+    const { rows } = await pg.query({
+      statement: tree_sql,
+      params: [
+        { type: 'text', value: ntype },
+        { type: 'oid', value: noid },
+        { type: 'text', value: ntid },
+      ],
+    });
+    const result = rows.map(([db, ntype, noid, ntid, name, descr, mod, size, leaf]) => ({
+      db, ntype, noid: noid ?? undefined, ntid: ntid ?? undefined, name, descr, mod, size, leaf,
+    }));
+    return Response.json({ result });
   }
 
   /** @param {Request} _req */
   async _api_defn(_req, { u: user, db: database, ntype, noid, ntid }, password) {
-    const pg = pgconnection({
+    await using pg = pgconnection({
       user,
       password,
       database,
@@ -191,25 +187,22 @@ class App {
     }, this.pg_uri, {
       statement_timeout: '10s',
     });
-    try {
-      const [result] = await pg.query({
-        statement: defn_sql,
-        params: [
-          { type: 'text', value: ntype },
-          { type: 'oid', value: noid },
-          { type: 'text', value: ntid },
-        ],
-      });
-      return Response.json({ result });
-    } finally {
-      await pg.end();
-    }
+    const [result] = await pg.query({
+      statement: defn_sql,
+      params: [
+        { type: 'text', value: ntype },
+        { type: 'oid', value: noid },
+        { type: 'text', value: ntid },
+      ],
+    });
+    return Response.json({ result })
   }
 
   /** @param {Request} req */
   async _api_run(req, { u: user, db: database }, password) {
     // TODO kill previous connection - prevent connections leak in case of abort lag
     const { signal } = req;
+    // TODO streaming, pass bytes to psqlscan_split
     const req_body = await req.json();
     const resp_init = {
       headers: {
@@ -267,6 +260,21 @@ class App {
             select coln, rec.*
             from pg_catalog.jsonb_array_elements($1) with ordinality _(el, coln)
             , pg_catalog.jsonb_to_record(el) rec("name" text, "typeOid" oid, "typeMod" int4, "tableOid" oid, "tableColumn" int2)
+          ),
+
+          -- TODO we can try to create value of type with sample wkt input.
+          -- And if it produces wkb than the type is geometry:
+          -- postgis.geometry 'SRID=4326;POINT (0 0)' == '0101000020E610000000000000000000000000000000000000'
+
+          geom_typoid as (
+            select t.oid
+            from pg_catalog.pg_type t, pg_catalog.pg_depend d, pg_catalog.pg_extension e
+            where d.deptype = 'e'
+              and d.classid = pg_catalog.regclass 'pg_type'
+              and d.objid = t.oid
+              and d.refobjid = e.oid
+              and t.typname in ('geometry', 'geography')
+              and e.extname = 'postgis'
           )
           select pg_catalog.jsonb_build_object(
             'rel_name', (
@@ -283,7 +291,8 @@ class App {
                 'type', pg_catalog.format_type("typeOid", "typeMod"),
                 'att_name', pg_catalog.quote_ident(attname),
                 'att_key', attnum = any(target_key),
-                'att_notnull', attnotnull
+                'att_notnull', attnotnull,
+                'is_geom', "typeOid" in (table geom_typoid)
               )
               from col_cte
               left join pg_catalog.pg_attribute on (attrelid, attnum) = ("tableOid", "tableColumn") and attrelid = target_reloid
@@ -418,7 +427,7 @@ class App {
 
       const [tx_has_changes] = await pg.query({
         // TODO pg_current_xact_id_if_assigned (v13)
-        statement: /*sql*/ `select txid_current_if_assigned() is not null`,
+        statement: /*sql*/ `select pg_catalog.txid_current_if_assigned() is not null`,
       });
 
       if (tx_has_changes) {
@@ -615,16 +624,6 @@ const tree_sql = String.raw /*sql*/ `
 
 
 const defn_sql = String.raw /*sql*/ `
-with geom_typoid as (
-  select t.oid
-  from pg_type t, pg_depend d, pg_extension e
-  where d.deptype = 'e'
-    and d.classid = 'pg_type'::regclass
-    and d.objid = t.oid
-    and d.refobjid = e.oid
-    and t.typname in ('geometry', 'geography')
-    and e.extname = 'postgis'
-)
 select format(e'\\connect %I\n\n%s', current_catalog, def)
 from substring(current_setting('server_version') from '\d+') pg_major_ver
 , lateral (
@@ -678,16 +677,10 @@ from substring(current_setting('server_version') from '\d+') pg_major_ver
   join pg_namespace on pg_class.relnamespace = pg_namespace.oid
   left join pg_constraint pk on (contype, conrelid) = ('p', pg_class.oid)
   , lateral (
-    select string_agg(format(col_fmt, attname), e',\n' order by attnum)
+    select string_agg(format('  %I', attname), e',\n' order by attnum)
       -- TODO desc indexing
       , string_agg(format('%I', attname), ', ' order by pk_pos) filter (where pk_pos is not null)
     from pg_attribute, array_position(pk.conkey, attnum) pk_pos
-    , text(
-      case when atttypid in (select * from geom_typoid)
-      then '  ST_AsGeoJSON(ST_Transform(%I, 4326))'
-      else '  %I'
-      end
-    ) col_fmt
     where attrelid = pg_class.oid and (attnum > 0 or attname = 'oid') and not attisdropped
   ) _(select_cols, orderby_cols)
   where ('table', pg_class.oid) = ($1, $2)

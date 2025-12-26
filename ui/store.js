@@ -1,4 +1,5 @@
 import { editor, Uri } from './_vendor/monaco.js';
+import { hexwkb2t } from './wkb2t.js';
 
 export class Store {
   dark = { sys: false, on: null };
@@ -34,7 +35,6 @@ export class Store {
     /**
      * @type {{
      *  selected_col_idx: number,
-     *  geom_col_idx: number,
      *  rel_name: string | null,
      *  cols: {
      *    name: string,
@@ -42,6 +42,9 @@ export class Store {
      *    att_name: string | null,
      *    att_key: boolean,
      *    att_notnull: boolean,
+     *    is_geom: boolean,
+     *    hue: number,
+     *    show_on_map: boolean,
      *    width: number,
      *  }[],
      *  rows: {
@@ -66,6 +69,12 @@ export class Store {
     // TODO draft_ver: null,
     // check if draft modified before
   };
+
+  show_sat = false;
+
+  toggle_sat() {
+    this.show_sat = !this.show_sat;
+  }
 
   resize_panes(update) {
     Object.assign(this.panes, update);
@@ -295,6 +304,10 @@ export class Store {
     this.out.frames[frame_idx].cols[col_idx].width = width;
   }
 
+  toggle_show_on_map(frame_idx, col_idx, value) {
+    this.out.frames[frame_idx].cols[col_idx].show_on_map = value;
+  }
+
   // TODO set_selected_row
   set_selected_rowcol(frame_idx, row_idx, col_idx) {
     this.out.selected_frame_idx = frame_idx;
@@ -513,7 +526,14 @@ export class Store {
         headers: { 'content-type': 'application/json; charset=utf-8' },
         body,
       });
-      if (!resp.ok) throw Error(`HTTP ${resp.status} ${resp.statusText}`, { cause: await resp.text() });
+      if (!resp.ok) {
+        throw Error(`HTTP ${resp.status} ${resp.statusText}`, {
+          cause: await resp.text(),
+        });
+      }
+
+      const hues = sunflower(200 /* blue */);
+
       const msg_stream = (
         resp.body
         .pipeThrough(new TextDecoderStream())
@@ -526,9 +546,17 @@ export class Store {
           case 'head':
             out.frames.push({
               rel_name: payload.rel_name,
-              cols: payload.cols.map(col => ({ ...col, width: 150 })),
+              cols: payload.cols.map(col => ({
+                ... col,
+                width: 150, // TODO auto
+                hue: -1,
+                show_on_map: false,
+                ... col.is_geom && {
+                  hue: hues.next().value,
+                  show_on_map: true,
+                },
+              })),
               selected_col_idx: Boolean(payload.cols.length) - 1,
-              geom_col_idx: payload.cols.findIndex(col => /^st_asgeojson$/i.test(col.name)),
               rows: [],
             });
             break;
@@ -536,12 +564,15 @@ export class Store {
           case 'rows':
             const frame = out.frames.at(-1);
             for (const tuple of payload) {
-              for (let col_idx = 0; col_idx < frame.cols.length; col_idx++) {
+              for (let col_idx = frame.cols.length; col_idx--;) {
+                const datum = tuple[col_idx];
+                if (datum == null) continue;
                 const col = frame.cols[col_idx];
-                if (col.type == 'jsonb') {
-                  tuple[col_idx] = json_pretty(tuple[col_idx]);
+                try {
+                  tuple[col_idx] = prettify_datum(col, datum);
+                } catch (ex) {
+                  // TODO handle datum transformation error
                 }
-                // TODO wkb->wkt
               }
               frame.rows.push({
                 original: Object.freeze(tuple),
@@ -619,6 +650,12 @@ function extract_dbname_from_sql(sql) {
   return { db, sql };
 }
 
+function prettify_datum({ type, is_geom }, datum) {
+  if (type == 'jsonb') return json_pretty(datum);
+  if (is_geom) return hexwkb2t(datum);
+  return datum;
+}
+
 function json_pretty(/** @type {string} */ input) {
   const indent = '  ';
   const json_re = /\s*({|}|\[|]|,|:|true|false|null|-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?|"(?:\\.|[^"])*")\s*/yg;
@@ -640,4 +677,16 @@ function json_pretty(/** @type {string} */ input) {
         return token;
     }
   });
+}
+
+function * sunflower(offset = 0) {
+  // The idea is to dynamically assign colors to layers in such a way
+  // that color contrast is high when there are few layers,
+  // and gradually degrades as the number of layers increases.
+  // https://en.wikipedia.org/wiki/Golden_angle
+  const golden_angle = 180 * (3 - 5 ** .5);
+  for (let i = 0;; i++) {
+    yield (offset + i * golden_angle) % 360;
+  }
+  // TODO fix bad contrast when 245 (deep blue) on black bg
 }

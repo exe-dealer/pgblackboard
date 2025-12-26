@@ -2,7 +2,7 @@
   font: 12px/20px Helvetica Neue, Arial, Helvetica, sans-serif;
   overflow: hidden;
   position: relative;
-  -webkit-tap-highlight-color: rgb(0 0 0/0);
+  -webkit-tap-highlight-color: rgb(0, 0, 0, 0);
 }
 .maplibregl-canvas {
   left: 0;
@@ -149,11 +149,11 @@
 }
 @media (hover: hover) {
   .maplibregl-ctrl button:not(:disabled):hover {
-    background-color: rgb(0 0 0/5%);
+    background-color: rgba(0, 0, 0, 0.05);
   }
 }
 .maplibregl-ctrl button:not(:disabled):active {
-  background-color: rgb(0 0 0/5%);
+  background-color: rgba(0, 0, 0, 0.05);
 }
 .maplibregl-ctrl-group button:focus:focus-visible {
   box-shadow: 0 0 2px 2px #0096ff;
@@ -409,7 +409,7 @@ a.maplibregl-ctrl-logo.maplibregl-compact {
   }
   .maplibregl-ctrl-attrib.maplibregl-compact-show
     .maplibregl-ctrl-attrib-button {
-    background-color: rgb(0 0 0/5%);
+    background-color: rgba(0, 0, 0, 0.05);
   }
   .maplibregl-ctrl-bottom-right
     > .maplibregl-ctrl-attrib.maplibregl-compact:after {
@@ -460,6 +460,7 @@ a.maplibregl-ctrl-logo.maplibregl-compact {
   color: #333;
   font-size: 10px;
   padding: 0 5px;
+  white-space: nowrap;
 }
 .maplibregl-popup {
   display: flex;
@@ -545,7 +546,7 @@ a.maplibregl-ctrl-logo.maplibregl-compact {
   top: 0;
 }
 .maplibregl-popup-close-button:hover {
-  background-color: rgb(0 0 0/5%);
+  background-color: rgba(0, 0, 0, 0.05);
 }
 .maplibregl-popup-content {
   background: #fff;

@@ -60,6 +60,17 @@ const methods = {
                 'data-selected': selected_col_idx == col_idx || null,
                 scope: 'col',
                 inner: [
+                  col.is_geom && {
+                    tag: 'button',
+                    class: 'out-show_on_map_button',
+                    type: 'button',
+                    role: 'switch',
+                    style: { '--out-col_hue': col.hue },
+                    'aria-checked': col.show_on_map,
+                    'aria-label': 'Show on map',
+                    // TODO avoid lambda event handler
+                    onClick: _ => this.toggle_show_on_map(frame_idx, col_idx, !col.show_on_map),
+                  },
                   // TODO support \n, leading/tailing whitespace in colname
                   { tag: 'span', class: 'out-colname', inner: col.name },
                   ' ',
@@ -232,6 +243,9 @@ const methods = {
       'req_row_navigate': this.on_req_row_navigate,
       'req_cell_focus': this.on_req_cell_focus,
     };
+  },
+  toggle_show_on_map(frame_idx, col_idx, value) {
+    this.$store.toggle_show_on_map(frame_idx, col_idx, value);
   },
   on_colsizer_drag(e) {
     const { frame_idx, col_idx, width } = e.origin;

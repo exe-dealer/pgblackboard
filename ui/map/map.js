@@ -2,8 +2,9 @@ import maplibregl from '../_vendor/maplibre.js';
 import ne_cities from './ne_cities.js'; // TODO gc after URL.createObjectURL
 import ne_land from './ne_land.js'; // TODO gc after URL.createObjectURL
 import glyphs from './glyphs.js';
+import { wkt2json } from './wkt2json.js';
 
-const { Map: MaplibreMap, LngLatBounds, MercatorCoordinate } = maplibregl;
+const MapGL = maplibregl.Map;
 
 const ne_land_blob = new Blob([JSON.stringify(ne_land)], { type: 'application/json' });
 const ne_land_url = URL.createObjectURL(ne_land_blob);
@@ -31,10 +32,10 @@ const methods = {
     return { tag: 'div', class: 'map' };
   },
   _mounted() {
-    this._ml = new MaplibreMap({
+    this._ml = new MapGL({
       container: this.$el,
       attributionControl: false, // TODO ?
-      maxPitch: 0,
+      // maxPitch: 0,
     });
     this._ml.on('click', this.on_map_click);
 
@@ -57,20 +58,51 @@ const methods = {
     return { 'req_map_navigate': this.on_req_map_navigate };
   },
 
+  /** @returns {import('../store.js').Store} */
+  get_store() {
+    return this.$store;
+  },
+
+  * get_geomcols() {
+    let i = 0;
+    for (const [frame_idx, { rows, cols }] of this.get_store().out.frames.entries())
+    for (const [col_idx, col] of cols.entries()) {
+      if (!col.is_geom) continue;
+      yield { frame_idx, rows, col_idx, col, overlay_idx: i++ };
+    }
+  },
+
   get_ml_style() {
-    const is_dark = this.$store.is_dark();
-    const out_fcoll = this.$cached(this.get_out_fcoll);
-    const hl_fcoll = this.$cached(this.get_hl_fcoll);
+    const is_dark = this.get_store().is_dark();
+    const show_sat = this.get_store().show_sat;
+    const original_features = this.$cached(this.get_original_features);
+    const modified_features = this.$cached(this.get_modified_features);
+    const selected_features = this.$cached(this.get_selected_features);
+
+    const modified_features_ids = modified_features.full.features.map(f => f.properties.id);
+    const overlays_visibility = Array.from(this.get_geomcols(), ({ col }) => Boolean(col.show_on_map));
+    const overlays_hues = Array.from(this.get_geomcols(), ({ col }) => col.hue);
 
     const style = {
       version: 8,
+      // globe is not good choise. User need to rotate globe
+      // to overview all geometries when geometries located in both hemispheres.
+      // projection: { type: 'globe' },
+
+      state: {
+        is_dark: { default: is_dark },
+        modified_features_ids: { default: modified_features_ids },
+        overlays_hues: { default: overlays_hues },
+        overlays_visibility: { default: overlays_visibility },
+      },
+
       glyphs: glyphs_url + '#/{fontstack}/{range}',
       // glyphs: 'https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf',
       transition: {
         duration: 0, // instant theme switch
       },
       sources: {
-        'ne_land': { // TODO land -> coastlines
+        'ne_land': {
           type: 'geojson',
           data: ne_land_url,
           tolerance: .2,
@@ -89,6 +121,7 @@ const methods = {
           type: 'raster',
           tileSize: 256,
           maxzoom: 22,
+          // tiles: Array.from('0123', d => `https://mt${d}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}`),
           tiles: [
             'https://mt0.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',
             'https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',
@@ -99,154 +132,322 @@ const methods = {
         'sat_bing': {
           type: 'raster',
           tileSize: 256,
+          // tiles: Array.from('01234567', d => `http://ecn.t${d}.tiles.virtualearth.net/tiles/a{quadkey}.jpeg?g=1`),
           tiles: [
-            'http://ecn.t0.tiles.virtualearth.net/tiles/a{quadkey}.jpeg?g=1',
-            'http://ecn.t1.tiles.virtualearth.net/tiles/a{quadkey}.jpeg?g=1',
-            'http://ecn.t2.tiles.virtualearth.net/tiles/a{quadkey}.jpeg?g=1',
-            'http://ecn.t3.tiles.virtualearth.net/tiles/a{quadkey}.jpeg?g=1',
-            'http://ecn.t4.tiles.virtualearth.net/tiles/a{quadkey}.jpeg?g=1',
-            'http://ecn.t5.tiles.virtualearth.net/tiles/a{quadkey}.jpeg?g=1',
-            'http://ecn.t6.tiles.virtualearth.net/tiles/a{quadkey}.jpeg?g=1',
-            'http://ecn.t7.tiles.virtualearth.net/tiles/a{quadkey}.jpeg?g=1',
+            'https://ecn.t0.tiles.virtualearth.net/tiles/a{quadkey}.jpeg?g=1',
+            'https://ecn.t1.tiles.virtualearth.net/tiles/a{quadkey}.jpeg?g=1',
+            'https://ecn.t2.tiles.virtualearth.net/tiles/a{quadkey}.jpeg?g=1',
+            'https://ecn.t3.tiles.virtualearth.net/tiles/a{quadkey}.jpeg?g=1',
+            'https://ecn.t4.tiles.virtualearth.net/tiles/a{quadkey}.jpeg?g=1',
+            'https://ecn.t5.tiles.virtualearth.net/tiles/a{quadkey}.jpeg?g=1',
+            'https://ecn.t6.tiles.virtualearth.net/tiles/a{quadkey}.jpeg?g=1',
+            'https://ecn.t7.tiles.virtualearth.net/tiles/a{quadkey}.jpeg?g=1',
           ],
         },
-
-        'features': {
+        // 'graticules': {
+        //   type: 'geojson',
+        //   data: graticules,
+        // },
+        'original_features': {
           type: 'geojson',
-          data: out_fcoll,
+          data: original_features.full,
           tolerance: .2,
+        },
+        'original_pins': {
+          type: 'geojson',
+          data: original_features.pins,
+        },
+        'modified_features': {
+          type: 'geojson',
+          data: modified_features.full,
+          tolerance: .2,
+        },
+        'modified_pins': {
+          type: 'geojson',
+          data: modified_features.pins,
         },
         'highlight': {
           type: 'geojson',
-          data: hl_fcoll,
+          data: selected_features,
           tolerance: 0, // show all vertices
         },
       },
       layers: [
+        // {
+        //   id: 'water',
+        //   type: 'background',
+        //   paint: {
+        //     'background-color': 'hsl(0 0% 0% / .1)',
+        //   },
+        // },
         {
           id: 'land',
           type: 'fill',
           source: 'ne_land',
           paint: {
-            'fill-color': 'hsl(0 0% 98%)',
-            ... is_dark && {
-              'fill-color': 'hsl(0 0% 20%)',
-            },
+            'fill-color': ['case', ['global-state', 'is_dark'],
+              'hsl(0 0% 20%)', // dark
+              'hsl(0 0% 98%)', // light
+            ],
           },
         },
+        {
+          id: 'sat',
+          type: 'raster',
+          source: 'sat_google',
+          paint: {
+            'raster-opacity': .5,
+          },
+          layout: {
+            visibility: show_sat ? 'visible' : 'none',
+          },
+        },
+
         // {
-        //   id: 'sat',
-        //   type: 'raster',
-        //   source: 'sat_google',
+        //   id: 'graticules',
+        //   type: 'line',
+        //   source: 'graticules',
         //   paint: {
-        //     'raster-opacity': .5,
+        //     'line-width': 1,
+        //     'line-color': 'hsl(0 0% 50% / .1)',
         //   },
         // },
+
         {
-          id: 'out_fill',
+          id: 'original_fill',
           type: 'fill',
-          source: 'features',
-          filter: ['==', ['geometry-type'], 'Polygon'],
+          source: 'original_features',
+          filter: [
+            'all',
+            ['==', ['geometry-type'], 'Polygon'],
+            ['!', ['in', ['get', 'id'], ['global-state', 'modified_features_ids']]],
+            ['at', ['get', 'overlay_idx'], ['global-state', 'overlays_visibility']],
+          ],
           paint: {
             'fill-opacity': .4,
-            'fill-color': ['to-color', ['concat', 'hsl(', ['get', 'hue'], ' 100% 70%)']],
+            'fill-color': ['to-color', ['concat', 'hsl(',
+              ['at', ['get', 'overlay_idx'], ['global-state', 'overlays_hues']],
+              ' 100% 70%)',
+            ]],
           },
         },
         {
-          id: 'hl_fill',
+          id: 'modified_fill',
+          type: 'fill',
+          source: 'modified_features',
+          filter: [
+            'all',
+            ['==', ['geometry-type'], 'Polygon'],
+            ['at', ['get', 'overlay_idx'], ['global-state', 'overlays_visibility']],
+          ],
+          paint: {
+            'fill-opacity': .4,
+            'fill-color': ['to-color', ['concat', 'hsl(',
+              ['at', ['get', 'overlay_idx'], ['global-state', 'overlays_hues']],
+              ' 100% 70%)',
+            ]],
+          },
+        },
+        {
+          id: 'fill_highlighted',
           type: 'fill',
           source: 'highlight',
-          filter: ['==', ['geometry-type'], 'Polygon'],
+          filter: [
+            'all',
+            ['==', ['geometry-type'], 'Polygon'],
+            ['at', ['get', 'overlay_idx'], ['global-state', 'overlays_visibility']],
+          ],
           paint: {
             'fill-opacity': .2,
-            'fill-color': 'hsl(0 0% 33%)',
-            ... is_dark && {
-              'fill-color': 'hsl(0 0% 93%)',
-            },
+            'fill-color': ['case', ['global-state', 'is_dark'],
+              'hsl(0 0% 93%)', // dark
+              'hsl(0 0% 33%)', // light
+            ],
           },
         },
         {
-          id: 'out_line',
+          id: 'original_line',
           type: 'line',
-          source: 'features',
-          filter: ['==', ['geometry-type'], 'LineString'],
+          source: 'original_features',
+          filter: [
+            'all',
+            ['==', ['geometry-type'], 'LineString'],
+            ['!', ['in', ['get', 'id'], ['global-state', 'modified_features_ids']]],
+            ['at', ['get', 'overlay_idx'], ['global-state', 'overlays_visibility']],
+          ],
           paint: {
             'line-width': 2,
-            'line-color': ['to-color', ['concat', 'hsl(', ['get', 'hue'], ' 100% 70%)']],
+            'line-color': ['to-color', ['concat', 'hsl(',
+              ['at', ['get', 'overlay_idx'], ['global-state', 'overlays_hues']],
+              ' 100% 70%)',
+            ]],
+          },
+        },
+        {
+          id: 'modified_line',
+          type: 'line',
+          source: 'modified_features',
+          filter: [
+            'all',
+            ['==', ['geometry-type'], 'LineString'],
+            ['at', ['get', 'overlay_idx'], ['global-state', 'overlays_visibility']],
+          ],
+          paint: {
+            'line-width': 2,
+            'line-color': ['to-color', ['concat', 'hsl(',
+              ['at', ['get', 'overlay_idx'], ['global-state', 'overlays_hues']],
+              ' 100% 70%)',
+            ]],
+          },
+        },
+        {
+          id: 'original_pin',
+          type: 'circle',
+          source: 'original_pins',
+          filter: [
+            'all',
+            ['<=', ['zoom'], ['get', 'zoom']],
+            ['at', ['get', 'overlay_idx'], ['global-state', 'overlays_visibility']],
+          ],
+          paint: {
+            'circle-pitch-alignment': 'map',
+            'circle-radius': 2,
+            'circle-color': ['to-color', ['concat', 'hsl(',
+              ['at', ['get', 'overlay_idx'], ['global-state', 'overlays_hues']],
+              ['case', ['global-state', 'is_dark'],
+                '  90% 70% / .6)', // dark
+                ' 100% 50% / .6)', // light
+              ],
+            ]],
+          },
+        },
+        {
+          id: 'modified_pin',
+          type: 'circle',
+          source: 'modified_pins',
+          filter: [
+            'all',
+            ['<=', ['zoom'], ['get', 'zoom']],
+            ['at', ['get', 'overlay_idx'], ['global-state', 'overlays_visibility']],
+          ],
+          paint: {
+            'circle-pitch-alignment': 'map',
+            'circle-radius': 2,
+            'circle-color': ['to-color', ['concat', 'hsl(',
+              ['at', ['get', 'overlay_idx'], ['global-state', 'overlays_hues']],
+              ['case', ['global-state', 'is_dark'],
+                '  90% 70% / .6)', // dark
+                ' 100% 50% / .6)', // light
+              ],
+            ]],
           },
         },
         {
           id: 'hl_path',
           type: 'line',
           source: 'highlight',
-          filter: ['!=', ['geometry-type'], 'Point'],
+          filter: [
+            'all',
+            ['!=', ['geometry-type'], 'Point'],
+            ['at', ['get', 'overlay_idx'], ['global-state', 'overlays_visibility']],
+          ],
           paint: {
             'line-width': 1,
-            'line-color': 'hsl(0 0% 33%)',
-            ... is_dark && {
-              'line-color': 'hsl(0 0% 93%)',
-            },
+            'line-color': ['case', ['global-state', 'is_dark'],
+              'hsl(0 0% 93%)', // dark
+              'hsl(0 0% 33%)', // light
+            ],
           },
         },
         {
           id: 'hl_vertex',
           type: 'circle',
           source: 'highlight',
-          filter: ['!=', ['geometry-type'], 'Point'],
+          filter: [
+            'all',
+            ['!=', ['geometry-type'], 'Point'],
+            ['at', ['get', 'overlay_idx'], ['global-state', 'overlays_visibility']],
+          ],
           paint: {
             'circle-radius': 2,
-            'circle-color': 'hsl(0 0% 33%)',
-            ... is_dark && {
-              'circle-color': 'hsl(0 0% 93%)',
-            },
+            'circle-color': ['case', ['global-state', 'is_dark'],
+              'hsl(0 0% 93%)', // dark
+              'hsl(0 0% 33%)', // light
+            ],
           },
         },
         {
-          id: 'out_collapsed',
+          id: 'original_point',
           type: 'circle',
-          source: 'features',
-          filter: ['<=', ['zoom'], ['coalesce', ['get', 'zoom'], -1]],
-          paint: {
-            'circle-radius': 2,
-            'circle-color': ['to-color', ['concat', 'hsl(', ['get', 'hue'], ' 100% 50% / .6)']],
-            ... is_dark && {
-              'circle-color': ['to-color', ['concat', 'hsl(', ['get', 'hue'], ' 90% 70% / .6)']],
-            },
-          },
-        },
-        {
-          id: 'out_point',
-          type: 'circle',
-          source: 'features',
+          source: 'original_features',
           filter: [
             'all',
             ['==', ['geometry-type'], 'Point'],
-            ['==', null, ['get', 'zoom']], // not collapsed
+            ['at', ['get', 'overlay_idx'], ['global-state', 'overlays_visibility']],
+            ['!', ['in', ['get', 'id'], ['global-state', 'modified_features_ids']]],
           ],
           paint: {
             'circle-radius': 2,
             'circle-stroke-width': 1,
-            'circle-color': ['to-color', ['concat', 'hsl(', ['get', 'hue'], ' 100% 50% / .6)']],
-            'circle-stroke-color': ['to-color', ['concat', 'hsl(', ['get', 'hue'], ' 100% 30%)']],
-            ... is_dark && {
-              'circle-color': ['to-color', ['concat', 'hsl(', ['get', 'hue'], ' 90% 50% / .6)']],
-              'circle-stroke-color': ['to-color', ['concat', 'hsl(', ['get', 'hue'], ' 100% 70%)']],
-            },
+            'circle-color': ['to-color', ['concat', 'hsl(',
+              ['at', ['get', 'overlay_idx'], ['global-state', 'overlays_hues']],
+              ['case', ['global-state', 'is_dark'],
+                '  90% 50% / .6)', // dark
+                ' 100% 50% / .6)', // light
+              ],
+            ]],
+            'circle-stroke-color': ['to-color', ['concat', 'hsl(',
+              ['at', ['get', 'overlay_idx'], ['global-state', 'overlays_hues']],
+              ['case', ['global-state', 'is_dark'],
+                ' 100% 70%)', // dark
+                ' 100% 30%)', // light
+              ],
+            ]],
           },
         },
         {
-          id: 'ne_cities',
+          id: 'modified_point',
+          type: 'circle',
+          source: 'modified_features',
+          filter: [
+            'all',
+            ['==', ['geometry-type'], 'Point'],
+            ['at', ['get', 'overlay_idx'], ['global-state', 'overlays_visibility']],
+          ],
+          paint: {
+            'circle-radius': 2,
+            'circle-stroke-width': 1,
+            'circle-color': ['to-color', ['concat', 'hsl(',
+              ['at', ['get', 'overlay_idx'], ['global-state', 'overlays_hues']],
+              ['case', ['global-state', 'is_dark'],
+                '  90% 50% / .6)', // dark
+                ' 100% 50% / .6)', // light
+              ],
+            ]],
+            'circle-stroke-color': ['to-color', ['concat', 'hsl(',
+              ['at', ['get', 'overlay_idx'], ['global-state', 'overlays_hues']],
+              ['case', ['global-state', 'is_dark'],
+                ' 100% 70%)', // dark
+                ' 100% 30%)', // light
+              ],
+            ]],
+          },
+        },
+        {
+          id: 'cities',
           type: 'symbol',
           source: 'ne_cities',
           paint: {
             'text-opacity': .4, // allows features to be visible through city labels
             'text-halo-width': 1,
-            'text-color': 'hsl(0 0% 30%)',
-            'text-halo-color': 'hsl(0 0% 100%)',
-            ... is_dark && {
-              'text-color': 'hsl(0 0% 90%)',
-              'text-halo-color': 'hsl(0 0% 0%)',
-            },
+            'text-color': ['case', ['global-state', 'is_dark'],
+              'hsl(0 0% 90%)', // dark
+              'hsl(0 0% 30%)', // light
+            ],
+            'text-halo-color': ['case', ['global-state', 'is_dark'],
+              'hsl(0 0% 0%)', // dark
+              'hsl(0 0% 100%)', // light
+            ],
           },
           layout: {
             'text-size': 14,
@@ -256,6 +457,7 @@ const methods = {
             'text-anchor': 'bottom', // prevent features from being overlapped by city labels
           },
         },
+        // TODO 'circle-pitch-alignment': 'map' for collapsed points
         {
           id: 'hl_point',
           type: 'circle',
@@ -263,16 +465,28 @@ const methods = {
           filter: [
             'all',
             ['==', ['geometry-type'], 'Point'],
-            ['<=', ['zoom'], ['coalesce', ['get', 'zoom'], 100]],
+            // ['<=', ['zoom'], ['coalesce', ['get', 'zoom'], 100]],
+            ['at', ['get', 'overlay_idx'], ['global-state', 'overlays_visibility']],
           ],
           paint: {
-            'circle-radius': 2,
-            'circle-color':  'hsl(0 0% 90%)',
-            'circle-stroke-width': 2,
-            'circle-stroke-color': 'hsl(0 0% 30%)',
-            ... is_dark && {
-              'circle-stroke-color': 'hsl(0 0% 90%)',
-            },
+            'circle-radius': 5,
+            'circle-stroke-width': 1,
+            'circle-color': 'transparent',
+            'circle-stroke-color': ['case', ['global-state', 'is_dark'],
+              'hsl(0 0% 90%)', // dark
+              'hsl(0 0% 30%)', // light
+            ],
+
+            // 'circle-radius': 3,
+            // 'circle-stroke-width': 1,
+            // 'circle-color':'hsl(0 0% 100%)',
+            // 'circle-stroke-color': ['to-color', ['concat', 'hsl(',
+            //   ['at', ['get', 'overlay_idx'], ['global-state', 'overlays_hues']],
+            //   ['case', ['global-state', 'is_dark'],
+            //     '  90% 50%)', // dark
+            //     ' 100% 50%)', // light
+            //   ],
+            // ]],
           },
         },
         // {
@@ -303,63 +517,90 @@ const methods = {
     return style;
   },
 
-
   // TODO split primary and collapsed features to different featurecollections
-  // TODO move hue out of featurecollection to make potential hue-slider control possible.
-  get_out_fcoll() {
-    const golden_angle = 180 * (3 - 5 ** .5); // https://en.wikipedia.org/wiki/Golden_angle
+  /**
+  * @param {'original' | 'modified'} original_or_modified
+  * @returns
+  */
+  get_features(original_or_modified) {
     const granularity = 4 /*marker diameter px*/ / 512 /*world size px*/;
-    const features = [];
-    // const collapsed = [];
-    const { frames } = this.$store.out;
-    for (let frame_idx = 0; frame_idx < frames.length; frame_idx++) {
-      const { rows, geom_col_idx } = frames[frame_idx];
-      if (geom_col_idx < 0 || !rows) continue;
-      // TODO fix bad contrast when blue on black bg
-      const hue = (200 + frame_idx * golden_angle) % 360;
-      for (let row_idx = 0; row_idx < rows.length; row_idx++) {
-        const { original } = rows[row_idx];
-        if (!original) continue; // TODO support modified
-        const geometry = geojson_try_parse(original[geom_col_idx]);
-        if (!geometry) continue;
-        const bbox = [180, 90, -180, -90];
-        for (const singular_geom of geojson_unnest(geometry)) {
-          const [w, s, e, n] = geojson_bbox(singular_geom);
-          geojson_extend_bbox(bbox, w, s);
-          geojson_extend_bbox(bbox, e, n);
-          if (singular_geom.type == 'Point') continue; // TODO multipoint
-          const lb = MercatorCoordinate.fromLngLat([w, s]);
-          const rt = MercatorCoordinate.fromLngLat([e, n]);
-          const span = Math.hypot(rt.x - lb.x, rt.y - lb.y);
-          const zoom = Math.log2(granularity / span);
-          const coordinates = [(w + e) / 2, (s + n) / 2];
-          features.push({
-            type: 'Feature',
-            properties: { frame_idx, row_idx, hue, zoom },
-            geometry: { type: 'Point', coordinates },
-          });
-        }
-        features.push({
+    const features = [], pins = [], dict = new Map();
+    for (const { overlay_idx, frame_idx, rows, col_idx } of this.get_geomcols())
+    for (let row_idx = rows.length; row_idx--;) {
+      // TODO bench original_or_modified static vs dynamic dispatch
+      const wkt = rows[row_idx][original_or_modified]?.[col_idx];
+      if (wkt === undefined) continue;
+      let geometry;
+      try {
+        geometry = wkt2json(wkt);
+      } catch { }
+
+      const id = `${overlay_idx}.${row_idx}`;
+      const dict_features = [];
+      dict.set(id, dict_features);
+
+      if (!geometry) continue;
+
+      for (const singular_geom of geometry.geometries) {
+        const [w, s, e, n] = geojson_bbox(singular_geom);
+
+        const f = {
           type: 'Feature',
-          properties: { frame_idx, row_idx, hue },
+          properties: { frame_idx, row_idx, overlay_idx, id },
           geometry,
-          bbox,
+        };
+        features.push(f);
+        dict_features.push(f);
+
+        // geojson_extend_bbox(bbox, w, s);
+        // geojson_extend_bbox(bbox, e, n);
+        if (singular_geom.type == 'Point') continue;
+
+        const span = Math.hypot((e - w) / 360, (s - n) / 180); // TODO mercator
+        const zoom = Math.log2(granularity / span);
+        const coordinates = [(w + e) * .5, (s + n) * .5];
+        pins.push({
+          type: 'Feature',
+          properties: { frame_idx, row_idx, overlay_idx, zoom },
+          geometry: { type: 'Point', coordinates },
         });
       }
     }
-    const fcoll = { type: 'FeatureCollection', features };
-    // hack maplibre to bypass expensive deepClone and deepEqual
-    // algorithms during style diff computation
-    return { toJSON: _ => fcoll };
+    return {
+      full: { type: 'FeatureCollection', features },
+      pins: { type: 'FeatureCollection', features: pins },
+      dict,
+    };
   },
 
-  get_hl_fcoll() {
-    const { frame_idx, row_idx } = this.$store.get_selected_rowcol();
-    const out_fcoll = this.$cached(this.get_out_fcoll).toJSON();
-    const features = out_fcoll.features.filter(({ properties: p }) => (
-      p.frame_idx == frame_idx &&
-      p.row_idx == row_idx
-    ));
+  get_original_features() {
+    return this.get_features('original');
+  },
+
+  get_modified_features() {
+    return this.get_features('modified');
+  },
+
+  // TODO 3 levels of highlight
+  // when row focused
+  // when geom cell is focused
+  // when vertex selected
+  get_selected_features() {
+    const { frame_idx, row_idx } = this.get_store().get_selected_rowcol();
+    // const { cols } = this.get_store().out.frames[frame_idx];
+    const original = this.$cached(this.get_original_features);
+    const modified = this.$cached(this.get_modified_features);
+    const features = [];
+    for (const g of this.get_geomcols()) {
+      if (g.frame_idx != frame_idx) continue;
+      const feature_id = `${g.overlay_idx}.${row_idx}`;
+      // TODO avoid null features
+      features.push(
+        ... modified.dict.get(feature_id)
+        || original.dict.get(feature_id)
+        || []
+      );
+    }
     return { type: 'FeatureCollection', features };
   },
 
@@ -380,8 +621,22 @@ const methods = {
     const qbox = [point.sub(pad), point.add(pad)];
     const feature = (
       // TODO exclude already highlighted feature
-      this._ml.queryRenderedFeatures(qbox, { layers: ['out_point', 'out_collapsed', 'out_line'] })[0] ||
-      this._ml.queryRenderedFeatures(point, { layers: ['out_fill'] })[0]
+      this._ml.queryRenderedFeatures(qbox, {
+        layers: [
+          'original_point',
+          'original_pin',
+          'original_line',
+          'modified_point',
+          'modified_pin',
+          'modified_line',
+        ],
+      })[0] ||
+      this._ml.queryRenderedFeatures(point, {
+        layers: [
+          'original_fill',
+          'modified_fill',
+        ],
+      })[0]
     );
     if (!feature) return; // TODO clear highlight
     const { frame_idx, row_idx } = feature.properties;
@@ -391,60 +646,50 @@ const methods = {
   },
 
   on_req_map_navigate() {
-    const hl_fcoll = this.$cached(this.get_hl_fcoll);
+    return; // TODO make navigation unobtrusive
+
+    const hl_fcoll = this.$cached(this.get_selected_features);
     const feature = hl_fcoll.features.find(f => f.bbox);
     if (!feature) return;
-    const padding = 20; // px
+    // TODO globe support (and pitch, bearing)
+    // const padding = 0; // px
     const { width, height } = this._ml.transform;
-    const sw = this._ml.unproject([padding, height - padding]);
-    const ne = this._ml.unproject([width - padding, padding]);
-    const bounds = new LngLatBounds(sw, ne);
-    bounds.extend(feature.bbox);
-    this._ml.fitBounds(bounds, { padding });
+    // const sw = this._ml.unproject([padding, height - padding]);
+    // const ne = this._ml.unproject([width - padding, padding]);
+    // const bounds = new LngLatBounds(sw, ne);
+    // const bounds = this._ml.getBounds();
+    // bounds.extend(feature.bbox);
+    const padding = {
+      left: width * .4,
+      right: width * .4,
+      top: height * .4,
+      bottom: height * .4,
+    };
+    this._ml.fitBounds(feature.bbox, { padding });
     // TODO if point then use box of the point and nearest point from dataset
-    // this._ml.fitBounds(geom.bbox, { padding: 20 });
   },
 };
-
-function geojson_try_parse(maybe_geojson) {
-  try {
-    return JSON.parse(maybe_geojson);
-  } catch {
-    return null;
-  }
-}
-
-function geojson_unnest(geom) {
-  switch (geom.type) {
-    case 'MultiLineString':
-      return geom.coordinates.map(coordinates => ({ type: 'LineString', coordinates }));
-    case 'MultiPolygon':
-      return geom.coordinates.map(coordinates => ({ type: 'Polygon', coordinates }));
-    case 'GeometryCollection':
-      return geom.geometries.flatMap(geojson_unnest);
-    default:
-      return [geom];
-  }
-}
 
 function geojson_bbox({ type, coordinates }) {
   switch (type) {
     case 'Point':
-      return [...coordinates, ...coordinates]; // TODO slice(0, 2)
+      coordinates = [coordinates];
+      break;
     case 'Polygon':
-      [coordinates] = coordinates; // take exterior ring only
+      coordinates = coordinates[0]; // take exterior ring only
+      break;
     case 'MultiPoint':
-    case 'LineString': {
-      const bbox = [180, 90, -180, -90];
-      for (const p of coordinates) {
-        // [lng, lat] = p // 3x slower
-        geojson_extend_bbox(bbox, p[0], p[1]);
-      }
-      return bbox;
-    }
+    case 'LineString':
+      break;
     default:
       throw Error('impossible');
   }
+  const bbox = [180, 90, -180, -90];
+  for (const p of coordinates) {
+    // [lng, lat] = p // 3x slower
+    geojson_extend_bbox(bbox, p[0], p[1]);
+  }
+  return bbox;
 }
 
 function geojson_extend_bbox(bbox, lng, lat) {
@@ -456,3 +701,34 @@ function geojson_extend_bbox(bbox, lng, lat) {
 }
 
 export default { methods };
+
+
+// const graticules = {
+//   type: 'FeatureCollection',
+//   features: [],
+// };
+
+// const minlat = -85, maxlat = 85;
+// const minlon = -180, maxlon = 180;
+
+// for (let lon = minlon; lon < maxlon; lon++) {
+//   graticules.features.push({
+//     type: 'Feature',
+//     properties: { value: lon },
+//     geometry: {
+//       type: 'LineString',
+//       coordinates: [[lon, minlat], [lon, maxlat]],
+//     },
+//   });
+// }
+
+// for (let lat = minlat; lat < maxlat; lat++) {
+//   graticules.features.push({
+//     type: 'Feature',
+//     properties: { value: lat },
+//     geometry: {
+//       type: 'LineString',
+//       coordinates: [[minlon, lat], [maxlon, lat]],
+//     },
+//   });
+// }

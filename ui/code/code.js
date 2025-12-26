@@ -64,6 +64,12 @@ const methods = {
       run: _ => this.$store.run({ selected: true }),
     });
 
+    this._editor.addAction({
+      id: 'pgbb.action.toggle_sat',
+      label: 'Toogle Satellite',
+      run: _ => this.$store.toggle_sat(),
+    });
+
     window.debug_editor = this._editor;
 
     this.$watch(

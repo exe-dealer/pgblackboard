@@ -19,6 +19,8 @@ export function psqlscan_split(sql) {
     for (let of = 0; of < written; ) {
       const len = psql_stmt_len(input_p + of, written - of);
       // TODO avoid new strings allocation, use sql.slice(...)
+      // we can just skip utf8 decoding when accepting http request body
+      // we can pass bytes directly to psqlscan_split instead of string
       res.push(utf8d.decode(new Uint8Array(memory.buffer, input_p + of, len)));
       of += len;
     }

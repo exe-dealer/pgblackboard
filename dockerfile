@@ -1,4 +1,5 @@
-FROM denoland/deno:alpine-2.3.1 AS deno
+# https://hub.docker.com/r/denoland/deno/tags?name=alpine
+FROM denoland/deno:alpine-2.6.3 AS deno
 EXPOSE 7890
 WORKDIR /app
 RUN ln -s /app/bin/pgbb /usr/local/bin/pgbb
@@ -9,7 +10,7 @@ RUN apk add --no-cache make esbuild
 COPY . .
 
 FROM dev AS build
-RUN make build
+RUN make clean build
 
 FROM deno
 COPY --from=build /app/.dist /app
