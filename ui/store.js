@@ -10,7 +10,7 @@ export class Store {
     done: false,
     error: '',
     u: '',
-    key: '',
+    token: '',
   };
 
   // TODO single field
@@ -90,22 +90,23 @@ export class Store {
       ok: false,
       error: null,
       u,
-      key: null,
+      token: null,
     };
     const auth = this.auth;
     try {
       // await new Promise(resolve => setTimeout(resolve, 3000));
-      const { ok, error, key } = await this._api('auth', { u }, { password });
+      const { ok, error, token } = await this._api('auth', { u }, { password });
       if (!ok) {
         auth.error = error;
         return;
       }
-      auth.key = key;
+      auth.token = token;
       // TODO concurent store mutation if multiple parallel .auth() called
       await this._load_tree_and_drafts();
 
       auth.ok = true;
     } catch (ex) {
+      console.error(ex);
       auth.error = String(ex);
     } finally {
       auth.pending = false;
@@ -210,10 +211,10 @@ export class Store {
     node.children = { nodes: [], error: null, ready: false };
     if (should_collapse) return;
     const { db, children, ntype, noid, ntid } = node;
-    const { u, key } = this.auth;
+    const { u } = this.auth;
     try {
       children.ready = null; // loading
-      const { result } = await this._api('tree', { u, db, ntype, noid, ntid, key });
+      const { result } = await this._api('tree', { u, db, ntype, noid, ntid });
       // await new Promise(res => setTimeout(res, 2000));
       for (const cn of result) {
         cn.children = { nodes: [], error: null, ready: false };
@@ -240,8 +241,8 @@ export class Store {
       this.tree,
     );
     const { db, ntype, noid, ntid } = node;
-    const { u, key } = this.auth;
-    const content = await this._api('defn', { u, db, ntype, noid, ntid, key }).then(
+    const { u } = this.auth;
+    const content = await this._api('defn', { u, db, ntype, noid, ntid }).then(
       ({ result }) => result || '',
       err => `/* ${err} */\n`,
     );
@@ -256,7 +257,10 @@ export class Store {
     qs = JSON.parse(JSON.stringify(qs)); // rm undefined
     const resp = await fetch('?' + new URLSearchParams({ api, ...qs }), {
       method: 'POST',
-      headers: { 'content-type': 'application/json; charset=utf-8' },
+      headers: {
+        'content-type': 'application/json; charset=utf-8',
+        'x-pgbb-auth': this.auth?.token,
+      },
       body: JSON.stringify(body),
     });
     if (!resp.ok) throw Error(`${resp.status} ${resp.statusText}`);
@@ -478,8 +482,8 @@ export class Store {
   }
 
   async wake() {
-    const token = this.out.suspended.wake_token;
-    await this._api('wake', { token });
+    const id = this.out.suspended.wake_id;
+    await this._api('wake', { id });
   }
 
   can_run() {
@@ -517,14 +521,16 @@ export class Store {
         sql = '\n'.padStart(from, ' ') + sql.slice(from, to);
       }
 
-      const { u, key } = this.auth;
-      const qs = new URLSearchParams({ api: 'run', u, db, key });
-      const body = JSON.stringify({ sql, tz });
+      const { u, token } = this.auth;
+      const qs = new URLSearchParams({ api: 'run', u, db, tz });
       const resp = await fetch('?' + qs, {
         method: 'POST',
         signal: out.aborter.signal,
-        headers: { 'content-type': 'application/json; charset=utf-8' },
-        body,
+        headers: {
+          'content-type': 'application/json; charset=utf-8',
+          'x-pgbb-auth': token, // TODO dry this._api()
+        },
+        body: sql,
       });
       if (!resp.ok) {
         throw Error(`HTTP ${resp.status} ${resp.statusText}`, {

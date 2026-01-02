@@ -5,13 +5,6 @@ services:
       context: .
       target: dev
     ports: [7890:7890]
-    # command: [pgbb, postgres://192.168.55.130:29401]
-    # command: [pgbb, postgres://192.168.55.152:5432]
-    # command: [pgbb, postgres://192.168.55.130:32801]
-    # command: [pgbb, postgres://192.168.55.130:25101]
-    # command: [pgbb, postgres://192.168.55.181:21501]
-    # command: [pgbb, postgres://192.168.55.130:23401]
-    # stop_signal: SIGKILL
     develop:
       watch:
         - action: rebuild
@@ -22,11 +15,10 @@ services:
 
   pgbbprod:
     image: kagiskz/pgblackboard:3-20251226
-    # image: docker.kagis.kz/geonomix/pgblackboard:3-20250222
     build: .
     ports: [7890:7890]
     # command: [pgbb, postgres://postgres:5432]
-    # profiles: [prod]
+    profiles: [prod]
 
   postgres:
     image: kagiskz/postgres:18.1-20251211

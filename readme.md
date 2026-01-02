@@ -51,4 +51,9 @@ docker run -it --rm -p 7890:7890 kagiskz/pgblackboard:3-20241121 pgbb postgres:/
 - `copy to stdout` download
 - color scheme revision
 - editing with no `dump changes` button
-- avoid pass authkey by url
+
++ avoid pass authkey by url
+  использую ?u=postgres чтобы в логах было видно пользователя
+  надо привязать token к user чтобы токен от одного юзера не подходил другому
+  wake в закрытый контур
+  разделить страницы аутентификации и апп? статику в закрытый контур?
