@@ -209,6 +209,8 @@ async function api_run(ctx) {
 }
 
 async function * api_run_body({ wakers, pg_uri, req, url, user, password }) {
+  // TODO Prefer header?
+  // https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Prefer#custom_preference
   const tz = url.searchParams.get('tz');
   const database = url.searchParams.get('db');
   const { signal } = req;
@@ -317,7 +319,7 @@ async function * api_run_body({ wakers, pg_uri, req, url, user, password }) {
       // - not all statemements can be executed in explicit transaction.
       // - CALL procedure() behaves differently in implicit and explicit transactions
       // - rollback/commit causes autocommit behavior
-    });
+    }, { signal });
 
     let nbytes = 0;
     let nrows = 0;
@@ -343,7 +345,7 @@ async function * api_run_body({ wakers, pg_uri, req, url, user, password }) {
       const parse_res = await Array.fromAsync(pg.stream(
         { message: 'Parse', statement },
         { message: 'DescribeStatement' },
-        // { signal },
+        { signal },
       ));
       in_user_script = false;
 
