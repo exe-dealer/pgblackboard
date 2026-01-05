@@ -43,14 +43,14 @@ ui/_vendor/maplibre.js:
 	sed -i '/^\/\/# sourceMappingURL/d' $@
 
 ui/_vendor/monaco.css:
-	wget -O $@ 'https://esm.sh/v135/monaco-editor@0.52.2/es2022/monaco-editor.css'
+	wget -O $@ 'https://esm.sh/monaco-editor@0.55.1/es2022/monaco-editor.css'
 	deno fmt $@
 ui/_vendor/monaco.js:
-	wget -O $@ 'https://esm.sh/v135/monaco-editor@0.52.2/es2022/esm/vs/editor/editor.main.development.bundle.js'
+	wget -O $@ 'https://esm.sh/v135/monaco-editor@0.55.1/es2022/esm/vs/editor/editor.main.development.bundle.js'
 ui/_vendor/monaco_worker.js:
-	wget -O $@ 'https://esm.sh/v135/monaco-editor@0.52.2/es2022/esm/vs/editor/editor.worker.development.bundle.js?worker'
+	wget -O $@ 'https://esm.sh/v135/monaco-editor@0.55.1/es2022/esm/vs/editor/editor.worker.development.bundle.js?worker'
 ui/_vendor/monaco_json_worker.js:
-	wget -O $@ 'https://esm.sh/v135/monaco-editor@0.52.2/es2022/esm/vs/language/json/json.worker.development.bundle.js?worker'
+	wget -O $@ 'https://esm.sh/v135/monaco-editor@0.55.1/es2022/esm/vs/language/json/json.worker.development.bundle.js?worker'
 
 server/_vendor/pgwire.js:
 	wget -O $@ 'https://raw.githubusercontent.com/kagis/pgwire/b992f307097ac5bd350ba41ea4c85d194ccb611f/mod.js'
