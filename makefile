@@ -54,8 +54,9 @@ ui/_vendor/monaco_json_worker.js:
 
 server/_vendor/pgwire.js:
 	wget -O $@ 'https://raw.githubusercontent.com/kagis/pgwire/b992f307097ac5bd350ba41ea4c85d194ccb611f/mod.js'
-server/_vendor/parse_args.ts:
-	wget -O $@ 'https://jsr.io/@std/cli/1.0.12/parse_args.ts'
+server/_vendor/parse_args.js:
+	deno bundle -o $@ 'https://jsr.io/@std/cli/1.0.25/parse_args.ts'
+	# wget -O $@ 'https://jsr.io/@std/cli/1.0.12/parse_args.ts'
 
 
 # docker run -it --rm -v $PWD:/app -w /app alpine:3.21.2

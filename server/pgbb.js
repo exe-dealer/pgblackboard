@@ -1,4 +1,4 @@
-import { parseArgs as parse_args } from './_vendor/parse_args.ts';
+import { parseArgs as parse_args } from './_vendor/parse_args.js';
 import { pgconnection } from './_vendor/pgwire.js';
 import { psqlscan_split } from './psqlscan/mod.js';
 
