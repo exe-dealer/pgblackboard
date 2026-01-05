@@ -17,8 +17,15 @@ build: \
 clean:
 	rm -rf .dist
 
-.dist/%.js: %.js # TODO imported deps
-	esbuild $< --outfile=$@ --bundle --format=esm
+.dist/ui/ui.js: ui/*.js # ui/*/*.js  exclude _vendor?
+	esbuild ui/ui.js --outdir=.dist/ui \
+		--bundle \
+		--format=esm \
+		--splitting \
+		--chunk-names=[name]
+
+.dist/server/pgbb.js: server/*.js # TODO imported deps
+	esbuild server/pgbb.js --outfile=$@ --bundle --format=esm
 	# deno bundle $< --output=$@ --minify
 
 .dist/%.css: %.css # TODO imported deps

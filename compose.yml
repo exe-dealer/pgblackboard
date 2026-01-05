@@ -5,6 +5,7 @@ services:
       context: .
       target: dev
     ports: [7890:7890]
+    depends_on: [postgres]
     develop:
       watch:
         - action: rebuild
@@ -14,11 +15,12 @@ services:
           target: /app
 
   pgbbprod:
-    image: exedealer/pgblackboard:20260104
+    image: exedealer/pgblackboard:20260105
     build: .
-    ports: [7890:7890]
-    # command: [pgbb, postgres://postgres:5432]
+    ports: [7891:7890]
     profiles: [prod]
+    # depends_on: [postgres]
+    # command: [pgbb, postgres://postgres:5432]
 
   postgres:
     image: kagiskz/postgres:18.1-20251211
