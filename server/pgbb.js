@@ -23,7 +23,7 @@ async function main(args) {
     hostname: flags['listen-addr'],
     port: Number(flags['listen-port']),
     handler: req => respond(req, env),
-    onListen: _ => console.log('{"event":"start"}'),
+    // onListen: _ => console.log('{"event":"start"}'),
     // TODO onError json log
   });
 

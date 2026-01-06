@@ -1,5 +1,5 @@
 # https://hub.docker.com/r/denoland/deno/tags?name=alpine
-FROM denoland/deno:alpine-2.6.3 AS deno
+FROM denoland/deno:alpine-2.6.4 AS deno
 EXPOSE 7890
 WORKDIR /app
 RUN ln -s /app/bin/pgbb /usr/local/bin/pgbb
