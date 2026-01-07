@@ -1314,7 +1314,7 @@ class MessageReader extends BinaryReader {
           default    : throw Error('postgres sent unknown auth message', { cause: { authTag } });
         }
       }
-      default: Error('postgres sent unknown message', { cause: { asciiTag } });
+      default: throw Error('postgres sent unknown message', { cause: { asciiTag } });
     }
   }
   // https://www.postgresql.org/docs/16/protocol-message-formats.html#PROTOCOL-MESSAGE-FORMATS-DATAROW
@@ -2376,6 +2376,7 @@ class Channel {
 
 // https://www.postgresql.org/docs/14/sasl-authentication.html
 // https://datatracker.ietf.org/doc/html/rfc5802#section-3
+/** @internal */
 export class SaslScramSha256 {
   _clientFirstMessageBare;
   _serverSignatureB64;
@@ -2565,6 +2566,7 @@ function md5(/** @type {Uint8Array} */ input) {
   }
 }
 
+/** @internal */
 export const _net = {
   connect(options) {
     return options.path ? this.connectUnix(options) : this.connectTcp(options);

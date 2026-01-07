@@ -60,7 +60,7 @@ ui/_vendor/monaco_json_worker.js:
 	wget -O $@ 'https://esm.sh/v135/monaco-editor@0.55.1/es2022/esm/vs/language/json/json.worker.development.bundle.js?worker'
 
 server/_vendor/pgwire.js:
-	wget -O $@ 'https://raw.githubusercontent.com/kagis/pgwire/b992f307097ac5bd350ba41ea4c85d194ccb611f/mod.js'
+	wget -O $@ 'https://raw.githubusercontent.com/exedealer/pgwire/24465b25768ef0d9048acee1fddc748cf1690a14/mod.js'
 server/_vendor/parse_args.js:
 	deno bundle -o $@ 'https://jsr.io/@std/cli/1.0.25/parse_args.ts'
 	# wget -O $@ 'https://jsr.io/@std/cli/1.0.12/parse_args.ts'
