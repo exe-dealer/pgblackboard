@@ -119,7 +119,8 @@ export class Store {
 
     const initial_draft_id = this._add_draft(
       `\\connect postgres\n\n` +
-      `SELECT * FROM pg_stat_activity;\n`,
+      `SELECT to_jsonb(sa), * \n` +
+      `FROM pg_stat_activity sa;\n`,
     );
     this._unset_selected_draft();
     this.selected_draft_id = initial_draft_id;
