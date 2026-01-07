@@ -1,5 +1,8 @@
 .code {
   font-stretch: initial;
+  /* this background is visible when no draft is selected
+    after current draft was deleted */
+  background-color: light-dark(#fffffe, #1e1e1e);
 }
 
 .code .margin-view-overlays {
