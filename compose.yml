@@ -6,6 +6,10 @@ services:
       target: dev
     ports: [7890:7890]
     depends_on: [postgres]
+    deploy:
+      resources:
+        limits:
+          memory: 100M
     develop:
       watch:
         - action: rebuild
@@ -15,7 +19,7 @@ services:
           target: /app
 
   pgbbprod:
-    image: exedealer/pgblackboard:20260105
+    image: exedealer/pgblackboard
     build: .
     ports: [7891:7890]
     profiles: [prod]
