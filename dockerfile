@@ -13,5 +13,6 @@ FROM dev AS build
 RUN make clean build
 
 FROM deno
+LABEL org.opencontainers.image.authors="exe-dealer@yandex.kz"
 COPY --from=build /app/.dist /app
 USER deno
