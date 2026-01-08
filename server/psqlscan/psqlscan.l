@@ -928,3 +928,13 @@ int psql_stmt_len(const char *sql, yy_size_t len) {
 
 	return state.end_pos;  // Return position after semicolon
 }
+
+__attribute__((export_name("psql_realloc")))
+void *psql_realloc(void *ptr, size_t size) {
+  return realloc(ptr, size);
+}
+
+__attribute__((export_name("psql_free")))
+void psql_free(void *ptr) {
+  return free(ptr);
+}

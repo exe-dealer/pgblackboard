@@ -1,6 +1,6 @@
 import { parseArgs as parse_args } from './_vendor/parse_args.js';
 import { pgconnection } from './_vendor/pgwire.js';
-import { psqlscan_split } from './psqlscan/mod.js';
+import { psqlscan_iter } from './psqlscan/mod.js';
 
 const application_name = 'pgblackboard';
 
@@ -222,10 +222,6 @@ async function * api_run_body({ wakers, pg_uri, req, url, user, password }) {
   try {
     wakers.set(wake_id, ctl);
 
-    // TODO streaming, avoid utf8 decode, pass bytes to psqlscan_split
-    // does http allow duplex streming?
-    const sql = await req.text();
-
     // TODO kill previous connection - prevent connections leak in case of abort lag
     pg = pgconnection({
       user,
@@ -332,9 +328,11 @@ async function * api_run_body({ wakers, pg_uri, req, url, user, password }) {
     //   and can loose newly created types and tables.
     // - simple query buffers response so execution progress is not visible
     // - use statement start position when postgres sends no error position
-    const splitted_statements = psqlscan_split(sql);
+    const splitted_statements = psqlscan_iter(req.body);
+    // TODO how deno allows duplex streaming?
 
-    for (const statement of splitted_statements) {
+
+    for await (const statement of splitted_statements) {
       // TODO yield start execution
       //   +statement_pos
       //   avoid ErrorResponse & NoticeResponse position modification

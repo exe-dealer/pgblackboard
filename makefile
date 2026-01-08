@@ -17,6 +17,7 @@ build: \
 clean:
 	rm -rf .dist
 
+# TODO how to deal with code-split chunks? PHONY target?
 .dist/ui/ui.js: ui/*.js # ui/*/*.js  exclude _vendor?
 	esbuild ui/ui.js --outdir=.dist/ui \
 		--bundle \
@@ -63,8 +64,6 @@ server/_vendor/pgwire.js:
 	wget -O $@ 'https://raw.githubusercontent.com/exedealer/pgwire/24465b25768ef0d9048acee1fddc748cf1690a14/mod.js'
 server/_vendor/parse_args.js:
 	deno bundle -o $@ 'https://jsr.io/@std/cli/1.0.25/parse_args.ts'
-	# wget -O $@ 'https://jsr.io/@std/cli/1.0.12/parse_args.ts'
-
 
 # docker run -it --rm -v $PWD:/app -w /app alpine:3.21.2
 # apk add --no-cache make clang wasi-sdk lld flex
@@ -78,11 +77,10 @@ server/psqlscan/.psqlscan.wasm: server/psqlscan/.psqlscan.c
 	clang --target=wasm32-wasi \
 		--sysroot=/usr/share/wasi-sysroot \
 		-nostartfiles \
-		-Wl,--export,malloc \
-		-Wl,--export,free \
 		-Wl,--no-entry \
 		-o $@ \
 		$<
+	chmod -x $@
 
 server/psqlscan/.psqlscan.c: server/psqlscan/psqlscan.l
 	flex -o $@ $<
