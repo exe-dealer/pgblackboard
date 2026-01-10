@@ -1,6 +1,6 @@
 # pgBlackboard
 
-PostgreSQL web interface with no training wheels
+Postgres web interface for SQL geeks
 
 - SQL-first, multi-statement scripts
 - Editable query results
