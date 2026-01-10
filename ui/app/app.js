@@ -1,5 +1,4 @@
 import xAuth from '../auth/auth.js';
-import xMap from '../map/map_async.js';
 import xCode from '../code/code.js';
 import xOut from '../out/out.js';
 // import xTable from '../table/table.js';
@@ -109,7 +108,8 @@ const methods = {
         },
 
         { tag: xDatum, class: 'app-datum' },
-        { tag: xMap, class: 'app-map' },
+        // TODO this component injection looks like dirty hack
+        { tag: this.$xMap, class: 'app-map' },
 
         // TODO aria https://www.w3.org/WAI/ARIA/apg/patterns/windowsplitter/
         { tag: xGrip, class: 'app-split_left', origin: panes, onDrag: this.resize_left },
@@ -127,7 +127,6 @@ const methods = {
     };
   },
 
-  /** @param {MouseEvent} e */
   run() {
     // TODO show confirm dialog if .out has unsaved edits
     this.$store.run();

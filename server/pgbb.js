@@ -1,10 +1,12 @@
 import { parseArgs as parse_args } from './_vendor/parse_args.js';
 import { pgconnection } from './_vendor/pgwire.js';
 import { psqlscan_iter } from './psqlscan/mod.js';
+import { get_asset } from '../ui/assets.js';
 
-const application_name = 'pgblackboard';
+const application_name = 'pgBlackboard';
 
-async function main(args) {
+export default async function main(args) {
+  // TODO --help
   const flags = parse_args(args, {
     default: {
       'listen-port': '7890',
@@ -18,13 +20,11 @@ async function main(args) {
     ... await init_secret(),
   };
 
-  // TODO should we support standalone
+  // TODO should we support standalone https/h2 server?
   const server = Deno.serve({
     hostname: flags['listen-addr'],
     port: Number(flags['listen-port']),
     handler: req => respond(req, env),
-    // onListen: _ => console.log('{"event":"start"}'),
-    // TODO onError json log
   });
 
   await server.finished;
@@ -493,23 +493,11 @@ async function serve_static({ req, url }) {
   if (req.method != 'GET') {
     return Response.json('method not allowed', { status: 405 });
   }
+
   // TODO etag
-  const pathname = url.pathname.replace(/^[/]$/, '/index.html');
-  // TODO fix parent traverse
-  const file_url = import.meta.resolve('../ui' + pathname);
-  // TODO 404 when no file
-  const file_res = await fetch(file_url);
-  return new Response(file_res.body, {
-    headers: { 'content-type': get_content_type(file_url) },
-  });
-  function get_content_type(fname) {
-    if (/\.html$/.test(fname)) return 'text/html; charset=utf-8';
-    if (/\.css$/.test(fname)) return 'text/css; charset=utf-8';
-    if (/\.js$/.test(fname)) return 'text/javascript; charset=utf-8';
-    if (/\.svg$/.test(fname)) return 'image/svg+xml; charset=utf-8';
-    if (/\.ico$/.test(fname)) return 'image/vnd.microsoft.icon';
-    if (/\.woff2$/.test(fname)) return 'font/woff2';
-  }
+  const asset = await get_asset(url.pathname);
+  if (!asset) return Response.json({ error: 'not found' }, { status: 404 });
+  return new Response(asset);
 }
 
 const tree_sql = String.raw /*sql*/ `

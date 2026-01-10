@@ -1,0 +1,13 @@
+#!/bin/sh -e
+
+cd "$( dirname "$( realpath "$0" )" )"
+
+exec deno run \
+  --no-config \
+  --no-npm \
+  --no-remote \
+  --no-prompt \
+  --allow-net \
+  --allow-read=../ui \
+  --unstable-raw-imports \
+  ./pgbb.js "$@"

@@ -1,4 +1,4 @@
-.PHONY: up shell build clean ui/_vendor/* server/_vendor/*
+.PHONY: up shell dist clean ui/_vendor/* server/_vendor/*
 
 up:
 	COMPOSE_BAKE=true docker compose up --build --watch --menu=false
@@ -6,38 +6,48 @@ up:
 shell:
 	COMPOSE_BAKE=true docker compose run --build --rm --volume $(PWD):/w --workdir /w pgbb ash
 
-build: \
-	.dist/ui/index.html \
-	.dist/ui/favicon.svg \
-	.dist/ui/ui.css \
-	.dist/ui/ui.js \
-	.dist/server/pgbb.js \
-	.dist/bin/pgbb
-
 clean:
-	rm -rf .dist
+	rm -rf ui/.build dist
 
-# TODO how to deal with code-split chunks? PHONY target?
-.dist/ui/ui.js: ui/*.js # ui/*/*.js  exclude _vendor?
-	esbuild ui/ui.js --outdir=.dist/ui \
+dist: dist/pgbb.js
+
+dist/pgbb.js: \
+		ui/.build/importmap.json \
+		ui/.build/assets.js \
+		ui/.build/index.html \
+		ui/.build/favicon.svg \
+		ui/.build/style.css \
+		ui/.build/main.js \
+		ui/.build/map.js
+
+	deno bundle \
+		--unstable-raw-imports \
+		--import-map=ui/.build/importmap.json \
+		./server/pgbb.js \
+		--output=$@
+
+ui/.build/importmap.json:
+	install -D /dev/null $@
+	echo '{ "imports": { "../assets.js": "./assets.js" } }' > $@
+
+ui/.build/assets.js: ui/assets.js
+	esbuild $< --outfile=$@ --drop-labels=DEV
+
+ui/.build/%.js: ui/%.js
+	esbuild $< --outfile=$@ \
 		--bundle \
-		--format=esm \
-		--splitting \
-		--chunk-names=[name]
+		--format=esm
 
-.dist/server/pgbb.js: server/*.js # TODO imported deps
-	esbuild server/pgbb.js --outfile=$@ --bundle --format=esm
-	# deno bundle $< --output=$@ --minify
-
-.dist/%.css: %.css # TODO imported deps
+ui/.build/style.css: ui/style.css
 	esbuild $< --outfile=$@ \
 		--bundle \
 		--target=chrome100 \
 		--loader:.svg=dataurl \
 		--loader:.woff2=dataurl \
 
-.dist/%: %
+ui/.build/%: ui/%
 	install -D $< $@
+
 
 ui/_vendor/vue.js:
 	# TODO https://unpkg.com/vue@3.5.13/dist/vue.esm-browser.prod.js
@@ -65,15 +75,12 @@ server/_vendor/pgwire.js:
 server/_vendor/parse_args.js:
 	deno bundle -o $@ 'https://jsr.io/@std/cli/1.0.25/parse_args.ts'
 
-# docker run -it --rm -v $PWD:/app -w /app alpine:3.21.2
+# docker run -it --rm -v $PWD:/app -w /app alpine:3.23.2
 # apk add --no-cache make clang wasi-sdk lld flex
 # apk add --repository=https://dl-cdn.alpinelinux.org/alpine/edge/testing wabt
 
-server/psqlscan/psqlscan.wasm.js: server/psqlscan/.psqlscan.wasm
-	base64 -w0 $< | awk '{ print "export default `data:application/wasm;base64," $$0 "`;"  }' > $@
-
 # TODO -O3 not works
-server/psqlscan/.psqlscan.wasm: server/psqlscan/.psqlscan.c
+server/psqlscan/psqlscan.wasm: server/psqlscan/.psqlscan.c
 	clang --target=wasm32-wasi \
 		--sysroot=/usr/share/wasi-sysroot \
 		-nostartfiles \

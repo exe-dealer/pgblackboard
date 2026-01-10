@@ -1,4 +1,4 @@
-import { editor, Uri } from './_vendor/monaco.js';
+import { editor, Uri } from '../_vendor/monaco.js';
 import { hexwkb2t } from './wkb2t.js';
 
 export class Store {

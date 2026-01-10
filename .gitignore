@@ -1,3 +1,7 @@
 .*
-deno.lock
-deno.jsonc
+!.github
+!.dockerignore
+!.editorconfig
+!.gitignore
+
+dist

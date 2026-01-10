@@ -31,6 +31,5 @@ If you find this project useful, consider supporting its development!
 Your contributions help maintain and improve the project.
 
 [![PayPal](https://img.shields.io/badge/paypal-donate-blue?logo=paypal&logoColor=white&style=for-the-badge)](https://paypal.me/exedealer)
-
 [![Ko-fi](https://img.shields.io/badge/ko--fi-donate-blue?logo=ko-fi&logoColor=white&style=for-the-badge
 )](https://ko-fi.com/exedealer)

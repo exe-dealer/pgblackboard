@@ -1,9 +1,9 @@
-import wasm_b64url from './psqlscan.wasm.js';
+import wasm_src from './psqlscan.wasm' with { type: 'bytes' };
 // https://deno.com/blog/v2.1#first-class-wasm-support
 // but esbuild not supports wasm imports.
 
 // TODO set memory limit option?
-const wasm = await WebAssembly.instantiateStreaming(fetch(wasm_b64url));
+const wasm = await WebAssembly.instantiate(wasm_src);
 const { memory, psql_realloc, psql_free, psql_stmt_len } = wasm.instance.exports;
 
 /**
