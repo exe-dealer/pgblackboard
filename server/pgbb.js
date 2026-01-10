@@ -491,7 +491,7 @@ async function api_wake({ wakers, url }) {
 
 async function serve_static({ req, url }) {
   if (req.method != 'GET') {
-    return Response.json('method not allowed', { status: 405 });
+    return Response.json({ error: 'method not allowed' }, { status: 405 });
   }
 
   // TODO etag
