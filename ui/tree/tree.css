@@ -68,6 +68,9 @@
   &[aria-label~='table_v'] {
     mask-image: url('./marker_table_v.svg');
   }
+  &[aria-label~='table_m'] {
+    mask-image: url('./marker_table_v.svg');
+  }
   &[aria-label~='table_f'] {
     mask-image: url('./marker_table_v.svg');
   }

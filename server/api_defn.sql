@@ -46,6 +46,12 @@ select concat_ws(e'\n'
       , relname
       , pg_get_viewdef(pg_class.oid, true)
     )
+    when 'm' then format(
+      e'CREATE OR REPLACE MATERIALIZED VIEW %I.%I AS\n%s'
+      , nspname
+      , relname
+      , pg_get_viewdef(pg_class.oid, true)
+    )
     else 'CREATE TABLE'
     end
   )
