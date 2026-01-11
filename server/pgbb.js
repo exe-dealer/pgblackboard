@@ -2,6 +2,8 @@ import { parseArgs as parse_args } from './_vendor/parse_args.js';
 import { pgconnection } from './_vendor/pgwire.js';
 import { psqlscan_iter } from './psqlscan/mod.js';
 import { get_asset } from '../ui/assets.js';
+import api_tree_sql from './api_tree.sql' with { type: 'text' };
+import api_defn_sql from './api_defn.sql' with { type: 'text' };
 
 const application_name = 'pgBlackboard';
 
@@ -24,18 +26,18 @@ export default async function main(args) {
   const server = Deno.serve({
     hostname: flags['listen-addr'],
     port: Number(flags['listen-port']),
-    handler: req => respond(req, env),
+    handler: (req, inf) => respond(req, inf, env),
   });
 
   await server.finished;
 }
 
-async function respond(req, env) {
+async function respond(req, inf, env) {
   const url = new URL(req.url);
-  const ctx = { __proto__: env, req, url };
+  const remote_addr = inf.remoteAddr;
+  const ctx = { __proto__: env, req, url, remote_addr };
 
-  // TODO log response status
-  console.log(req.method, url.pathname + url.search);
+  log_request(ctx);
 
   const { method } = req;
   const path = url.pathname;
@@ -147,7 +149,7 @@ async function api_tree({ pg_uri, url, user, password }) {
     application_name,
   });
   const { rows } = await pg.query({
-    statement: tree_sql,
+    statement: api_tree_sql,
     params: [
       { type: 'text', value: ntype },
       { type: 'oid', value: noid },
@@ -178,7 +180,7 @@ async function api_defn({ pg_uri, url, user, password }) {
     application_name,
   });
   const [result] = await pg.query({
-    statement: defn_sql,
+    statement: api_defn_sql,
     params: [
       { type: 'text', value: ntype },
       { type: 'oid', value: noid },
@@ -500,282 +502,15 @@ async function serve_static({ req, url }) {
   return new Response(asset);
 }
 
-const tree_sql = String.raw /*sql*/ `
-  select text ''          db
-    , text ''             ntype
-    , oid '0'             noid
-    , text ''             ntid
-    , text '' collate "C" "name"
-    , text ''             descr
-    , text ''             mod
-    , float8 '0'          size
-    , bool 'false'        leaf
-    , int2 '0'            ord
-  where false
+function log_request({ req, url, remote_addr }) {
+  // we will trust x-forwarded-for because the server cannot be
+  // run without a reverse proxy, we don't even support https
+  const top_xff = /^.+(?=,)/.exec(req.headers.get('x-forwarded-for'))?.[0];
+  const client_addr = top_xff || remote_addr.hostname; // https://docs.deno.com/api/deno/~/Deno.Addr
+  // TODO log response status
+  console.log(client_addr, req.method, url.pathname + url.search);
 
-  -- databases
-  union all
-  select datname, 'database', null, null, datname, descr, null, null, false, 1
-  from pg_database, shobj_description(oid, 'pg_database') descr
-  where $1 is null
-    and not datistemplate
-
-  -- schemas
-  union all
-  select current_catalog, 'schema', oid, null, nspname, descr, null, null, false, 1
-  from pg_namespace, obj_description(oid, 'pg_namespace') descr
-  where 'database' = $1
-    and nspname not like all ('{ pg\\_toast , pg\\_temp\\_% , pg\\_toast\\_temp\\_% }')
-
-  -- functions
-  union all
-  select current_catalog, 'function', p.oid, null, sign, descr, mod, null, true, 2
-  from pg_proc p
-  left join pg_aggregate agg on aggfnoid = oid
-  , obj_description(p.oid, 'pg_proc') descr
-  , pg_get_function_result(p.oid) fnres
-  , format(
-    '%s (%s)%s'
-    , proname
-    , pg_get_function_identity_arguments(p.oid)
-    , e' \u2022 ' || fnres
-  ) sign
-  ,concat_ws(' '
-    , case when agg is not null then 'aggregate' end
-    , case when fnres is null then 'procedure' end
-  ) mod
-  where ('schema', pronamespace) = ($1, $2)
-
-  -- tables
-  union all
-  select current_catalog, 'table', oid, null, relname, descr, mod, size, false, 1
-  from pg_class
-  , obj_description(oid, 'pg_class') descr
-  , format('table_%s', relkind) mod
-  , nullif(reltuples, -1) size
-  where ('schema', relnamespace) = ($1, $2)
-    and relkind not in ('i', 'I', 't', 'c', 'S')
-
-  -- columns
-  union all
-  select current_catalog, 'column', attrelid, text(attnum), attname, descr, mod, null, true, attnum
-  from pg_attribute
-  , concat_ws(' '
-    , format_type(atttypid, atttypmod)
-    , case when attnotnull then 'not null' end
-    , '-- ' || col_description(attrelid, attnum)
-  ) descr
-  , concat_ws(' '
-    , (
-      select 'column_pk'
-      from pg_constraint
-      where conrelid = attrelid and contype = 'p' and attnum = any(conkey)
-      -- limit 1
-    )
-  ) mod
-  where ('table', attrelid) = ($1, $2)
-    and (attnum > 0 or attname = 'oid')
-    and not attisdropped
-
-  -- constraints
-  union all
-  select current_catalog, 'constraint', oid, null, conname, descr, mod, null, true, 10010
-  from pg_constraint
-  , obj_description(oid, 'pg_constraint') descr
-  , concat_ws(' '
-    , format('constraint_%s', contype)
-    , case when not convalidated then 'constraint_not_validated' end
-  ) mod
-  where ('table', conrelid) = ($1, $2)
-    -- and contype not in ()
-
-  -- indexes
-  union all
-  select current_catalog, 'index', indexrelid, null, relname, descr, mod, null, true, 10020
-  from pg_index join pg_class on indexrelid = oid
-  , obj_description(indexrelid, 'pg_class') descr
-  , concat_ws(' ', null) mod -- TODO uniq
-  where ('table', indrelid) = ($1, $2)
-
-  -- triggers
-  union all
-  select current_catalog, 'trigger', oid, null, tgname, descr, mod, null, true, 10030
-  from pg_trigger
-  , obj_description(oid, 'pg_trigger') descr
-  , concat_ws(' ', null) mod -- TODO tgenabled=D
-  where ('table', tgrelid) = ($1, $2)
-    and tgconstraint = 0
-
-  -- fs
-  union all
-  select current_catalog, 'dir', null, '.', './', null, null, null, false, 2
-  where $1 is null
-    and has_function_privilege('pg_ls_dir(text)', 'execute')
-
-  -- dir
-  union all
-  select current_catalog, 'dir', null, fpath, fname, null, null, null, false, 1
-  from pg_ls_dir($3) fname
-  , concat($3, '/', fname) fpath
-  , pg_stat_file(fpath) stat
-  where 'dir' = $1
-    and stat.isdir
-
-  -- file
-  union all
-  select current_catalog, 'file', null, fpath, fname, null, null, null, true, 2
-  from pg_ls_dir($3) fname
-  , concat($3, '/', fname) fpath
-  , pg_stat_file(fpath) stat
-  where 'dir' = $1
-    and not stat.isdir
-
-  order by ord, "name"
-`;
-
-
-const defn_sql = String.raw /*sql*/ `
-select format(e'\\connect %I\n\n%s', current_catalog, def)
-from substring(current_setting('server_version') from '\d+') pg_major_ver
-, lateral (
-
-  -- database
-  select concat_ws(e'\n'
-    , e'SELECT * FROM text(''hello world'');'
-    , ''
-    , format('-- https://www.postgresql.org/docs/%s/sql-alterdatabase.html', pg_major_ver)
-    , ''
-  )
-  where 'database' = $1
-
-  -- schema
-  union all
-  select concat_ws(e'\n'
-    , format('-- https://www.postgresql.org/docs/%s/sql-alterschema.html', pg_major_ver)
-    , ''
-  )
-  where 'schema' = $1
-
-  -- table
-  union all
-  select concat_ws(e'\n'
-    , 'SELECT'
-    , select_cols
-    , format('FROM %I.%I', nspname, relname)
-    , format('-- WHERE (%s) = ('''')', orderby_cols)
-    , 'ORDER BY ' || orderby_cols
-    , 'LIMIT 1000'
-    , ';'
-    , ''
-    , format('-- https://www.postgresql.org/docs/%s/sql-altertable.html', pg_major_ver)
-    , ''
-    , '/*'
-    , (
-      case relkind
-      -- view
-      when 'v' then format(
-        e'CREATE OR REPLACE VIEW %I.%I AS\n%s'
-        , nspname
-        , relname
-        , pg_get_viewdef(pg_class.oid, true)
-      )
-      else 'CREATE TABLE'
-      end
-    )
-    , '*/', ''
-  )
-  from pg_class
-  join pg_namespace on pg_class.relnamespace = pg_namespace.oid
-  left join pg_constraint pk on (contype, conrelid) = ('p', pg_class.oid)
-  , lateral (
-    select string_agg(format('  %I', attname), e',\n' order by attnum)
-      -- TODO desc indexing
-      , string_agg(format('%I', attname), ', ' order by pk_pos) filter (where pk_pos is not null)
-    from pg_attribute, array_position(pk.conkey, attnum) pk_pos
-    where attrelid = pg_class.oid and (attnum > 0 or attname = 'oid') and not attisdropped
-  ) _(select_cols, orderby_cols)
-  where ('table', pg_class.oid) = ($1, $2)
-
-  -- function
-  union all
-  select concat_ws(e'\n'
-    , pg_get_functiondef(p.oid) || ';'
-    , ''
-    , '/*'
-    , format('DROP %s %s(%s);'
-      , case when pg_get_function_result(p.oid) is null then 'PROCEDURE' else 'FUNCTION' end
-      , regproc(p.oid)
-      , pg_get_function_identity_arguments(p.oid)
-    )
-    , '*/'
-    , ''
-  )
-  from pg_proc p
-  where ('function', p.oid) = ($1, $2)
-    and not exists (select from pg_aggregate where aggfnoid = p.oid)
-
-
-  -- aggregate
-  union all
-  select concat_ws(e'\n'
-    , format('CREATE OR REPLACE AGGREGATE %s(%s) (', aggfnoid, fnargs)
-    , '   SFUNC     = ' || aggtransfn
-    , '  ,STYPE     = ' || format_type(aggtranstype, null)
-    , '  ,FINALFUNC = ' || nullif(aggfinalfn, 0)::regproc
-    , '  ,INITCOND  = ' || array_to_string(nullif(agginitval, '')::text[], ', ')
-    , '  ,SORTOP    = ' || nullif(aggsortop, 0)::regoperator
-    , ');'
-    , ''
-    , '/*'
-    , format('DROP AGGREGATE %s(%s);', aggfnoid, fnargs)
-    , '*/'
-    , ''
-  )
-  from pg_aggregate, pg_get_function_identity_arguments(aggfnoid) fnargs
-  where ('function', aggfnoid) = ($1, $2)
-
-  -- constraint
-  union all
-  select format(e''
-    'ALTER TABLE %s DROP CONSTRAINT %I;\n\n'
-    'ALTER TABLE %1$s ADD CONSTRAINT %2$I %3$s;\n'
-    , conrelid::regclass
-    , conname
-    , pg_get_constraintdef(oid)
-  )
-  from pg_constraint
-  where ('constraint', oid) = ($1, $2)
-
-  -- index
-  union all
-  select format(e''
-    'DROP INDEX %1$s;\n\n'
-    '%s\n'
-    , oid::regclass
-    , pg_get_indexdef(oid)
-  )
-  from pg_class
-  where ('index', oid) = ($1, $2)
-
-  -- trigger
-  union all
-  select format(e''
-    'DROP TRIGGER %I ON %s;\n\n'
-    '%s\n'
-    , tgname
-    , tgrelid::regclass
-    , pg_get_triggerdef(oid, true)
-  )
-  from pg_trigger
-  where ('trigger', oid) = ($1, $2)
-
-  -- file
-  union all
-  select format(e'SELECT pg_read_file(%L, 0, 5000);\n', $3)
-  where 'file' = $1
-
-) _(def)
-`;
+}
 
 if (import.meta.main) {
   await main(Deno.args);

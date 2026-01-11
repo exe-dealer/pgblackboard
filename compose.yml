@@ -1,6 +1,6 @@
 name: pgblackboard
 services:
-  pgbb:
+  dev:
     build:
       context: .
       target: dev
@@ -18,10 +18,10 @@ services:
           path: .
           target: /app
 
-  pgbbprod:
+  prod:
     image: exedealer/pgblackboard
     build: .
-    ports: [7891:7890]
+    ports: [7890:7890]
     profiles: [prod]
     # depends_on: [postgres]
     # command: [pgbb, postgres://postgres:5432]

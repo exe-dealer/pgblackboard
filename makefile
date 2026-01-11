@@ -1,10 +1,13 @@
-.PHONY: up shell dist clean ui/_vendor/* server/_vendor/*
+.PHONY: up produp shell dist clean ui/_vendor/* server/_vendor/*
 
 up:
-	COMPOSE_BAKE=true docker compose up --build --watch --menu=false
+	COMPOSE_BAKE=true docker compose up --build --watch --menu=false dev postgres
+
+produp:
+	COMPOSE_BAKE=true docker compose up --build --menu=false prod postgres
 
 shell:
-	COMPOSE_BAKE=true docker compose run --build --rm --volume $(PWD):/w --workdir /w pgbb ash
+	COMPOSE_BAKE=true docker compose run --build --rm --volume $(PWD):/w --workdir /w dev ash
 
 clean:
 	rm -rf ui/.build dist
@@ -20,23 +23,18 @@ dist/pgbb.js: \
 		ui/.build/main.js \
 		ui/.build/map.js
 
-	deno bundle \
-		--unstable-raw-imports \
+	deno bundle ./server/pgbb.js --output=$@ \
 		--import-map=ui/.build/importmap.json \
-		./server/pgbb.js \
-		--output=$@
+		--unstable-raw-imports
 
 ui/.build/importmap.json:
-	install -D /dev/null $@
-	echo '{ "imports": { "../assets.js": "./assets.js" } }' > $@
+	echo '{ "imports": { "../assets.js": "./assets.js" } }' | install -D /dev/stdin $@
 
 ui/.build/assets.js: ui/assets.js
 	esbuild $< --outfile=$@ --drop-labels=DEV
 
 ui/.build/%.js: ui/%.js
-	esbuild $< --outfile=$@ \
-		--bundle \
-		--format=esm
+	esbuild $< --outfile=$@ --bundle --format=esm
 
 ui/.build/style.css: ui/style.css
 	esbuild $< --outfile=$@ \
