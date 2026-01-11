@@ -25,6 +25,11 @@ services:
     command: [pgbb, 'postgres://HOST:5432']
 ```
 
+## Roadmap
+
+- [COPY ... FROM STDIN support](https://github.com/exedealer/pgblackboard/issues/54)
+- Geometry drawing
+
 # Sponsorship
 
 If you find this project useful, consider supporting its development!
