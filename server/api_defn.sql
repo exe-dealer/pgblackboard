@@ -52,7 +52,33 @@ select concat_ws(e'\n'
       , relname
       , pg_get_viewdef(pg_class.oid, true)
     )
-    else 'CREATE TABLE'
+    -- TODO a lot of to do, maybe pg_tabledef will be invented sometime
+    -- https://github.com/postgres/postgres/blob/540c39cc56f51b27bff9a6fc78d6524564953c6c/src/bin/pg_dump/pg_dump.c#L17093
+    -- https://www.postgresql.org/docs/current/sql-createtable.html
+    when 'r' then format(
+      e'CREATE TABLE %I.%I (\n%s\n)'
+      , nspname
+      , relname
+      , (
+        select string_agg(
+          concat_ws(' '
+            , ' '
+            , quote_ident(attname)
+            , format_type(atttypid, atttypmod)
+            , 'COLLATE "' || nullif(collname, 'default') || '"'
+            , case when attnotnull then 'NOT NULL' end
+            , 'DEFAULT (' || pg_get_expr(adbin, adrelid) || ')'
+          )
+          , e',\n'
+          order by attnum
+        )
+        from pg_attribute
+        left outer join pg_attrdef on attrelid = adrelid and adnum = attnum
+        left outer join pg_collation on pg_collation.oid = attcollation
+        where attrelid = pg_class.oid and attnum > 0 and not attisdropped
+      )
+    )
+    else 'CREATE script not implemented for this relkind'
     end
   )
   , '*/'
