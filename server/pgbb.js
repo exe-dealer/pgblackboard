@@ -230,8 +230,8 @@ async function * api_run_body({ wakers, pg_uri, req, url, user, password }) {
       database,
       password,
       statement_timeout: '1min',
-      client_min_messages: 'LOG',
     }, pg_uri, {
+      client_min_messages: 'NOTICE',
       // _debug: true,
       _maxReadBuf: 10 << 20,
       // TODO _wakeInterval: 0
@@ -509,7 +509,6 @@ function log_request({ req, url, remote_addr }) {
   const client_addr = top_xff || remote_addr.hostname; // https://docs.deno.com/api/deno/~/Deno.Addr
   // TODO log response status
   console.log(client_addr, req.method, url.pathname + url.search);
-
 }
 
 if (import.meta.main) {
