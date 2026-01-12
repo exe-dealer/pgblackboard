@@ -2,9 +2,11 @@
 
 Postgres web interface for SQL geeks
 
-- SQL-first, multi-statement scripts
-- Editable query results
-- PostGIS support
+- Write SQL in professional code editor
+- Run multi-query scripts
+- Stream results in real-time
+- Edit query results inline
+- Visualize PostGIS geometries
 
 ![screenshot](https://raw.githubusercontent.com/exedealer/pgblackboard/refs/heads/main/screenshot.png)
 
