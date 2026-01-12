@@ -52,10 +52,10 @@ ui/_vendor/vue.js:
 	wget -O $@ 'https://unpkg.com/vue@3.5.13/dist/vue.esm-browser.js'
 
 ui/_vendor/maplibre.css:
-	wget -O $@ 'https://esm.sh/maplibre-gl@5.15.0/dist/maplibre-gl.css'
+	wget -O $@ 'https://esm.sh/maplibre-gl@5.16.0/dist/maplibre-gl.css'
 	deno fmt $@
 ui/_vendor/maplibre.js:
-	wget -O $@ 'https://esm.sh/v135/maplibre-gl@5.15.0/es2022/dist/maplibre-gl-dev.development.bundle.js'
+	wget -O $@ 'https://esm.sh/v135/maplibre-gl@5.16.0/es2022/dist/maplibre-gl-dev.development.bundle.js'
 	sed -i '/^\/\/# sourceMappingURL/d' $@
 
 ui/_vendor/monaco.css:

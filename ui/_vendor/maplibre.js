@@ -1,4 +1,4 @@
-/* esm.sh - esbuild bundle(maplibre-gl@5.15.0/dist/maplibre-gl-dev) es2022 development */
+/* esm.sh - esbuild bundle(maplibre-gl@5.16.0/dist/maplibre-gl-dev) es2022 development */
 var __global$ = globalThis || (typeof window !== "undefined" ? window : self);
 var __create = Object.create;
 var __defProp = Object.defineProperty;
@@ -31,9 +31,9 @@ var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__ge
   mod
 ));
 
-// ../esmd/npm/maplibre-gl@5.15.0/node_modules/.pnpm/maplibre-gl@5.15.0/node_modules/maplibre-gl/dist/maplibre-gl-dev.js
+// ../esmd/npm/maplibre-gl@5.16.0/node_modules/.pnpm/maplibre-gl@5.16.0/node_modules/maplibre-gl/dist/maplibre-gl-dev.js
 var require_maplibre_gl_dev = __commonJS({
-  "../esmd/npm/maplibre-gl@5.15.0/node_modules/.pnpm/maplibre-gl@5.15.0/node_modules/maplibre-gl/dist/maplibre-gl-dev.js"(exports, module) {
+  "../esmd/npm/maplibre-gl@5.16.0/node_modules/.pnpm/maplibre-gl@5.16.0/node_modules/maplibre-gl/dist/maplibre-gl-dev.js"(exports, module) {
     (function(global2, factory) {
       typeof exports === "object" && typeof module !== "undefined" ? module.exports = factory() : typeof define === "function" && define.amd ? define(factory) : (global2 = typeof globalThis !== "undefined" ? globalThis : global2 || self, global2.maplibregl = factory());
     })(exports, function() {
@@ -17505,13 +17505,13 @@ ${currentIndent}`
             this.type = layer2.type;
             this._globalState = globalState;
             this._featureFilter = { filter: () => true, needGeometry: false, getGlobalStateRefs: () => /* @__PURE__ */ new Set() };
+            this._visibilityExpression = createVisibility(this.visibility, globalState);
             if (layer2.type === "custom")
               return;
             layer2 = layer2;
             this.metadata = layer2.metadata;
             this.minzoom = layer2.minzoom;
             this.maxzoom = layer2.maxzoom;
-            this._visibilityExpression = createVisibility(this.visibility, globalState);
             if (layer2.type !== "background") {
               this.source = layer2.source;
               this.sourceLayer = layer2["source-layer"];
@@ -34431,7 +34431,7 @@ ${currentIndent}`
         "use strict";
         var name = "maplibre-gl";
         var description = "BSD licensed community fork of mapbox-gl, a WebGL interactive maps library";
-        var version$2 = "5.15.0";
+        var version$2 = "5.16.0";
         var main = "dist/maplibre-gl.js";
         var style = "dist/maplibre-gl.css";
         var license = "BSD-3-Clause";
@@ -34481,7 +34481,7 @@ ${currentIndent}`
           "@rollup/plugin-strip": "^3.0.4",
           "@rollup/plugin-terser": "^0.4.4",
           "@rollup/plugin-typescript": "^12.1.4",
-          "@stylistic/eslint-plugin": "^5.6.1",
+          "@stylistic/eslint-plugin": "^5.7.0",
           "@types/benchmark": "^2.1.5",
           "@types/d3": "^7.4.3",
           "@types/earcut": "^3.0.0",
@@ -34491,7 +34491,7 @@ ${currentIndent}`
           "@types/minimist": "^1.2.5",
           "@types/murmurhash-js": "^1.0.6",
           "@types/nise": "^1.4.5",
-          "@types/node": "^25.0.0",
+          "@types/node": "^25.0.3",
           "@types/offscreencanvas": "^2019.7.3",
           "@types/pixelmatch": "^5.2.6",
           "@types/pngjs": "^6.0.5",
@@ -34500,21 +34500,21 @@ ${currentIndent}`
           "@types/request": "^2.48.13",
           "@types/shuffle-seed": "^1.1.3",
           "@types/window-or-global": "^1.0.6",
-          "@typescript-eslint/eslint-plugin": "^8.49.0",
-          "@typescript-eslint/parser": "^8.48.1",
+          "@typescript-eslint/eslint-plugin": "^8.52.0",
+          "@typescript-eslint/parser": "^8.52.0",
           "@unicode/unicode-17.0.0": "^1.6.16",
-          "@vitest/coverage-v8": "4.0.15",
-          "@vitest/eslint-plugin": "^1.5.2",
-          "@vitest/ui": "4.0.15",
+          "@vitest/coverage-v8": "4.0.16",
+          "@vitest/eslint-plugin": "^1.6.6",
+          "@vitest/ui": "4.0.16",
           address: "^2.0.3",
-          autoprefixer: "^10.4.22",
+          autoprefixer: "^10.4.23",
           benchmark: "^2.1.4",
           canvas: "^3.2.0",
           cspell: "^9.4.0",
           cssnano: "^7.1.2",
           d3: "^7.9.0",
           "d3-queue": "^3.0.7",
-          "devtools-protocol": "^0.0.1558402",
+          "devtools-protocol": "^0.0.1566079",
           diff: "^8.0.2",
           "dts-bundle-generator": "^9.5.1",
           eslint: "^9.39.2",
@@ -34524,9 +34524,9 @@ ${currentIndent}`
           "eslint-plugin-tsdoc": "0.5.0",
           expect: "^30.2.0",
           glob: "^13.0.0",
-          globals: "^16.5.0",
+          globals: "^17.0.0",
           "is-builtin-module": "^5.0.0",
-          jsdom: "^27.3.0",
+          jsdom: "^27.4.0",
           "junit-report-builder": "^5.1.1",
           minimist: "^1.2.8",
           "mock-geolocation": "^1.0.11",
@@ -34541,11 +34541,11 @@ ${currentIndent}`
           "postcss-cli": "^11.0.1",
           "postcss-inline-svg": "^6.0.0",
           "pretty-bytes": "^7.1.0",
-          puppeteer: "^24.33.0",
+          puppeteer: "^24.34.0",
           react: "^19.2.3",
           "react-dom": "^19.2.3",
           regenerate: "^1.4.2",
-          rollup: "^4.53.3",
+          rollup: "^4.55.1",
           "rollup-plugin-sourcemaps2": "^0.5.4",
           "rollup-plugin-visualizer": "^6.0.5",
           rw: "^1.3.3",
@@ -34560,7 +34560,7 @@ ${currentIndent}`
           typedoc: "^0.28.15",
           "typedoc-plugin-markdown": "^4.9.0",
           typescript: "^5.9.3",
-          vitest: "4.0.15",
+          vitest: "4.0.16",
           "vitest-webgl-canvas-mock": "^1.1.0"
         };
         var scripts = {
@@ -35652,15 +35652,16 @@ ${currentIndent}`
             const char = entry[tinySDFKey].draw(String.fromCodePoint(id));
             const topAdjustment = 27.5;
             const leftAdjustment = 0.5;
+            const isControl = /^\p{gc=Cf}+$/u.test(String.fromCodePoint(id));
             return {
               id,
               bitmap: new performance$1.AlphaImage({ width: char.width || 30 * textureScale, height: char.height || 30 * textureScale }, char.data),
               metrics: {
-                width: char.glyphWidth / textureScale || 24,
+                width: isControl ? 0 : char.glyphWidth / textureScale || 24,
                 height: char.glyphHeight / textureScale || 24,
                 left: char.glyphLeft / textureScale + leftAdjustment || 0,
                 top: char.glyphTop / textureScale - topAdjustment || -8,
-                advance: char.glyphAdvance / textureScale || 24,
+                advance: isControl ? 0 : char.glyphAdvance / textureScale || 24,
                 isDoubleResolution: true
               }
             };
@@ -37741,10 +37742,16 @@ ${currentIndent}`
               const minTileY = Math.floor(minY * tilesAtZoom);
               const maxTileX = Math.floor(maxX * tilesAtZoom);
               const maxTileY = Math.floor(maxY * tilesAtZoom);
+              const minTileXWrapped = (minTileX % tilesAtZoom + tilesAtZoom) % tilesAtZoom;
+              const maxTileXWrapped = maxTileX % tilesAtZoom;
+              const minWrap = Math.floor(minTileX / tilesAtZoom);
+              const maxWrap = Math.floor(maxTileX / tilesAtZoom);
               ranges[z] = {
-                minTileX,
+                minWrap,
+                maxWrap,
+                minTileXWrapped,
+                maxTileXWrapped,
                 minTileY,
-                maxTileX,
                 maxTileY
               };
             }
@@ -41994,7 +42001,7 @@ ${currentIndent}`
         var projectionErrorMeasurementFrag = "in vec4 v_output_error_encoded;void main() {fragColor=v_output_error_encoded;}";
         var projectionMercatorVert = "float projectLineThickness(float tileY) {return 1.0;}float projectCircleRadius(float tileY) {return 1.0;}vec4 projectTile(vec2 p) {vec4 result=u_projection_matrix*vec4(p,0.0,1.0);return result;}vec4 projectTile(vec2 p,vec2 rawPos) {vec4 result=u_projection_matrix*vec4(p,0.0,1.0);if (rawPos.y <-32767.5 || rawPos.y > 32766.5) {result.z=-10000000.0;}return result;}vec4 projectTileWithElevation(vec2 posInTile,float elevation) {return u_projection_matrix*vec4(posInTile,elevation,1.0);}vec4 projectTileFor3D(vec2 posInTile,float elevation) {return projectTileWithElevation(posInTile,elevation);}";
         var projectionGlobeVert = "#define GLOBE_RADIUS 6371008.8\nuniform highp vec4 u_projection_tile_mercator_coords;uniform highp vec4 u_projection_clipping_plane;uniform highp float u_projection_transition;uniform mat4 u_projection_fallback_matrix;vec3 globeRotateVector(vec3 vec,vec2 angles) {vec3 axisRight=vec3(vec.z,0.0,-vec.x);vec3 axisUp=cross(axisRight,vec);axisRight=normalize(axisRight);axisUp=normalize(axisUp);vec2 t=tan(angles);return normalize(vec+axisRight*t.x+axisUp*t.y);}mat3 globeGetRotationMatrix(vec3 spherePos) {vec3 axisRight=vec3(spherePos.z,0.0,-spherePos.x);vec3 axisDown=cross(axisRight,spherePos);axisRight=normalize(axisRight);axisDown=normalize(axisDown);return mat3(axisRight,axisDown,spherePos\n);}float circumferenceRatioAtTileY(float tileY) {float mercator_pos_y=u_projection_tile_mercator_coords.y+u_projection_tile_mercator_coords.w*tileY;float spherical_y=2.0*atan(exp(PI-(mercator_pos_y*PI*2.0)))-PI*0.5;return cos(spherical_y);}float projectLineThickness(float tileY) {float thickness=1.0/circumferenceRatioAtTileY(tileY); \nif (u_projection_transition < 0.999) {return mix(1.0,thickness,u_projection_transition);} else {return thickness;}}vec3 projectToSphere(vec2 translatedPos,vec2 rawPos) {vec2 mercator_pos=u_projection_tile_mercator_coords.xy+u_projection_tile_mercator_coords.zw*translatedPos;vec2 spherical;spherical.x=mercator_pos.x*PI*2.0+PI;spherical.y=2.0*atan(exp(PI-(mercator_pos.y*PI*2.0)))-PI*0.5;float len=cos(spherical.y);vec3 pos=vec3(sin(spherical.x)*len,sin(spherical.y),cos(spherical.x)*len\n);if (rawPos.y <-32767.5) {pos=vec3(0.0,1.0,0.0);}if (rawPos.y > 32766.5) {pos=vec3(0.0,-1.0,0.0);}return pos;}vec3 projectToSphere(vec2 posInTile) {return projectToSphere(posInTile,vec2(0.0,0.0));}float globeComputeClippingZ(vec3 spherePos) {return (1.0-(dot(spherePos,u_projection_clipping_plane.xyz)+u_projection_clipping_plane.w));}vec4 interpolateProjection(vec2 posInTile,vec3 spherePos,float elevation) {vec3 elevatedPos=spherePos*(1.0+elevation/GLOBE_RADIUS);vec4 globePosition=u_projection_matrix*vec4(elevatedPos,1.0);globePosition.z=globeComputeClippingZ(elevatedPos)*globePosition.w;if (u_projection_transition > 0.999) {return globePosition;}vec4 flatPosition=u_projection_fallback_matrix*vec4(posInTile,elevation,1.0);const float z_globeness_threshold=0.2;vec4 result=globePosition;result.z=mix(0.0,globePosition.z,clamp((u_projection_transition-z_globeness_threshold)/(1.0-z_globeness_threshold),0.0,1.0));result.xyw=mix(flatPosition.xyw,globePosition.xyw,u_projection_transition);if ((posInTile.y <-32767.5) || (posInTile.y > 32766.5)) {result=globePosition;const float poles_hidden_anim_percentage=0.02;result.z=mix(globePosition.z,100.0,pow(max((1.0-u_projection_transition)/poles_hidden_anim_percentage,0.0),8.0));}return result;}vec4 interpolateProjectionFor3D(vec2 posInTile,vec3 spherePos,float elevation) {vec3 elevatedPos=spherePos*(1.0+elevation/GLOBE_RADIUS);vec4 globePosition=u_projection_matrix*vec4(elevatedPos,1.0);if (u_projection_transition > 0.999) {return globePosition;}vec4 fallbackPosition=u_projection_fallback_matrix*vec4(posInTile,elevation,1.0);return mix(fallbackPosition,globePosition,u_projection_transition);}vec4 projectTile(vec2 posInTile) {return interpolateProjection(posInTile,projectToSphere(posInTile),0.0);}vec4 projectTile(vec2 posInTile,vec2 rawPos) {return interpolateProjection(posInTile,projectToSphere(posInTile,rawPos),0.0);}vec4 projectTileWithElevation(vec2 posInTile,float elevation) {return interpolateProjection(posInTile,projectToSphere(posInTile),elevation);}vec4 projectTileFor3D(vec2 posInTile,float elevation) {vec3 spherePos=projectToSphere(posInTile,posInTile);return interpolateProjectionFor3D(posInTile,spherePos,elevation);}";
-        var atmosphereFrag = "in vec3 view_direction;uniform vec3 u_sun_pos;uniform vec3 u_globe_position;uniform float u_globe_radius;uniform float u_atmosphere_blend;/**Shader use from https:*Made some change to adapt to MapLibre Globe geometry*/const float PI=3.141592653589793;const int iSteps=5;const int jSteps=3;/*radius of the planet*/const float EARTH_RADIUS=6371e3;/*radius of the atmosphere*/const float ATMOS_RADIUS=6471e3;vec2 rsi(vec3 r0,vec3 rd,float sr) {float a=dot(rd,rd);float b=2.0*dot(rd,r0);float c=dot(r0,r0)-(sr*sr);float d=(b*b)-4.0*a*c;if (d < 0.0) return vec2(1e5,-1e5);return vec2((-b-sqrt(d))/(2.0*a),(-b+sqrt(d))/(2.0*a));}vec4 atmosphere(vec3 r,vec3 r0,vec3 pSun,float iSun,float rPlanet,float rAtmos,vec3 kRlh,float kMie,float shRlh,float shMie,float g) {pSun=normalize(pSun);r=normalize(r);vec2 p=rsi(r0,r,rAtmos);if (p.x > p.y) {return vec4(0.0,0.0,0.0,1.0);}if (p.x < 0.0) {p.x=0.0;}vec3 pos=r0+r*p.x;vec2 p2=rsi(r0,r,rPlanet);if (p2.x <=p2.y && p2.x > 0.0) {p.y=min(p.y,p2.x);}float iStepSize=(p.y-p.x)/float(iSteps);float iTime=p.x+iStepSize*0.5;vec3 totalRlh=vec3(0,0,0);vec3 totalMie=vec3(0,0,0);float iOdRlh=0.0;float iOdMie=0.0;float mu=dot(r,pSun);float mumu=mu*mu;float gg=g*g;float pRlh=3.0/(16.0*PI)*(1.0+mumu);float pMie=3.0/(8.0*PI)*((1.0-gg)*(mumu+1.0))/(pow(1.0+gg-2.0*mu*g,1.5)*(2.0+gg));for (int i=0; i < iSteps; i++) {vec3 iPos=r0+r*iTime;float iHeight=length(iPos)-rPlanet;float odStepRlh=exp(-iHeight/shRlh)*iStepSize;float odStepMie=exp(-iHeight/shMie)*iStepSize;iOdRlh+=odStepRlh;iOdMie+=odStepMie;float jStepSize=rsi(iPos,pSun,rAtmos).y/float(jSteps);float jTime=jStepSize*0.5;float jOdRlh=0.0;float jOdMie=0.0;for (int j=0; j < jSteps; j++) {vec3 jPos=iPos+pSun*jTime;float jHeight=length(jPos)-rPlanet;jOdRlh+=exp(-jHeight/shRlh)*jStepSize;jOdMie+=exp(-jHeight/shMie)*jStepSize;jTime+=jStepSize;}vec3 attn=exp(-(kMie*(iOdMie+jOdMie)+kRlh*(iOdRlh+jOdRlh)));totalRlh+=odStepRlh*attn;totalMie+=odStepMie*attn;iTime+=iStepSize;}float opacity=exp(-(length(kRlh)*length(totalRlh)+kMie*length(totalMie)));vec3 color=iSun*(pRlh*kRlh*totalRlh+pMie*kMie*totalMie);return vec4(color,opacity);}void main() {vec3 scale_camera_pos=-u_globe_position*EARTH_RADIUS/u_globe_radius;vec4 color=atmosphere(normalize(view_direction),scale_camera_pos,u_sun_pos,22.0,EARTH_RADIUS,ATMOS_RADIUS,vec3(5.5e-6,13.0e-6,22.4e-6),21e-6,8e3,1.2e3,0.758\n);color.rgb=1.0-exp(-1.0*color.rgb);color=pow(color,vec4(1.0/2.2));fragColor=vec4(color.rgb,1.0-color.a)*u_atmosphere_blend;}";
+        var atmosphereFrag = "#ifdef GL_ES\nprecision highp float;\n#endif\nin vec3 view_direction;uniform vec3 u_sun_pos;uniform vec3 u_globe_position;uniform float u_globe_radius;uniform float u_atmosphere_blend;/**Shader use from https:*Made some change to adapt to MapLibre Globe geometry*/const float PI=3.141592653589793;const int iSteps=5;const int jSteps=3;/*radius of the planet*/const float EARTH_RADIUS=6371e3;/*radius of the atmosphere*/const float ATMOS_RADIUS=6471e3;vec2 rsi(vec3 r0,vec3 rd,float sr) {float a=dot(rd,rd);float b=2.0*dot(rd,r0);float c=dot(r0,r0)-(sr*sr);float d=(b*b)-4.0*a*c;if (d < 0.0) return vec2(1e5,-1e5);return vec2((-b-sqrt(d))/(2.0*a),(-b+sqrt(d))/(2.0*a));}vec4 atmosphere(vec3 r,vec3 r0,vec3 pSun,float iSun,float rPlanet,float rAtmos,vec3 kRlh,float kMie,float shRlh,float shMie,float g) {pSun=normalize(pSun);r=normalize(r);vec2 p=rsi(r0,r,rAtmos);if (p.x > p.y) {return vec4(0.0,0.0,0.0,1.0);}if (p.x < 0.0) {p.x=0.0;}vec3 pos=r0+r*p.x;vec2 p2=rsi(r0,r,rPlanet);if (p2.x <=p2.y && p2.x > 0.0) {p.y=min(p.y,p2.x);}float iStepSize=(p.y-p.x)/float(iSteps);float iTime=p.x+iStepSize*0.5;vec3 totalRlh=vec3(0,0,0);vec3 totalMie=vec3(0,0,0);float iOdRlh=0.0;float iOdMie=0.0;float mu=dot(r,pSun);float mumu=mu*mu;float gg=g*g;float pRlh=3.0/(16.0*PI)*(1.0+mumu);float pMie=3.0/(8.0*PI)*((1.0-gg)*(mumu+1.0))/(pow(1.0+gg-2.0*mu*g,1.5)*(2.0+gg));for (int i=0; i < iSteps; i++) {vec3 iPos=r0+r*iTime;float iHeight=length(iPos)-rPlanet;float odStepRlh=exp(-iHeight/shRlh)*iStepSize;float odStepMie=exp(-iHeight/shMie)*iStepSize;iOdRlh+=odStepRlh;iOdMie+=odStepMie;float jStepSize=rsi(iPos,pSun,rAtmos).y/float(jSteps);float jTime=jStepSize*0.5;float jOdRlh=0.0;float jOdMie=0.0;for (int j=0; j < jSteps; j++) {vec3 jPos=iPos+pSun*jTime;float jHeight=length(jPos)-rPlanet;jOdRlh+=exp(-jHeight/shRlh)*jStepSize;jOdMie+=exp(-jHeight/shMie)*jStepSize;jTime+=jStepSize;}vec3 attn=exp(-(kMie*(iOdMie+jOdMie)+kRlh*(iOdRlh+jOdRlh)));totalRlh+=odStepRlh*attn;totalMie+=odStepMie*attn;iTime+=iStepSize;}float opacity=exp(-(length(kRlh)*length(totalRlh)+kMie*length(totalMie)));vec3 color=iSun*(pRlh*kRlh*totalRlh+pMie*kMie*totalMie);return vec4(color,opacity);}void main() {vec3 scale_camera_pos=-u_globe_position*EARTH_RADIUS/u_globe_radius;vec4 color=atmosphere(normalize(view_direction),scale_camera_pos,u_sun_pos,22.0,EARTH_RADIUS,ATMOS_RADIUS,vec3(5.5e-6,13.0e-6,22.4e-6),21e-6,8e3,1.2e3,0.758\n);color.rgb=1.0-exp(-1.0*color.rgb);color=pow(color,vec4(1.0/2.2));fragColor=vec4(color.rgb,1.0-color.a)*u_atmosphere_blend;}";
         var atmosphereVert = "in vec2 a_pos;uniform mat4 u_inv_proj_matrix;out vec3 view_direction;void main() {view_direction=(u_inv_proj_matrix*vec4(a_pos,0.0,1.0)).xyz;gl_Position=vec4(a_pos,0.0,1.0);}";
         var skyFrag = "uniform vec4 u_sky_color;uniform vec4 u_horizon_color;uniform vec2 u_horizon;uniform vec2 u_horizon_normal;uniform float u_sky_horizon_blend;uniform float u_sky_blend;void main() {float x=gl_FragCoord.x;float y=gl_FragCoord.y;float blend=(y-u_horizon.y)*u_horizon_normal.y+(x-u_horizon.x)*u_horizon_normal.x;if (blend > 0.0) {if (blend < u_sky_horizon_blend) {fragColor=mix(u_sky_color,u_horizon_color,pow(1.0-blend/u_sky_horizon_blend,2.0));} else {fragColor=u_sky_color;}}fragColor=mix(fragColor,vec4(vec3(0.0),0.0),u_sky_blend);}";
         var skyVert = "in vec2 a_pos;void main() {gl_Position=vec4(a_pos,1.0,1.0);}";
@@ -43355,7 +43362,7 @@ uniform ${precision} ${type2} u_${name2};
           }
           clone() {
             const clone = new MercatorTransform();
-            clone.apply(this);
+            clone.apply(this, false);
             return clone;
           }
           apply(that, constrain, forceOverrideZ) {
@@ -45130,12 +45137,12 @@ uniform ${precision} ${type2} u_${name2};
           }
           clone() {
             const clone = new VerticalPerspectiveTransform();
-            clone.apply(this);
+            clone.apply(this, false);
             return clone;
           }
-          apply(that, globeLatitudeErrorCorrectionRadians) {
+          apply(that, constrain, globeLatitudeErrorCorrectionRadians) {
             this._globeLatitudeErrorCorrectionRadians = globeLatitudeErrorCorrectionRadians || 0;
-            this._helper.apply(that);
+            this._helper.apply(that, constrain);
           }
           get projectionMatrix() {
             return this._projectionMatrix;
@@ -45886,13 +45893,13 @@ uniform ${precision} ${type2} u_${name2};
             const clone = new GlobeTransform();
             clone._globeness = this._globeness;
             clone._globeLatitudeErrorCorrectionRadians = this._globeLatitudeErrorCorrectionRadians;
-            clone.apply(this);
+            clone.apply(this, false);
             return clone;
           }
-          apply(that) {
-            this._helper.apply(that);
-            this._mercatorTransform.apply(this);
-            this._verticalPerspectiveTransform.apply(this, this._globeLatitudeErrorCorrectionRadians);
+          apply(that, constrain) {
+            this._helper.apply(that, constrain);
+            this._mercatorTransform.apply(this, false);
+            this._verticalPerspectiveTransform.apply(this, false, this._globeLatitudeErrorCorrectionRadians);
           }
           get projectionMatrix() {
             return this.currentTransform.projectionMatrix;
@@ -45941,7 +45948,7 @@ uniform ${precision} ${type2} u_${name2};
             if (!this._helper._width || !this._helper._height) {
               return;
             }
-            this._verticalPerspectiveTransform.apply(this, this._globeLatitudeErrorCorrectionRadians);
+            this._verticalPerspectiveTransform.apply(this, false, this._globeLatitudeErrorCorrectionRadians);
             this._helper._nearZ = this._verticalPerspectiveTransform.nearZ;
             this._helper._farZ = this._verticalPerspectiveTransform.farZ;
             this._mercatorTransform.apply(this, true, this.isGlobeRendering);
@@ -45999,11 +46006,11 @@ uniform ${precision} ${type2} u_${name2};
           setLocationAtPoint(lnglat, point) {
             if (!this.isGlobeRendering) {
               this._mercatorTransform.setLocationAtPoint(lnglat, point);
-              this.apply(this._mercatorTransform);
+              this.apply(this._mercatorTransform, false);
               return;
             }
             this._verticalPerspectiveTransform.setLocationAtPoint(lnglat, point);
-            this.apply(this._verticalPerspectiveTransform);
+            this.apply(this._verticalPerspectiveTransform, false);
             return;
           }
           locationToScreenPoint(lnglat, terrain) {
@@ -46947,6 +46954,7 @@ uniform ${precision} ${type2} u_${name2};
             }
             this.stylesheet = nextState;
             this._serializedLayers = null;
+            this.fire(new performance$1.Event("style.load", { style: this }));
             return true;
           }
           _getOperationsToPerform(diff) {
@@ -54462,7 +54470,7 @@ ${projection.shaderPreludeCode.vertexSource}`,
            * When the style's projection is changed (or first set), this function should be called.
            */
           migrateProjection(newTransform, newCameraHelper) {
-            newTransform.apply(this.transform);
+            newTransform.apply(this.transform, true);
             this.transform = newTransform;
             this.cameraHelper = newCameraHelper;
           }
@@ -55312,9 +55320,9 @@ ${projection.shaderPreludeCode.vertexSource}`,
                 nextTransform.setPitch(pitch);
               if (bearing !== void 0)
                 nextTransform.setBearing(bearing);
-              finalTransform.apply(nextTransform);
+              finalTransform.apply(nextTransform, false);
             }
-            this.transform.apply(finalTransform);
+            this.transform.apply(finalTransform, false);
           }
           _fireMoveEvents(eventData) {
             this.fire(new performance$1.Event("move", eventData));
@@ -55958,13 +55966,13 @@ ${projection.shaderPreludeCode.vertexSource}`,
               const coord = tileID.clone();
               const mat = performance$1.createMat4f64();
               if (terrainTileID.canonical.z === tileID.canonical.z) {
-                const dx = tileID.canonical.x - terrainTileID.canonical.x;
+                const dx = tileID.canonical.x - terrainTileID.canonical.x + tileID.wrap * (1 << tileID.canonical.z);
                 const dy = tileID.canonical.y - terrainTileID.canonical.y;
                 performance$1.ortho(mat, 0, performance$1.EXTENT, performance$1.EXTENT, 0, 0, 1);
                 performance$1.translate(mat, mat, [dx * performance$1.EXTENT, dy * performance$1.EXTENT, 0]);
               } else if (terrainTileID.canonical.z > tileID.canonical.z) {
                 const dz = terrainTileID.canonical.z - tileID.canonical.z;
-                const dx = terrainTileID.canonical.x - (terrainTileID.canonical.x >> dz << dz);
+                const dx = terrainTileID.canonical.x - (terrainTileID.canonical.x >> dz << dz) + tileID.wrap * (1 << terrainTileID.canonical.z);
                 const dy = terrainTileID.canonical.y - (terrainTileID.canonical.y >> dz << dz);
                 const dx2 = tileID.canonical.x - (terrainTileID.canonical.x >> dz);
                 const dy2 = tileID.canonical.y - (terrainTileID.canonical.y >> dz);
@@ -55973,7 +55981,7 @@ ${projection.shaderPreludeCode.vertexSource}`,
                 performance$1.translate(mat, mat, [-dx * size + dx2 * performance$1.EXTENT, -dy * size + dy2 * performance$1.EXTENT, 0]);
               } else {
                 const dz = tileID.canonical.z - terrainTileID.canonical.z;
-                const dx = tileID.canonical.x - (tileID.canonical.x >> dz << dz);
+                const dx = tileID.canonical.x - (tileID.canonical.x >> dz << dz) + tileID.wrap * (1 << tileID.canonical.z);
                 const dy = tileID.canonical.y - (tileID.canonical.y >> dz << dz);
                 const dx2 = (tileID.canonical.x >> dz) - terrainTileID.canonical.x;
                 const dy2 = (tileID.canonical.y >> dz) - terrainTileID.canonical.y;
@@ -56031,7 +56039,8 @@ ${projection.shaderPreludeCode.vertexSource}`,
            * @returns
            */
           _isWithinTileRanges(tileID, canonicalTileRanges) {
-            return canonicalTileRanges[tileID.canonical.z] && tileID.canonical.x >= canonicalTileRanges[tileID.canonical.z].minTileX && tileID.canonical.x <= canonicalTileRanges[tileID.canonical.z].maxTileX && tileID.canonical.y >= canonicalTileRanges[tileID.canonical.z].minTileY && tileID.canonical.y <= canonicalTileRanges[tileID.canonical.z].maxTileY;
+            const range = canonicalTileRanges[tileID.canonical.z];
+            return !!range && (tileID.wrap > range.minWrap || tileID.wrap < range.maxWrap || tileID.canonical.x >= range.minTileXWrapped && tileID.canonical.x <= range.maxTileXWrapped && tileID.canonical.y >= range.minTileY && tileID.canonical.y <= range.maxTileY);
           }
         }
         class Terrain {
@@ -56727,9 +56736,11 @@ ${projection.shaderPreludeCode.vertexSource}`,
               if (this._lostContextStyle.images) {
                 this.style.imageManager.images = this._lostContextStyle.images;
               }
+              this._lostContextStyle = { style: null, images: null };
               this._setupPainter();
               this.resize();
               this._update();
+              this._resizeInternal();
               this.fire(new performance$1.Event("webglcontextrestored", { originalEvent: event }));
             };
             this._onMapScroll = (event) => {
@@ -57005,6 +57016,33 @@ ${projection.shaderPreludeCode.vertexSource}`,
            * ```
            */
           resize(eventData, constrainTransform = true) {
+            const isContextLost = this._lostContextStyle.style !== null;
+            if (isContextLost)
+              return this;
+            this._resizeInternal(constrainTransform);
+            const fireMoving = !this._moving;
+            if (fireMoving) {
+              this.stop();
+              this.fire(new performance$1.Event("movestart", eventData)).fire(new performance$1.Event("move", eventData));
+            }
+            this.fire(new performance$1.Event("resize", eventData));
+            if (fireMoving)
+              this.fire(new performance$1.Event("moveend", eventData));
+            return this;
+          }
+          /**
+           * Resizes the map according to the dimensions of its
+           * `container` element.
+           *
+           * It does not trigger any events, and does not check for context loss.
+           *
+           * It is used internally and by {@link Map.resize}.
+           *
+           * @internal
+           *
+           * @param constrainTransform - whether to constrain the transform after resizing.
+           */
+          _resizeInternal(constrainTransform = true) {
             const [width, height] = this._containerDimensions();
             const clampedPixelRatio = this._getClampedPixelRatio(width, height);
             this._resizeCanvas(width, height, clampedPixelRatio);
@@ -57017,15 +57055,6 @@ ${projection.shaderPreludeCode.vertexSource}`,
               this.painter.resize(width, height, clampedPixelRatio2);
             }
             this._resizeTransform(constrainTransform);
-            const fireMoving = !this._moving;
-            if (fireMoving) {
-              this.stop();
-              this.fire(new performance$1.Event("movestart", eventData)).fire(new performance$1.Event("move", eventData));
-            }
-            this.fire(new performance$1.Event("resize", eventData));
-            if (fireMoving)
-              this.fire(new performance$1.Event("moveend", eventData));
-            return this;
           }
           _resizeTransform(constrainTransform = true) {
             var _a;
@@ -58544,7 +58573,8 @@ ${projection.shaderPreludeCode.vertexSource}`,
             return this.style.getLayoutProperty(layerId, name2);
           }
           /**
-           * Sets the value of the style's glyphs property.
+          * Sets the value of the style's glyphs property. Pass a falsy value (null or undefined)
+          * to unset glyphs.
            *
            * @param glyphsUrl - Glyph URL to set. Must conform to the [MapLibre Style Specification](https://maplibre.org/maplibre-style-spec/glyphs/).
            * @param options - Options object.
@@ -58561,7 +58591,7 @@ ${projection.shaderPreludeCode.vertexSource}`,
           /**
            * Returns the value of the style's glyphs URL
            *
-           * @returns glyphs Style's glyphs url
+           * @returns glyphs Style's glyphs url, or `null` if glyphs are unset.
            */
           getGlyphs() {
             return this.style.getGlyphsUrl();
@@ -60815,7 +60845,8 @@ ${projection.shaderPreludeCode.vertexSource}`,
           className: "",
           maxWidth: "240px",
           subpixelPositioning: false,
-          locationOccludedOpacity: void 0
+          locationOccludedOpacity: void 0,
+          padding: void 0
         };
         const focusQuerySelector = [
           "a[href]",
@@ -60909,17 +60940,18 @@ ${projection.shaderPreludeCode.vertexSource}`,
               if (!anchor) {
                 const width = this._container.offsetWidth;
                 const height = this._container.offsetHeight;
+                const padding2 = normalizePadding(this.options.padding);
                 let anchorComponents;
-                if (pos.y + offset.bottom.y < height) {
+                if (pos.y + offset.bottom.y < height + padding2.top) {
                   anchorComponents = ["top"];
-                } else if (pos.y > this._map.transform.height - height) {
+                } else if (pos.y > this._map.transform.height - height - padding2.bottom) {
                   anchorComponents = ["bottom"];
                 } else {
                   anchorComponents = [];
                 }
-                if (pos.x < width / 2) {
+                if (pos.x < width / 2 + padding2.left) {
                   anchorComponents.push("left");
-                } else if (pos.x > this._map.transform.width - width / 2) {
+                } else if (pos.x > this._map.transform.width - width / 2 - padding2.right) {
                   anchorComponents.push("right");
                 }
                 if (anchorComponents.length === 0) {
@@ -61245,6 +61277,19 @@ ${projection.shaderPreludeCode.vertexSource}`,
           setSubpixelPositioning(value) {
             this.options.subpixelPositioning = value;
           }
+          /**
+           * Sets the popup's padding constraints for positioning.
+           *
+           * @param padding - The padding to apply as a {@link PaddingOptions} object.
+           * @example
+           * ```ts
+           * popup.setPadding({ top: 10, right: 20, bottom: 30, left: 40 });
+           * ```
+           */
+          setPadding(padding2) {
+            this.options.padding = padding2;
+            this._update();
+          }
           _createCloseButton() {
             if (this.options.closeButton) {
               this._closeButton = DOM.create("button", "maplibregl-popup-close-button", this._content);
@@ -61303,6 +61348,18 @@ ${projection.shaderPreludeCode.vertexSource}`,
               "right": performance$1.Point.convert(offset["right"] || [0, 0])
             };
           }
+        }
+        function normalizePadding(padding2) {
+          var _a, _b, _c, _d;
+          if (!padding2) {
+            return { top: 0, right: 0, bottom: 0, left: 0 };
+          }
+          return {
+            top: (_a = padding2.top) !== null && _a !== void 0 ? _a : 0,
+            right: (_b = padding2.right) !== null && _b !== void 0 ? _b : 0,
+            bottom: (_c = padding2.bottom) !== null && _c !== void 0 ? _c : 0,
+            left: (_d = padding2.left) !== null && _d !== void 0 ? _d : 0
+          };
         }
         const version = packageJSON.version;
         function setRTLTextPlugin(pluginURL, lazy) {
@@ -61405,7 +61462,7 @@ ${projection.shaderPreludeCode.vertexSource}`,
   }
 });
 
-// ../esmd/npm/maplibre-gl@5.15.0/build.js
+// ../esmd/npm/maplibre-gl@5.16.0/build.js
 var build_exports = {};
 __export(build_exports, {
   default: () => build_default
@@ -61422,6 +61479,6 @@ export {
 maplibre-gl/dist/maplibre-gl-dev.js:
   (**
    * MapLibre GL JS
-   * @license 3-Clause BSD. Full text of license: https://github.com/maplibre/maplibre-gl-js/blob/v5.15.0/LICENSE.txt
+   * @license 3-Clause BSD. Full text of license: https://github.com/maplibre/maplibre-gl-js/blob/v5.16.0/LICENSE.txt
    *)
 */
