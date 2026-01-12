@@ -48,8 +48,8 @@
     minmax(var(--app-pane_code_min), 1fr)
     calc(var(--app-pane_right) * var(--app-dynw) + var(--app-pane_right_min))
   ;
-  color: light-dark(hsl(0 0% 20%), hsl(0 0% 93%));
-  background-color: light-dark(hsl(0 0% 95%), hsl(0 0% 14%));
+  color: light-dark(hsl(0 0 20), hsl(0 0 93));
+  background-color: light-dark(hsl(0 0 95), hsl(0 0 14));
 }
 
 .app-measure {
@@ -88,7 +88,7 @@
   grid-area: out;
   overflow: auto;
   overscroll-behavior: none;
-  border-bottom: 1px solid hsl(0 0% 50% / .2);
+  border-bottom: 1px solid hsl(0 0 50 / .2);
   scroll-padding-top: var(--app-header_h);
 }
 
@@ -116,8 +116,8 @@
   margin-inline: .5rem;
   opacity: 1;
   transition: opacity 200ms ease;
-  background-color: light-dark(hsl(0 0% 20%), hsl(0 0% 90%));
-  color: light-dark(hsl(0 0% 95%), hsl(0 0% 20%));
+  background-color: light-dark(hsl(0 0 20), hsl(0 0 90));
+  color: light-dark(hsl(0 0 95), hsl(0 0 20));
 
   &:disabled {
     opacity: .5;
@@ -149,7 +149,7 @@
 .app-nav_bar {
   grid-area: nav_b;
   display: flex;
-  background-color: hsl(0 0% 50% / 0.1);
+  background-color: hsl(0 0 50 / 0.1);
 }
 
 .app-theme_btn {
@@ -212,7 +212,7 @@
   z-index: 100;
 
   &:active {
-    background-color: hsl(200 85% 40% / 0.45);
+    background-color: hsl(200 85 40 / 0.45);
   }
 }
 

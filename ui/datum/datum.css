@@ -3,12 +3,12 @@
 
   border: 1px solid transparent;
   &:focus-within {
-    border-color: hsl(210, 100%, 60%);
+    border-color: hsl(210 100 60);
   }
 }
 
 .datum .monaco-editor {
-  --vscode-editor-background: light-dark(hsl(0, 0%, 95%), hsl(0, 0%, 14%));
+  --vscode-editor-background: light-dark(hsl(0 0 95), hsl(0 0 14%));
   --vscode-editorGutter-background: var(--vscode-editor-background);
 }
 

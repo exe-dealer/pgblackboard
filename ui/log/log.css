@@ -3,8 +3,8 @@
   inset: auto 0;
   background: linear-gradient(to right,
     transparent 0 3rem,
-    hsl(0 0% 0% / .08) 3rem,
-    hsl(0 0% 0% / 0) 50%
+    hsl(0 0 0 / .08) 3rem,
+    hsl(0 0 0 / 0) 50%
   );
 }
 
@@ -16,7 +16,7 @@
   top: 0;
   z-index: 1;
   background-image: inherit;
-  background-color: light-dark(hsl(0 0 90%), hsl(0 0 17%));
+  background-color: light-dark(hsl(0 0 90), hsl(0 0 17));
 }
 
 .log-header_icon {
@@ -36,7 +36,7 @@
 }
 
 .log-icon_failed {
-  color: hsl(330 80% 60%);
+  color: hsl(330 80 60);
   mask-image: url('./icon_failed.svg');
 }
 
@@ -45,7 +45,7 @@
 }
 
 .log-header_text {
-  color: hsl(0 0% 50%);
+  color: hsl(0 0 50);
   white-space: nowrap;
 }
 
@@ -63,8 +63,8 @@
   text-transform: uppercase;
   text-align: center;
   cursor: pointer;
-  background: light-dark(hsl(0 0 20%), hsl(0 0 90%));
-  color: light-dark(hsl(0 0 95%), hsl(0 0 20%));
+  background: light-dark(hsl(0 0 20), hsl(0 0 90));
+  color: light-dark(hsl(0 0 95), hsl(0 0 20));
 }
 
 .log-wake_commit {
@@ -81,7 +81,7 @@
   text-transform: uppercase;
   text-align: center;
   cursor: pointer;
-  background: light-dark(hsl(330 60% 50%), hsl(330 80% 30%));
+  background: light-dark(hsl(330 60 50), hsl(330 80 30));
   color: hsl(0 0 90%);
 }
 
@@ -94,7 +94,7 @@
   position: relative; /* icon/toggler */
 
   &:nth-last-child(odd) {
-    background-color: hsl(0 0% 50% / .05);
+    background-color: hsl(0 0 50 / .05);
   }
   /* &::before {
     content: '';
@@ -142,7 +142,7 @@
   &[data-severity=ERROR i],
   &[data-severity=FATAL i],
   &[data-severity=PANIC i] {
-    color: light-dark(hsl(330 90% 38%), hsl(330 75% 65%));
+    color: light-dark(hsl(330 90 38), hsl(330 75 65));
   }
   /* &[data-severity=WARNING i] {
     color: hsl(55, 60%, 70%);

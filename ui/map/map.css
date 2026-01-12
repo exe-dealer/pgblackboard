@@ -1,6 +1,6 @@
 
 .map {
-  background-color: light-dark(hsl(205 15% 85%), hsl(0 0% 13%));
+  background-color: light-dark(hsl(205 15 85), hsl(0 0 13));
 }
 .map .maplibregl-canvas-container.maplibregl-interactive {
   cursor: default;

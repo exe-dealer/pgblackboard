@@ -13,6 +13,6 @@
   color: transparent !important;
   &::after {
     content: '\00d7!';
-    color: hsl(330 100% 60%);
+    color: hsl(330 100 60);
   }
 }
