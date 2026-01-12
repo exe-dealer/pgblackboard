@@ -121,6 +121,7 @@
 
   &:disabled {
     opacity: .5;
+    filter: contrast(.5);
   }
   &::before {
     content: attr(aria-label);
@@ -130,10 +131,10 @@
 .app-abort {
   border-radius: 1rem;
   min-width: 5rem;
-  background-color: light-dark(hsl(330 60% 50%), hsl(330 80% 30%));
+  background-color: light-dark(hsl(0 0 20), hsl(0 0 90));
+  color: light-dark(hsl(0 0 95), hsl(0 0 20));
   opacity: 1;
   transition: opacity 200ms ease 400ms;
-  color: hsl(0 0 90%);
 
   &:disabled {
     pointer-events: none;
