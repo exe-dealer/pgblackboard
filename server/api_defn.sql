@@ -29,59 +29,44 @@ select concat_ws(e'\n'
   , 'SELECT'
   , select_cols
   , format('FROM %I.%I', nspname, relname)
-  , format('-- WHERE (%s) = ('''')', orderby_cols)
   , 'ORDER BY ' || orderby_cols
   , 'LIMIT 1000'
   , ';'
-  , ''
-  , format('-- https://www.postgresql.org/docs/%s/sql-altertable.html', pg_major_ver)
-  , ''
-  , '/*'
+  ,''
   , (
-    case relkind
-    -- view
-    when 'v' then format(
-      e'CREATE OR REPLACE VIEW %I.%I AS\n%s'
-      , nspname
-      , relname
+    case
+    when relkind = 'v' then concat_ws(e'\n'
+      , format('/* https://www.postgresql.org/docs/%s/sql-alterview.html', pg_major_ver)
+      , ''
+      , format('CREATE OR REPLACE VIEW %I.%I AS', nspname, relname)
       , pg_get_viewdef(pg_class.oid, true)
+      , ''
+      ,'*/'
     )
-    when 'm' then format(
-      e'CREATE OR REPLACE MATERIALIZED VIEW %I.%I AS\n%s'
-      , nspname
-      , relname
+    when relkind = 'm' then concat_ws(e'\n'
+      , format('/* https://www.postgresql.org/docs/%s/sql-altermaterializedview.html', pg_major_ver)
+      , ''
+      , format('CREATE OR REPLACE MATERIALIZED VIEW %I.%I AS', nspname, relname)
       , pg_get_viewdef(pg_class.oid, true)
+      , ''
+      ,'*/'
     )
-    -- TODO a lot of to do, maybe pg_tabledef will be invented sometime
+    -- TODO a lot of to do, maybe pg_get_tabledef will be invented sometime
     -- https://github.com/postgres/postgres/blob/540c39cc56f51b27bff9a6fc78d6524564953c6c/src/bin/pg_dump/pg_dump.c#L17093
+    -- https://www.postgresql.org/message-id/flat/CAFEN2wxsDSSuOvrU03CE33ZphVLqtyh9viPp6huODCDx2UQkYA%40mail.gmail.com
     -- https://www.postgresql.org/docs/current/sql-createtable.html
-    when 'r' then format(
-      e'CREATE TABLE %I.%I (\n%s\n)'
-      , nspname
-      , relname
-      , (
-        select string_agg(
-          concat_ws(' '
-            , ' '
-            , quote_ident(attname)
-            , format_type(atttypid, atttypmod)
-            , 'COLLATE "' || nullif(collname, 'default') || '"'
-            , case when attnotnull then 'NOT NULL' end
-            , 'DEFAULT (' || pg_get_expr(adbin, adrelid) || ')'
-          )
-          , e',\n'
-          order by attnum
-        )
-        from pg_attribute
-        left outer join pg_attrdef on attrelid = adrelid and adnum = attnum
-        left outer join pg_collation on pg_collation.oid = attcollation
-        where attrelid = pg_class.oid and attnum > 0 and not attisdropped
-      )
+    when relkind in ('r', 'p') then concat_ws(e'\n'
+      , format('/* https://www.postgresql.org/docs/%s/sql-altertable.html', pg_major_ver)
+      , ''
+      , format('CREATE TABLE %I.%I (', nspname, relname)
+      , col_defs
+      , ');'
+      , ''
+      , '*/'
     )
-    else 'CREATE script not implemented for this relkind'
+    else '/* CREATE script not implemented for this relkind */'
     end
   )
-  , '*/'
   , ''
 )
 from substring(current_setting('server_version') from '\d+') pg_major_ver
@@ -90,11 +75,23 @@ join pg_namespace on pg_class.relnamespace = pg_namespace.oid
 left join pg_constraint pk on (contype, conrelid) = ('p', pg_class.oid)
 , lateral (
   select string_agg(format('  %I', attname), e',\n' order by attnum)
-    -- TODO desc indexing
+    -- TODO descending indexing
     , string_agg(format('%I', attname), ', ' order by pk_pos) filter (where pk_pos is not null)
-  from pg_attribute, array_position(pk.conkey, attnum) pk_pos
+    , string_agg(col_def, e',\n' order by attnum) filter (where attname != 'oid')
+  from pg_attribute
+  left join pg_attrdef on attrelid = adrelid and adnum = attnum
+  left join pg_collation on pg_collation.oid = attcollation
+  , array_position(pk.conkey, attnum) pk_pos
+  , concat_ws(' '
+    , ' '
+    , quote_ident(attname)
+    , format_type(atttypid, atttypmod)
+    , 'COLLATE "' || nullif(collname, 'default') || '"'
+    , case when attnotnull then 'NOT NULL' end
+    , 'DEFAULT (' || pg_get_expr(adbin, adrelid) || ')'
+  ) col_def
   where attrelid = pg_class.oid and (attnum > 0 or attname = 'oid') and not attisdropped
-) _(select_cols, orderby_cols)
+) _(select_cols, orderby_cols, col_defs)
 where ('table', pg_class.oid) = ($1, $2)
 
 -- function
@@ -117,7 +114,6 @@ from pg_proc p
 where ('function', p.oid) = ($1, $2)
   and not exists (select from pg_aggregate where aggfnoid = p.oid)
 
-
 -- aggregate
 union all
 select concat_ws(e'\n'
@@ -131,13 +127,33 @@ select concat_ws(e'\n'
   , '  ,SORTOP    = ' || nullif(aggsortop, 0)::regoperator
   , ');'
   , ''
-  , '/*'
-  , format('DROP AGGREGATE %s(%s);', aggfnoid, fnargs)
-  , '*/'
+  -- , '/*'
+  -- , format('DROP AGGREGATE %s(%s);', aggfnoid, fnargs)
+  -- , '*/'
   , ''
 )
 from pg_aggregate, pg_get_function_identity_arguments(aggfnoid) fnargs
 where ('function', aggfnoid) = ($1, $2)
+
+-- column
+union all
+select concat_ws(e'\n'
+  , format('\connect %I', current_catalog)
+  , ''
+  , format('/* https://www.postgresql.org/docs/%s/sql-altertable.html'
+    , substring(current_setting('server_version') from '\d+')
+  )
+  , ''
+  , format('ALTER TABLE %s ALTER COLUMN %I ... ;', attrelid::regclass, attname)
+  , ''
+  , format('ALTER TABLE %s RENAME COLUMN %I TO %s;', attrelid::regclass, attname, attname)
+  , ''
+  , format('ALTER TABLE %s D_ROP COLUMN %I;', attrelid::regclass, attname)
+  , ''
+  , '*/'
+)
+from pg_attribute
+where ('column', attrelid, attnum::text) = ($1, $2, $3)
 
 -- constraint
 union all
