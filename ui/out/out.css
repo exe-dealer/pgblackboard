@@ -138,7 +138,7 @@
   /* TODO move to render_cell_value() */
   &[data-null]::before {
     content: 'NULL';
-    font-style: italic;
+    font-weight: 500;
   }
   &[data-unset]::before {
     content: '\2022\2022\2022';

@@ -29,8 +29,7 @@
   }
 
   &:empty::after {
-    content: 'empty';
-    font-style: italic;
+    content: '-- empty --';
     opacity: .7;
   }
 
