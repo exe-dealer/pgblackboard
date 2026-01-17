@@ -1,20 +1,53 @@
 import { parseArgs as parse_args } from './_vendor/parse_args.js';
 import { pgconnection } from './_vendor/pgwire.js';
 import { psqlscan_iter } from './psqlscan/mod.js';
-import { get_asset } from '../ui/assets.js';
-import api_tree_sql from './api_tree.sql' with { type: 'text' };
-import api_defn_sql from './api_defn.sql' with { type: 'text' };
+import api_tree_sql from './api_tree.sql' with { type: 'bytes' };
+import api_defn_sql from './api_defn.sql' with { type: 'bytes' };
+import index_html from '../ui/index.html' with { type: 'bytes' };
+// import app_version from './version.json' with { type: 'json' };
+
+const help_msg = `
+pgBlackboard: Postgres web interface for SQL geeks
+
+USAGE:
+  pgbb [OPTIONS] 'postgres://host:port?params'
+
+OPTIONS:
+  -p, --listen-port  HTTP server listen port (default 7890)
+  -a, --listen-addr  HTTP server host (default 0.0.0.0)
+  -h, --help         show help message
+`;
 
 const application_name = 'pgBlackboard';
 
-export default async function main(args) {
-  // TODO --help
+if (import.meta.main) {
+  await main(Deno.args);
+}
+
+async function main(args) {
   const flags = parse_args(args, {
+    // https://jsr.io/@std/cli/1.0.25/parse_args.ts#L322
+    boolean: ['help'],
+    string: ['listen-addr', 'listen-port'],
+    alias: {
+      'p': 'listen-port',
+      'a': 'listen-addr',
+      'h': 'help',
+    },
     default: {
       'listen-port': '7890',
-      // 'listen-addr': '0.0.0.0',
+    },
+    unknown(arg, unknown_key) {
+      if (unknown_key) throw Error(`unknown flag "${arg}"`);
+      return true; // pass positional args
     },
   });
+
+  if (flags['help']) {
+    return console.log(help_msg);
+  }
+
+  // console.log('pgBlackboard', app_version);
 
   const env = {
     pg_uri: flags._[0],
@@ -27,6 +60,9 @@ export default async function main(args) {
     hostname: flags['listen-addr'],
     port: Number(flags['listen-port']),
     handler: (req, inf) => respond(req, inf, env),
+    onListen({ port, hostname }) {
+      console.log('listening on %s:%s', hostname, port);
+    },
   });
 
   await server.finished;
@@ -44,19 +80,27 @@ async function respond(req, inf, env) {
 
   // TODO GET / dynamic <title>{application_name}</title>
 
-  if (path == '/' && method == 'POST') {
-    const qs_api = url.searchParams.get('api');
-    if (qs_api == 'auth') return api_auth(ctx);
-    if (qs_api == 'wake') return api_wake(ctx); // TODO auth
+  if (path == '/') {
+    if (method == 'GET' || method == 'HEAD') {
+      return serve_index(ctx);
+    }
 
-    const r = await authorize(ctx);
-    if (r) return r;
+    if (method == 'POST') {
+      const qs_api = url.searchParams.get('api');
+      if (qs_api == 'auth') return api_auth(ctx);
+      if (qs_api == 'wake') return api_wake(ctx); // TODO auth
 
-    if (qs_api == 'tree') return api_tree(ctx);
-    if (qs_api == 'defn') return api_defn(ctx);
-    if (qs_api == 'run') return api_run(ctx);
+      const unauthorized_res = await authorize(ctx);
+      if (unauthorized_res) return unauthorized_res;
 
-    return Response.json({ error: 'uknown api' }, { status: 400 });
+      if (qs_api == 'tree') return api_tree(ctx);
+      if (qs_api == 'defn') return api_defn(ctx);
+      if (qs_api == 'run') return api_run(ctx);
+
+      return Response.json({ error: 'uknown api' }, { status: 400 });
+    }
+
+    return Response.json({ error: 'method not allowed' }, { status: 405 });
   }
 
   if (path == '/favicon.ico') {
@@ -109,7 +153,16 @@ async function api_auth({ pg_uri, secret, req, url }) {
   // TODO body size limit
   const { password } = await req.json(); // base64 ?
   // TODO block weak password ?
-  const pg = pgconnection({ password, user }, pg_uri, { database: 'postgres', application_name });
+  const pg = pgconnection(
+    { password, user },
+    pg_uri,
+    {
+      database: 'postgres',
+      application_name,
+      // https://www.postgresql.org/docs/current/libpq-connect.html#LIBPQ-CONNECT-REQUIRE-AUTH
+      // TODO require_auth: 'scram-sha-256,md5'
+    },
+  );
   try {
     await pg.query();
   } catch (ex) {
@@ -230,6 +283,7 @@ async function * api_run_body({ wakers, pg_uri, req, url, user, password }) {
       database,
       password,
       statement_timeout: '1min',
+      // 'pgbb.version': app_version,
     }, pg_uri, {
       client_min_messages: 'NOTICE',
       // _debug: true,
@@ -491,15 +545,44 @@ async function api_wake({ wakers, url }) {
   return Response.json({ ok: true });
 }
 
+async function serve_index(_ctx) {
+  return new Response(index_html, {
+    headers: { 'content-type': 'text/html; charset=utf-8' },
+  });
+}
+
 async function serve_static({ req, url }) {
   if (req.method != 'GET') {
     return Response.json({ error: 'method not allowed' }, { status: 405 });
   }
 
-  // TODO etag
-  const asset = await get_asset(url.pathname);
-  if (!asset) return Response.json({ error: 'not found' }, { status: 404 });
-  return new Response(asset);
+  const { pathname } = url;
+  // TODO check for parent traverse? seems that req.url is already sanitized
+  const file_url = import.meta.resolve('../ui' + pathname);
+  let res;
+  try {
+    res = await fetch(file_url);
+  } catch {
+    // TODO no way to detect file_not_found when using fetch
+    // https://github.com/denoland/deno/blob/9006b37ea61590ff3f55ee3acf1f3677ae57e55e/ext/fetch/fs_fetch_handler.rs
+    return Response.json({ error: 'not found' }, { status: 404 });
+  }
+
+  return new Response(res.body, {
+    headers: {
+      // TODO etag
+      'content-type': get_content_type(pathname),
+    },
+  });
+
+  function get_content_type(fname) {
+    // if (/\.html$/.test(fname)) return 'text/html; charset=utf-8';
+    // if (/\.ico$/.test(fname)) return 'image/vnd.microsoft.icon';
+    if (/\.css$/.test(fname)) return 'text/css; charset=utf-8';
+    if (/\.js$/.test(fname)) return 'text/javascript; charset=utf-8';
+    if (/\.svg$/.test(fname)) return 'image/svg+xml; charset=utf-8';
+    if (/\.woff2$/.test(fname)) return 'font/woff2';
+  }
 }
 
 function log_request({ req, url, remote_addr }) {
@@ -509,8 +592,4 @@ function log_request({ req, url, remote_addr }) {
   const client_addr = top_xff || remote_addr.hostname; // https://docs.deno.com/api/deno/~/Deno.Addr
   // TODO log response status
   console.log(client_addr, req.method, url.pathname + url.search);
-}
-
-if (import.meta.main) {
-  await main(Deno.args);
 }

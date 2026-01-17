@@ -1,14 +1,9 @@
 import monaco_worker from './_vendor/monaco_worker.js';
 import monaco_json_worker from './_vendor/monaco_json_worker.js';
 import { editor } from './_vendor/monaco.js';
-import { createApp, reactive, watch, h as create_vnode, computed, defineAsyncComponent } from './_vendor/vue.js';
+import { createApp, reactive, watch, h as create_vnode, computed } from './_vendor/vue.js';
 import { Store } from './store/store.js';
 import xRoot from './app/app.js';
-
-const xMapModule = import(String('./map.js'));
-const xMap = defineAsyncComponent({
-  loader: _ => xMapModule,
-});
 
 globalThis.MonacoEnvironment = {
   getWorker(_module_id, label) {
@@ -61,7 +56,6 @@ watch(
 );
 
 const app = createApp(create_vnode(xRoot));
-app.config.globalProperties.$xMap = xMap; // TODO eek
 app.config.globalProperties.$store = store;
 app.config.globalProperties.$cached = function (fn) {
   const c = fn._vue_computed ||= computed(fn);

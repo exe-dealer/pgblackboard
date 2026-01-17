@@ -1,6 +1,7 @@
 import xAuth from '../auth/auth.js';
 import xCode from '../code/code.js';
 import xOut from '../out/out.js';
+import xMap from '../map/map_async.js';
 // import xTable from '../table/table.js';
 import xDrafts from '../drafts/drafts.js';
 import xTree from '../tree/tree.js';
@@ -108,8 +109,7 @@ const methods = {
         },
 
         { tag: xDatum, class: 'app-datum' },
-        // TODO this component injection looks like dirty hack
-        { tag: this.$xMap, class: 'app-map' },
+        { tag: xMap, class: 'app-map' },
 
         // TODO aria https://www.w3.org/WAI/ARIA/apg/patterns/windowsplitter/
         { tag: xGrip, class: 'app-split_left', origin: panes, onDrag: this.resize_left },

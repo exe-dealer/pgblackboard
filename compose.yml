@@ -19,7 +19,7 @@ services:
           target: /app
 
   prod:
-    image: exedealer/pgblackboard
+    # image: exedealer/pgblackboard
     build: .
     ports: [7890:7890]
     profiles: [prod]
@@ -27,4 +27,4 @@ services:
     # command: [pgbb, postgres://postgres:5432]
 
   postgres:
-    image: kagiskz/postgres:18.1-20251211
+    image: kagiskz/postgres:18.1-20251218

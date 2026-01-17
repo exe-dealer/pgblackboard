@@ -1,51 +1,45 @@
 .PHONY: up produp shell dist clean ui/_vendor/* server/_vendor/*
 
+export COMPOSE_BAKE=true
+
 up:
-	COMPOSE_BAKE=true docker compose up --build --watch --menu=false dev postgres
+	docker compose up --build --watch --menu=false dev postgres
 
 produp:
-	COMPOSE_BAKE=true docker compose up --build --menu=false prod postgres
+	docker compose up --build --menu=false prod postgres
 
 shell:
-	COMPOSE_BAKE=true docker compose run --build --rm --volume $(PWD):/w --workdir /w dev ash
+	docker compose run --build --rm --volume $(PWD):/w --workdir /w dev ash
 
 clean:
-	rm -rf ui/.build dist
+	rm -rf dist
 
-dist: dist/pgbb.js
+dist: \
+		dist/server/pgbb \
+		dist/server/pgbb.js \
+		dist/ui/favicon.svg \
+		dist/ui/style.css \
+		dist/ui/main.js
 
-dist/pgbb.js: \
-		ui/.build/importmap.json \
-		ui/.build/assets.js \
-		ui/.build/index.html \
-		ui/.build/favicon.svg \
-		ui/.build/style.css \
-		ui/.build/main.js \
-		ui/.build/map.js
+dist/server/pgbb.js:
+	esbuild ./server/pgbb.js --outfile=$@ --bundle --format=esm
 
-	deno bundle ./server/pgbb.js --output=$@ \
-		--import-map=ui/.build/importmap.json \
-		--unstable-raw-imports
+dist/ui/main.js:
+	esbuild ui/main.js --outdir=dist/ui \
+		--bundle \
+		--format=esm \
+		--splitting \
+		--chunk-names=[name]
 
-ui/.build/importmap.json:
-	echo '{ "imports": { "../assets.js": "./assets.js" } }' | install -D /dev/stdin $@
-
-ui/.build/assets.js: ui/assets.js
-	esbuild $< --outfile=$@ --drop-labels=DEV
-
-ui/.build/%.js: ui/%.js
-	esbuild $< --outfile=$@ --bundle --format=esm
-
-ui/.build/style.css: ui/style.css
+dist/ui/style.css: ui/style.css
 	esbuild $< --outfile=$@ \
 		--bundle \
 		--target=chrome100 \
 		--loader:.svg=dataurl \
 		--loader:.woff2=dataurl \
 
-ui/.build/%: ui/%
+dist/%: %
 	install -D $< $@
-
 
 ui/_vendor/vue.js:
 	# TODO https://unpkg.com/vue@3.5.13/dist/vue.esm-browser.prod.js
